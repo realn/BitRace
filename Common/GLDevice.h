@@ -2,6 +2,7 @@
 
 #include "Log.h"
 
+#define _USE_MATH_DEFINES
 #define WIN32_LEAN_AND_MEAN
 #define GLEW_STATIC
 

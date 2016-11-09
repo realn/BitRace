@@ -10,14 +10,13 @@
 #	define FGX_VERSION	100
 #endif
 
-struct FGXHEADER
-{
-	char			FILEID[3];
-	unsigned int	FILEVERSION;
-	unsigned int	IMAGEWIDTH;
-	unsigned int	IMAGEHEIGHT;
-	unsigned int	IMAGEDEPTH;
-	unsigned int	FLAGS;
+struct FGXHEADER {
+  char			FILEID[3];
+  unsigned int	FILEVERSION;
+  unsigned int	IMAGEWIDTH;
+  unsigned int	IMAGEHEIGHT;
+  unsigned int	IMAGEDEPTH;
+  unsigned int	FLAGS;
 };
 
 #define FGX_RLE_COMPRESS	0x00000001

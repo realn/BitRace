@@ -4,20 +4,19 @@
 #include "../Common/Vector.h"
 #include <vector>
 
-class CSpace
-{
+class CSpace {
 private:
-	UINT				m_uVBOVertex;
-	std::vector<float>	m_afVertex;
-	std::vector<UINT>	m_auIndex;
-	float	m_afQuadVertex[12];
-	UINT	m_auQuadIndex[6];
+  UINT				m_uVBOVertex;
+  std::vector<float>	m_afVertex;
+  std::vector<UINT>	m_auIndex;
+  float	m_afQuadVertex[12];
+  UINT	m_auQuadIndex[6];
 
 public:
-	CSpace();
-	~CSpace();
+  CSpace();
+  ~CSpace();
 
-	void Free();
-	bool Generate( float fWidth, float fHeight, unsigned int uCountX, unsigned int uCountY, float fY );
-	void Render( vec3 vColor );
+  void Free();
+  bool Generate(float fWidth, float fHeight, unsigned int uCountX, unsigned int uCountY, float fY);
+  void Render(vec3 vColor);
 };

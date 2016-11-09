@@ -38,5 +38,11 @@
     <ClCompile Include="Log.cpp">
       <Filter>Logger</Filter>
     </ClCompile>
+    <ClCompile Include="Files.cpp">
+      <Filter>File</Filter>
+    </ClCompile>
+    <ClCompile Include="IniFiles.cpp">
+      <Filter>File</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
