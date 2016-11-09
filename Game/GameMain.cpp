@@ -20,7 +20,7 @@ int CGame::MainLoop() {
       DispatchMessage(&msg);
     }
 
-    this->Engine();
+    this->Update();
     this->Render();
   }
 

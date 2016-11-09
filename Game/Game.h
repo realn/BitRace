@@ -9,6 +9,8 @@
 
 #define DXRELEASE( A ) if( A != NULL ){ A->Release(); A = NULL; }
 
+#include <SDL.h>
+
 #include "../Common/GLDevice.h"
 #include "../Common/Vector.h"
 #include "../Common/Files.h"
@@ -28,8 +30,8 @@ extern PFNWGLGETSWAPINTERVALEXTPROC	wglGetSwapIntervalEXT;
 
 class CGame {
 private:
-  HWND		m_hWnd;
-  CGLDevice	m_cGLDevice;
+  SDL_Window*   m_pWindow;
+  SDL_GLContext m_pGLContext;
   CGUI		m_cGUI;
 
   LPDIRECTINPUT8			m_cDInput;
@@ -134,10 +136,10 @@ public:
   void FreeOpenGL();
   void FreeGame();
 
-  void Engine();
-  void EngineApp();
-  void EngineMenu();
-  void EngineGame();
+  void Update();
+  void UpdateLogic(const float timeDelta);
+  void UpdateMenu(const float timeDelta);
+  void UpdateGame(const float timeDelta);
   void Render();
   void RenderMenu();
   void RenderGame();

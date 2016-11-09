@@ -74,7 +74,7 @@ void CGame::Render() {
     m_bTakeScreen = false;
   }
 
-  this->m_cGLDevice.Swap();
+  SDL_GL_SwapWindow(this->m_pWindow);
 }
 
 void CGame::RenderGame() {

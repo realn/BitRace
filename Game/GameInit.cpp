@@ -1,10 +1,14 @@
 #include "Game.h"
 
+#pragma comment(lib, "SDL2.lib")
+#pragma comment(lib, "SDL2main.lib")
+
 PFNWGLSWAPINTERVALEXTPROC		wglSwapIntervalEXT = NULL;
 PFNWGLGETSWAPINTERVALEXTPROC	wglGetSwapIntervalEXT = NULL;
 
 CGame::CGame() :
-  m_hWnd(NULL),
+  m_pWindow(NULL),
+  m_pGLContext(NULL),
   m_cDInput(NULL),
   m_cDIKey(NULL),
   m_cDIMouse(NULL),
@@ -17,7 +21,10 @@ CGame::CGame() :
   m_fBlurTexAlpha(0.3f),
   m_uGameState(GS_INTRO),
   m_uBlurTexture(0),
-  m_uBlurTexSize(64) {
+  m_uBlurTexSize(64) 
+{
+  SDL_Init(0);
+
   GInst = this;
 }
 
@@ -69,33 +76,26 @@ bool CGame::Init(std::string strCmdLine) {
 }
 
 bool CGame::InitWindow(std::string strTitle) {
-  WNDCLASSEX WC;
-  memset(&WC, 0, sizeof(WNDCLASSEX));
-  WC.cbSize = sizeof(WNDCLASSEX);
-  WC.hInstance = GetModuleHandle(NULL);
-  WC.lpfnWndProc = (WNDPROC)WndProc;
-  WC.lpszClassName = GAME_WCLASS;
-  WC.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-
-  if (!RegisterClassEx(&WC))
-    return false;
-
-  DWORD Style = 0;
-
-  if (!ScrParam.bFullscreen)
-    Style = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
-  else Style = WS_POPUP;
-
-  this->m_hWnd = CreateWindowEx(0, GAME_WCLASS, strTitle.c_str(),
-                                Style, 0, 0, int(ScrParam.uWidth), int(ScrParam.uHeight),
-                                NULL, NULL, GetModuleHandle(NULL), NULL);
-  if (this->m_hWnd == NULL) {
-    UnregisterClass(GAME_WCLASS, GetModuleHandle(NULL));
+  if(SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
+    Log_Error("Failed initializing SDL.");
     return false;
   }
 
-  ShowWindow(m_hWnd, SW_SHOW);
+  int winFlags = SDL_WINDOW_OPENGL;
+  if(ScrParam.bFullscreen) {
+    winFlags |= SDL_WINDOW_FULLSCREEN;
+    winFlags |= SDL_WINDOW_BORDERLESS;
+  }
+  this->m_pWindow = SDL_CreateWindow(strTitle.c_str(),
+                                     0, 0,
+                                     int(ScrParam.uWidth), int(ScrParam.uHeight),
+                                     winFlags);
+  if(this->m_pWindow == nullptr) {
+    Log_Error("Failed to create window.");
+    return false;
+  }
 
+  SDL_ShowWindow(this->m_pWindow);
   return true;
 }
 
@@ -116,31 +116,30 @@ bool CGame::InitDevice() {
     return false;
   }
 
+  HWND pWindow = reinterpret_cast<HWND>(SDL_GetWindowID(this->m_pWindow));
+
   this->m_cDIKey->SetDataFormat(&c_dfDIKeyboard);
-  this->m_cDIKey->SetCooperativeLevel(this->m_hWnd, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
+  this->m_cDIKey->SetCooperativeLevel(pWindow, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
   this->m_cDIKey->Acquire();
 
   this->m_cDIMouse->SetDataFormat(&c_dfDIMouse2);
-  this->m_cDIMouse->SetCooperativeLevel(this->m_hWnd, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
+  this->m_cDIMouse->SetCooperativeLevel(pWindow, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
   this->m_cDIMouse->Acquire();
 
-  PIXELFORMATDESCRIPTOR pfd;
-  memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
-  pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-  pfd.nVersion = 1;
-  pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
-  pfd.iPixelType = PFD_TYPE_RGBA;
-  pfd.cColorBits = BYTE(ScrParam.uColorBits);
-  pfd.cDepthBits = 32;
-  pfd.cStencilBits = 8;
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
+  SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, int(ScrParam.uColorBits));
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
 
-  if (!this->m_cGLDevice.EnableGL(this->m_hWnd, &pfd)) {
-    this->FreeDevice();
+  this->m_pGLContext = SDL_GL_CreateContext(this->m_pWindow);
+  if(this->m_pGLContext == nullptr) {
+    Log_Error("Failed to create OpenGL Context.");
     return false;
   }
 
-  this->m_cGLDevice.Activate();
-  m_cGUI.Init(&m_cGLDevice);
+  SDL_GL_MakeCurrent(this->m_pWindow, this->m_pGLContext);
+
+  m_cGUI.Init(NULL);
   srand(GetTickCount());
 
   return true;
@@ -187,7 +186,8 @@ bool CGame::InitOpenGL() {
   glColor3f(1.0f, 1.0f, 1.0f);
   m_cGUI.Print(100.0f, 200.0f, "Please wait, loading game...");
   m_cGUI.GUIMode_End();
-  m_cGLDevice.Swap();
+
+  SDL_GL_SwapWindow(this->m_pWindow);
 
   glGenTextures(1, &m_uBlurTexture);
   glBindTexture(GL_TEXTURE_2D, m_uBlurTexture);

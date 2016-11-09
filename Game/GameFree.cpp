@@ -3,6 +3,8 @@
 CGame::~CGame() {
   Free();
   GInst = NULL;
+
+  SDL_Quit();
 }
 
 void CGame::Free() {
@@ -14,27 +16,25 @@ void CGame::Free() {
 }
 
 void CGame::FreeWindow() {
-  if (this->m_hWnd != NULL) {
-    if (IsWindow(this->m_hWnd)) {
-      DestroyWindow(this->m_hWnd);
-    }
-    this->m_hWnd = NULL;
-  }
-  WNDCLASSEX wc = { 0 };
-  if (GetClassInfoEx(GetModuleHandle(NULL), GAME_WCLASS, &wc)) {
-    UnregisterClass(GAME_WCLASS, GetModuleHandle(NULL));
+  if(this->m_pWindow) {
+    SDL_DestroyWindow(this->m_pWindow);
+    this->m_pWindow = nullptr;
   }
 }
 
 void CGame::FreeDevice() {
-  if (this->m_cGLDevice.IsEnabled())
-    this->m_cGLDevice.DisableGL();
+  if(this->m_pGLContext) {
+    SDL_GL_DeleteContext(this->m_pGLContext);
+    this->m_pGLContext = nullptr;
+  }
 
   DXRELEASE(this->m_cDIMouse);
   DXRELEASE(this->m_cDIKey);
   DXRELEASE(this->m_cDInput);
   if (ScrParam.bFullscreen)
     ChangeDisplaySettings(NULL, 0);
+
+  SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
 void CGame::FreeOpenGL() {
