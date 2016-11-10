@@ -1,5 +1,8 @@
 #include "Model.h"
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
 CModel	g_Model[MODELTYPE_COUNT];
 
 CModel::CModel() : m_uModelType(0) {
@@ -20,7 +23,7 @@ void CModel::Free() {
     glDeleteBuffersARB(1, &m_uVBOVertex);
 }
 
-bool CModel::Generate(UINT uModelType) {
+bool CModel::Generate(unsigned uModelType) {
   switch (uModelType) {
   default:
   case MT_NONE:
@@ -346,7 +349,7 @@ void CModel::AddVertex(float x, float y, float z) {
   m_afVertex.push_back(z);
 }
 
-void CModel::AddTriangle(UINT v1, UINT v2, UINT v3) {
+void CModel::AddTriangle(unsigned v1, unsigned v2, unsigned v3) {
   m_auIndexTriangles.push_back(v1);
   m_auIndexTriangles.push_back(v2);
   m_auIndexTriangles.push_back(v3);
@@ -381,14 +384,14 @@ void CModel::Render() {
   glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-UINT CModel::GetModelType() {
+unsigned CModel::GetModelType() {
   return m_uModelType;
 }
 
 //=================================================
 
 bool CModel::InitModels() {
-  for (UINT i = 0; i < MODELTYPE_COUNT; i++)
+  for (unsigned i = 0; i < MODELTYPE_COUNT; i++)
     g_Model[i].Generate(i);
 
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
@@ -397,11 +400,11 @@ bool CModel::InitModels() {
 }
 
 void CModel::FreeModels() {
-  for (UINT i = 0; i < MODELTYPE_COUNT; i++)
+  for (unsigned i = 0; i < MODELTYPE_COUNT; i++)
     g_Model[i].Free();
 }
 
-CModel* CModel::GetModel(UINT uModelType) {
+CModel* CModel::GetModel(unsigned uModelType) {
   if (uModelType > MODELTYPE_COUNT) return NULL;
   return &g_Model[uModelType];
 }

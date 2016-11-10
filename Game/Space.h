@@ -1,16 +1,15 @@
 #pragma once
 
-#include "../Common/GLDevice.h"
 #include "../Common/Vector.h"
 #include <vector>
 
 class CSpace {
 private:
-  UINT				m_uVBOVertex;
+  unsigned				m_uVBOVertex;
   std::vector<float>	m_afVertex;
-  std::vector<UINT>	m_auIndex;
+  std::vector<unsigned>	m_auIndex;
   float	m_afQuadVertex[12];
-  UINT	m_auQuadIndex[6];
+  unsigned	m_auQuadIndex[6];
 
 public:
   CSpace();

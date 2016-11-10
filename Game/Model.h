@@ -1,22 +1,21 @@
 #pragma once
 
-#include "../Common/GLDevice.h"
 #include <vector>
 
 #define	MODELTYPE_COUNT	14
 
 class CModel {
 private:
-  UINT				m_uVBOVertex;
+  unsigned				m_uVBOVertex;
 
   std::vector<float>	m_afVertex;
-  std::vector<UINT>	m_auIndexTriangles;
-  std::vector<UINT>	m_auIndexLines;
+  std::vector<unsigned>	m_auIndexTriangles;
+  std::vector<unsigned>	m_auIndexLines;
   std::string			m_strModelName;
-  UINT				m_uModelType;
+  unsigned				m_uModelType;
 
   void AddVertex(float x, float y, float z);
-  void AddTriangle(UINT v1, UINT v2, UINT v3);
+  void AddTriangle(unsigned v1, unsigned v2, unsigned v3);
   void CreateIndexLines();
 
 public:
@@ -41,11 +40,11 @@ public:
   ~CModel();
 
   void Free();
-  bool Generate(UINT uModelType);
+  bool Generate(unsigned uModelType);
   void Render();
-  UINT GetModelType();
+  unsigned GetModelType();
 
   static	bool	InitModels();
   static	void	FreeModels();
-  static	CModel*	GetModel(UINT uModelType);
+  static	CModel*	GetModel(unsigned uModelType);
 };

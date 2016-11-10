@@ -1,5 +1,8 @@
 #include "Space.h"
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
 CSpace::CSpace() {}
 
 CSpace::~CSpace() {

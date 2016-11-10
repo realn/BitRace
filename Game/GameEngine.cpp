@@ -1,5 +1,7 @@
 #include "Game.h"
 
+#include <GL/wglew.h>
+
 float CGame::s_fMaxDT = 0.02f;
 
 #define KEYDOWN( A ) ( m_cKeyState[A] & 0x80 )
@@ -58,10 +60,10 @@ void CGame::UpdateLogic(const float timeDelta) {
 	if (this->IsKeyboardKeyPressed(SDL_SCANCODE_F11)) {
 		SDL_MinimizeWindow(this->m_pWindow);
 
-		if (ScrParam.bFullscreen)
-			ChangeDisplaySettings(NULL, 0);
+    if (ScrParam.bFullscreen)
+      SDL_SetWindowDisplayMode(this->m_pWindow, &this->m_ModeOryginal);
 
-		WaitMessage();
+    SDL_WaitEvent(NULL);
 
 		if (ScrParam.bFullscreen)
 			this->ChangeDispMode();
@@ -95,12 +97,13 @@ void CGame::UpdateMouse() {
 }
 
 void CGame::UpdateTimer() {
-	__int64 ThisTick = 0;
-	if (m_iFreq != 0 && QueryPerformanceCounter((LARGE_INTEGER*)&ThisTick)) {
-		this->m_fDT = float(double(ThisTick - this->m_iLastTick) / double(m_iFreq));
-		this->m_iLastTick = ThisTick;
+	if (m_iFreq != 0) {
+    Uint64 thisTick = SDL_GetPerformanceCounter();
+		this->m_fDT = float(double(thisTick - this->m_iLastTick) / double(m_iFreq));
+		this->m_iLastTick = thisTick;
 	}
-	if (m_fDT == 0.0f) m_fDT = 0.030f;
+	if (m_fDT == 0.0f) 
+    m_fDT = 0.030f;
 }
 
 void CGame::UpdateGame(const float timeDelta) {
@@ -130,7 +133,7 @@ void CGame::UpdateGame(const float timeDelta) {
 }
 
 void CGame::UpdateMenu(const float timeDelta) {
-	UINT id = 0;
+	Uint32 id = 0;
 	CIniFile ini;
 	char szBuffer[1000];
 	static bool down = false;
@@ -162,19 +165,21 @@ void CGame::UpdateMenu(const float timeDelta) {
 
 		case MI_RESOLUTION:
 			id = Item->GetUserDefID();
-			if (++id >= UINT(m_aMode.size()))
+			if (++id >= Uint32(this->m_ModeList.size()))
 				id = 0;
 			ScrParam.uDevID = id;
-			if (m_aMode[id].uWidth == ScrParam.uWidth && m_aMode[id].uHeight == ScrParam.uHeight)
+			if (this->m_ModeList[id].w == ScrParam.uWidth && this->m_ModeList[id].h == ScrParam.uHeight)
 				Menu->GetMenuItem(MI_OPWARNING)->SetEnable(false);
-			else Menu->GetMenuItem(MI_OPWARNING)->SetEnable(true);
+			else 
+        Menu->GetMenuItem(MI_OPWARNING)->SetEnable(true);
+
 			ini.Open(m_strConfigFile);
-			ini.WriteInt("GRAPHIC", "uWidth", int(m_aMode[id].uWidth));
-			ini.WriteInt("GRAPHIC", "uHeight", int(m_aMode[id].uHeight));
-			ini.WriteInt("GRAPHIC", "uRefreshRate", int(m_aMode[id].uRefreshRate));
+			ini.WriteInt("GRAPHIC", "uWidth", int(m_ModeList[id].w));
+			ini.WriteInt("GRAPHIC", "uHeight", int(m_ModeList[id].h));
+			ini.WriteInt("GRAPHIC", "uRefreshRate", int(m_ModeList[id].refresh_rate));
 			ini.Close();
 
-			sprintf_s(szBuffer, 1000, "Resolution: %u X %u", m_aMode[id].uWidth, m_aMode[id].uHeight);
+			sprintf_s(szBuffer, 1000, "Resolution: %u X %u", m_ModeList[id].w, m_ModeList[id].h);
 
 			Item->SetName(szBuffer);
 			Item->SetUserDefID(id);
@@ -211,7 +216,7 @@ void CGame::UpdateMenu(const float timeDelta) {
 			break;
 
 		case MI_FULLSCREEN:
-			id = UINT((Item->GetUserDefID()) ? false : true);
+			id = Uint32((Item->GetUserDefID()) ? false : true);
 			if (id)
 				Item->SetName("Fullscreen: Enabled");
 			else Item->SetName("Fullscreen: Disabled");
@@ -262,7 +267,7 @@ void CGame::UpdateMenu(const float timeDelta) {
 void CGame::UpdateHS() {
 	CGUIMenu* Menu = m_MenuMng.GetMenu(MENU_HIGH);
 	std::string strName;
-	UINT uScore, i;
+	Uint32 uScore, i;
 	char szBuffer[1000];
 	for (i = 0; i < 10; i++) {
 		CGUIMenuItem* HSMI = Menu->GetMenuItem(MI_HS1 + i);

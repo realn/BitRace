@@ -1,10 +1,11 @@
 #include "HighScore.h"
 #include "Game.h"
+#include "../Common/Log.h"
 
 struct HSHEADER {
   char	FILEID[3];
-  UINT	FILEVER;
-  UINT	SCORECOUNT;
+  unsigned	FILEVER;
+  unsigned	SCORECOUNT;
 };
 
 #define HSFILEID	"HSF"
@@ -55,16 +56,16 @@ bool CHighScore::LoadScores(std::string strFile) {
 
   fp.Read(m_aScore, sizeof(CScore), 10);
 
-  UINT	uMagicNum = 0;
-  UINT	uMagicNumCmp = 0, i, j;
+  unsigned	uMagicNum = 0;
+  unsigned	uMagicNumCmp = 0, i, j;
   for (i = 0; i < 10; i++) {
     uMagicNumCmp += m_aScore[i].m_uScore;
     for (j = 0; j < 7; j++)
-      uMagicNumCmp += UINT(m_aScore[i].m_acName[j]);
+      uMagicNumCmp += unsigned(m_aScore[i].m_acName[j]);
   }
-  fp.Read(&uMagicNum, sizeof(UINT));
+  fp.Read(&uMagicNum, sizeof(unsigned));
 
-  if (uMagicNum != (UINT)(~uMagicNumCmp)) {
+  if (uMagicNum != (unsigned)(~uMagicNumCmp)) {
     Log("Invalid Check Sum - file corrupted, NULLing table");
     memset(m_aScore, 0, sizeof(CScore) * 10);
     return true;
@@ -89,19 +90,19 @@ bool CHighScore::SaveScores(std::string strFile) {
   fp.Write(&head, sizeof(HSHEADER));
   fp.Write(m_aScore, sizeof(CScore), 10);
 
-  UINT uMagicNum = 0, i, j;
+  unsigned uMagicNum = 0, i, j;
   for (i = 0; i < 10; i++) {
     uMagicNum += m_aScore[i].m_uScore;
     for (j = 0; j < 7; j++)
-      uMagicNum += UINT(m_aScore[i].m_acName[j]);
+      uMagicNum += unsigned(m_aScore[i].m_acName[j]);
   }
-  uMagicNum = UINT(~uMagicNum);
-  fp.Write(&uMagicNum, sizeof(UINT));
+  uMagicNum = unsigned(~uMagicNum);
+  fp.Write(&uMagicNum, sizeof(unsigned));
 
   return true;
 }
 
-void CHighScore::SetTempScore(UINT uScore) {
+void CHighScore::SetTempScore(unsigned uScore) {
   m_uTempScore = uScore;
   m_uCurPos = 0;
   m_uHSS = HSS_STATE1;
@@ -230,7 +231,7 @@ void CHighScore::RenderGUI(CGUI *GUI) {
     break;
 
   case HSS_STATE2:
-    ss << UINT(floor(m_fTime));
+    ss << unsigned(floor(m_fTime));
     glColor3f(0.0f, 1.0f, 0.0f);
     GUI->Print(200.0f, 200.0f, m_strText1 + ss.str() + "_");
     break;
@@ -341,7 +342,7 @@ bool CHighScore::CheckScore() {
   bool ok = false;
   for (i = 0; i < 10; i++) {
     if (m_uTempScore > m_aScore[i].m_uScore) {
-      m_uHSPos = UINT(i);
+      m_uHSPos = unsigned(i);
       ok = true;
       break;
     }
@@ -358,13 +359,13 @@ bool CHighScore::CheckScore() {
   return true;
 }
 
-std::string CHighScore::GetName(UINT uIndex) {
+std::string CHighScore::GetName(unsigned uIndex) {
   if (uIndex >= 10)
     return "";
   return m_aScore[uIndex].m_acName;
 }
 
-UINT CHighScore::GetScore(UINT uIndex) {
+unsigned CHighScore::GetScore(unsigned uIndex) {
   if (uIndex >= 10)
     return 0;
   return m_aScore[uIndex].m_uScore;

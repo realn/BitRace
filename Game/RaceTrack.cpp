@@ -1,5 +1,8 @@
 #include "RaceTrack.h"
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
 CRaceTrack::CShot::CShot(vec2 vVec, vec2 vStartPos, vec3 vColor, float fDamage) :
   m_vVec(vVec), m_vPos(vStartPos), m_vColor(vColor), m_fDamage(fDamage), m_bCanDelete(false) {
 
@@ -47,7 +50,7 @@ bool CRaceTrack::CShot::GetCanDelete() {
 }
 
 //===========================================
-CRaceTrack::CEntity::CEntity(vec2 vPos, vec2 vVec, vec3 vColor, UINT uModelType) :
+CRaceTrack::CEntity::CEntity(vec2 vPos, vec2 vVec, vec3 vColor, unsigned uModelType) :
   m_vPos(vPos), m_vVec(vVec), m_vColor(vColor), m_fTemp(0.0f), m_uModelType(uModelType), m_bCanDelete(false), m_Model(NULL) {
   if (uModelType < 9) {
     this->m_uType = ET_NONE;
@@ -86,12 +89,12 @@ CRaceTrack::CEntity::CEntity(vec2 vPos, vec2 vVec, vec3 vColor, UINT uModelType)
   this->m_Model = CModel::GetModel(uModelType);
 }
 
-bool CRaceTrack::CEntity::Engine(float fDT, float fRacerPosX, CRaceTrack::CShot **aShotList, const UINT uShotCount) {
+bool CRaceTrack::CEntity::Engine(float fDT, float fRacerPosX, CRaceTrack::CShot **aShotList, const unsigned uShotCount) {
   if (m_bCanDelete)
     return false;
 
   this->m_vPos += this->m_vVec * fDT;
-  UINT i;
+  unsigned i;
   for (i = 0; i < uShotCount; i++) {
     if (aShotList[i]->GetCanDelete())
       continue;
@@ -178,11 +181,11 @@ bool CRaceTrack::CEntity::GetCanDelete() {
   return m_bCanDelete;
 }
 
-UINT CRaceTrack::CEntity::GetModelType() {
+unsigned CRaceTrack::CEntity::GetModelType() {
   return m_uModelType;
 }
 
-UINT CRaceTrack::CEntity::GetType() {
+unsigned CRaceTrack::CEntity::GetType() {
   return m_uType;
 }
 
@@ -212,7 +215,7 @@ CRaceTrack::CRaceTrack() :
   m_uDifLevel(DL_VERY_EASY),
   m_uNeedPoints(5000),
   m_uTrackState(TS_INTRO),
-  m_uIntroState(IS_STATE1),
+  m_unsignedroState(IS_STATE1),
   m_uGameOverCharCount(0),
   m_bGameOver(false),
   m_bGameRuning(false),
@@ -247,7 +250,7 @@ void CRaceTrack::Free() {
   m_fDamage = 15.0f;
   m_uNeedPoints = 5000;
   m_uTrackState = TS_INTRO;
-  m_uIntroState = IS_STATE1;
+  m_unsignedroState = IS_STATE1;
   m_fIntroTime = 0.0f;
   m_fGameOverTime = 0.0f;
   m_fGameOverTime2 = 0.0f;
@@ -287,16 +290,16 @@ void CRaceTrack::Engine(float fDT) {
 
 void CRaceTrack::Engine_Intro(float fDT) {
   this->m_fIntroTime += fDT;
-  switch (m_uIntroState) {
+  switch (m_unsignedroState) {
   case IS_STATE1:
     if (m_fIntroTime > 0.3f) {
-      m_uIntroState = IS_STATE2;
+      m_unsignedroState = IS_STATE2;
       m_fIntroTime = 0.0f;
     }
     break;
   case IS_STATE2:
     if (m_fIntroTime > 0.7f) {
-      m_uIntroState = IS_STATE3;
+      m_unsignedroState = IS_STATE3;
       m_fIntroTime = 0.0f;
       m_vMove.Y = -600.0f;
     }
@@ -306,7 +309,7 @@ void CRaceTrack::Engine_Intro(float fDT) {
     if (this->m_vMove.Y > 20.0f)
       this->m_vMove.Y -= 20.0f;
     if (m_fIntroTime > 2.0f) {
-      m_uIntroState = IS_STATE4;
+      m_unsignedroState = IS_STATE4;
       m_fIntroTime = 0.0f;
     }
     break;
@@ -315,7 +318,7 @@ void CRaceTrack::Engine_Intro(float fDT) {
     if (this->m_vMove.Y > 20.0f)
       this->m_vMove.Y -= 20.0f;
     if (m_fIntroTime > 3.0f) {
-      m_uIntroState = IS_ENDSTATE;
+      m_unsignedroState = IS_ENDSTATE;
       m_fIntroTime = 0.0f;
     }
     break;
@@ -324,13 +327,13 @@ void CRaceTrack::Engine_Intro(float fDT) {
     if (this->m_vMove.Y > 20.0f)
       this->m_vMove.Y -= 20.0f;
     if (m_fIntroTime > 2.0f) {
-      m_uIntroState = IS_STATE1;
+      m_unsignedroState = IS_STATE1;
       m_uTrackState = TS_GAME;
       m_fIntroTime = 0.0f;
     }
     break;
   case IS_SKIP:
-    m_uIntroState = IS_STATE1;
+    m_unsignedroState = IS_STATE1;
     m_uTrackState = TS_GAME;
     m_fIntroTime = 0.0f;
     break;
@@ -338,7 +341,7 @@ void CRaceTrack::Engine_Intro(float fDT) {
 }
 
 void CRaceTrack::Render_Intro() {
-  switch (m_uIntroState) {
+  switch (m_unsignedroState) {
   case IS_STATE1:
     glColor3f(0.0f, 1.0f, 0.0f);
     glBegin(GL_POINTS);
@@ -497,7 +500,7 @@ void CRaceTrack::Engine_GameOver(float fDT) {
     m_fGameOverTime += 1.0f * fDT;
   else {
     m_fGameOverTime2 += 1.0f * fDT;
-    if (m_uGameOverCharCount < UINT(m_strGameOver.length())) {
+    if (m_uGameOverCharCount < unsigned(m_strGameOver.length())) {
       if (m_fGameOverTime2 > 0.2f) {
         m_uGameOverCharCount++;
         m_fGameOverTime2 = 0.0f;
@@ -533,7 +536,7 @@ void CRaceTrack::DeleteShot(size_t i) {
 
 void CRaceTrack::FireWeapon() {
   float fSpeed = 50.0f;
-  UINT i;
+  unsigned i;
   vec2 vStPos = vec2(m_fMoveX, -2.0f);
   vec2 vVec;
   for (i = 0; i < m_uFireCount; ++i) {
@@ -608,11 +611,11 @@ void CRaceTrack::RenderGUI(CGUI *GUI) {
   }
 }
 
-UINT CRaceTrack::GetDifLevel() {
+unsigned CRaceTrack::GetDifLevel() {
   return m_uDifLevel;
 }
 
-void CRaceTrack::SetDifLevel(UINT uDifLevel) {
+void CRaceTrack::SetDifLevel(unsigned uDifLevel) {
   m_uDifLevel = uDifLevel;
   if (m_uDifLevel > DL_HOLY_SHIT)
     m_uDifLevel = DL_VERY_HARD;
@@ -721,7 +724,7 @@ void CRaceTrack::Engine_Entity(float fDT) {
   int i;
   for (i = int(this->m_aEntityList.size() - 1); i >= 0; --i) {
     if (this->m_aShotList.size() != 0) {
-      if (this->m_aEntityList[i]->Engine(fDT, m_fMoveX, &this->m_aShotList[0], (UINT)this->m_aShotList.size())) {
+      if (this->m_aEntityList[i]->Engine(fDT, m_fMoveX, &this->m_aShotList[0], (unsigned)this->m_aShotList.size())) {
         switch (this->m_aEntityList[i]->GetModelType()) {
         case CModel::MT_HACK:
           m_uPoints += 500;
@@ -755,7 +758,7 @@ void CRaceTrack::Engine_Entity(float fDT) {
         break;
       case CModel::MT_DL_PART:
       case CModel::MT_DL_PART2:
-        this->m_uPoints += UINT(this->m_aEntityList[i]->GetValue());
+        this->m_uPoints += unsigned(this->m_aEntityList[i]->GetValue());
         this->m_pRacer->ModBitRate(20.0f);
         this->SetFSQ(0.8f, vec3(0.0f, 1.0f, 0.0));
       }
@@ -840,15 +843,15 @@ std::string CRaceTrack::GetDifLevelString() {
   return "";
 }
 
-UINT CRaceTrack::GetPoints() {
+unsigned CRaceTrack::GetPoints() {
   return m_uPoints;
 }
 
-void CRaceTrack::SetPoints(UINT uPoints) {
+void CRaceTrack::SetPoints(unsigned uPoints) {
   m_uPoints = uPoints;
 }
 
-UINT CRaceTrack::GetLevelModelType() {
+unsigned CRaceTrack::GetLevelModelType() {
   switch (m_uDifLevel) {
   case DL_VERY_EASY:
     return CModel::MT_HTTP20;
@@ -878,7 +881,7 @@ void CRaceTrack::SetUpgScreen(float fTimeOut) {
 }
 
 void CRaceTrack::SkipIntro() {
-  m_uIntroState = IS_SKIP;
+  m_unsignedroState = IS_SKIP;
 }
 
 bool CRaceTrack::IsGameOver() {

@@ -90,51 +90,51 @@ void CGame::RenderMenu() {
 }
 
 void CGame::TakeScreenshot() {
-  std::vector<BYTE> Buffer;
-  Buffer.resize(ScrParam.uWidth * ScrParam.uHeight * 4);
-  glReadPixels(0, 0, ScrParam.uWidth, ScrParam.uHeight, GL_BGRA, GL_UNSIGNED_BYTE, &Buffer[0]);
-  int i = 0;
+  //std::vector<BYTE> Buffer;
+  //Buffer.resize(ScrParam.uWidth * ScrParam.uHeight * 4);
+  //glReadPixels(0, 0, ScrParam.uWidth, ScrParam.uHeight, GL_BGRA, GL_UNSIGNED_BYTE, &Buffer[0]);
+  //int i = 0;
 
-  BITMAPFILEHEADER bfh;
-  BITMAPINFOHEADER bih;
+  //BITMAPFILEHEADER bfh;
+  //BITMAPINFOHEADER bih;
 
-  bfh.bfType = MAKEWORD('B', 'M');
-  bfh.bfSize = DWORD(sizeof(bfh) + sizeof(bih) + Buffer.size());
-  bfh.bfReserved1 = 0;
-  bfh.bfReserved2 = 0;
-  bfh.bfOffBits = sizeof(bfh) + sizeof(bih);
+  //bfh.bfType = MAKEWORD('B', 'M');
+  //bfh.bfSize = DWORD(sizeof(bfh) + sizeof(bih) + Buffer.size());
+  //bfh.bfReserved1 = 0;
+  //bfh.bfReserved2 = 0;
+  //bfh.bfOffBits = sizeof(bfh) + sizeof(bih);
 
-  bih.biSize = sizeof(BITMAPINFOHEADER);
-  bih.biWidth = ScrParam.uWidth;
-  bih.biHeight = ScrParam.uHeight;
-  bih.biBitCount = ScrParam.uColorBits;
-  bih.biPlanes = 1;
-  bih.biCompression = BI_RGB;
-  bih.biSizeImage = DWORD(Buffer.size());
-  bih.biXPelsPerMeter = 0;
-  bih.biYPelsPerMeter = 0;
-  bih.biClrUsed = 0;
-  bih.biClrImportant = 0;
+  //bih.biSize = sizeof(BITMAPINFOHEADER);
+  //bih.biWidth = ScrParam.uWidth;
+  //bih.biHeight = ScrParam.uHeight;
+  //bih.biBitCount = ScrParam.uColorBits;
+  //bih.biPlanes = 1;
+  //bih.biCompression = BI_RGB;
+  //bih.biSizeImage = DWORD(Buffer.size());
+  //bih.biXPelsPerMeter = 0;
+  //bih.biYPelsPerMeter = 0;
+  //bih.biClrUsed = 0;
+  //bih.biClrImportant = 0;
 
-  CFile fp;
-  std::string filename = "";
+  //CFile fp;
+  //std::string filename = "";
 
-  CIniFile ini;
-  ini.Open(m_strConfigFile);
-  i = ini.ReadInt("GENERAL", "uScreenShotNum", 1);
-  std::string scrname = ini.ReadString("GENERAL", "strScreenShotName", "ScreenShot");
-  int len = _scprintf("%s%02d.bmp", scrname.c_str(), i);
-  filename.resize(len + 1);
-  sprintf(&filename[0], "%s%02d.bmp", scrname.c_str(), i);
-  ini.WriteInt("GENERAL", "uScreenShotNum", i + 1);
-  ini.Close();
+  //CIniFile ini;
+  //ini.Open(m_strConfigFile);
+  //i = ini.ReadInt("GENERAL", "uScreenShotNum", 1);
+  //std::string scrname = ini.ReadString("GENERAL", "strScreenShotName", "ScreenShot");
+  //int len = _scprintf("%s%02d.bmp", scrname.c_str(), i);
+  //filename.resize(len + 1);
+  //sprintf(&filename[0], "%s%02d.bmp", scrname.c_str(), i);
+  //ini.WriteInt("GENERAL", "uScreenShotNum", i + 1);
+  //ini.Close();
 
-  fp.Open(filename, "wb");
+  //fp.Open(filename, "wb");
 
-  fp.Write(&bfh, sizeof(bfh));
-  fp.Write(&bih, sizeof(bih));
-  fp.Write(&Buffer[0], sizeof(BYTE), unsigned(Buffer.size()));
+  //fp.Write(&bfh, sizeof(bfh));
+  //fp.Write(&bih, sizeof(bih));
+  //fp.Write(&Buffer[0], sizeof(BYTE), unsigned(Buffer.size()));
 
-  fp.Close();
-  Buffer.clear();
+  //fp.Close();
+  //Buffer.clear();
 }

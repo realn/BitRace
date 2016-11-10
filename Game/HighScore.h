@@ -12,18 +12,18 @@ class CHighScore {
 public:
   class CScore {
   public:
-    UINT m_uScore;
+    unsigned m_uScore;
     char m_acName[7];
 
     CScore();
   };
 private:
   CScore	m_aScore[10];
-  UINT	m_uTempScore;
-  UINT	m_uCurPos;
-  UINT	m_uHSS;
-  UINT	m_uCharCount;
-  UINT		m_uHSPos;
+  unsigned	m_uTempScore;
+  unsigned	m_uCurPos;
+  unsigned	m_uHSS;
+  unsigned	m_uCharCount;
+  unsigned		m_uHSPos;
   std::string	m_strTempName;
   std::string m_strText1;
   std::string m_strText2;
@@ -53,13 +53,13 @@ public:
   bool	LoadScores(std::string strFile);
   bool	SaveScores(std::string strFile);
 
-  void	SetTempScore(UINT uScore);
+  void	SetTempScore(unsigned uScore);
 
   void	Update(CGame* pGame, float fDT);
   void	RenderGUI(CGUI* GUI);
 
-  std::string GetName(UINT uIndex);
-  UINT	GetScore(UINT uIndex);
+  std::string GetName(unsigned uIndex);
+  unsigned	GetScore(unsigned uIndex);
 
   bool	IsEnded();
   void	ResetAllScores();

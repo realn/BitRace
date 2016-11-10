@@ -134,7 +134,7 @@ void CGUI::Print(float x, float y, std::string str, ...) {
   glPushMatrix();
   glTranslatef(x, y, 0.0f);
   glListBase(this->m_uFontList - 32);
-  glCallLists((GLsizei)strlen(text), GL_UNSIGNED_BYTE, (BYTE*)text);
+  glCallLists((GLsizei)strlen(text), GL_UNSIGNED_BYTE, (unsigned char*)text);
   glPopMatrix();
 
   delete[] text;

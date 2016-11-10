@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GUI.h"
-#include "../Common/GLDevice.h"
 #include "../Common/FGXFile.h"
 
 class CIntro {
@@ -21,9 +20,9 @@ private:
     IS_STATE12,
     IS_STATE13
   };
-  UINT	m_uIntroState;
-  UINT	m_uLogosTex;
-  UINT	m_uCharCount;
+  unsigned	m_IntroState;
+  unsigned	m_uLogosTex;
+  unsigned	m_uCharCount;
   float	m_fTime;
   bool	m_bIntroEnd;
   std::string m_strText1;

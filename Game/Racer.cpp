@@ -1,5 +1,8 @@
 #include "Racer.h"
 
+#define GLEW_STATIC
+#include <GL/glew.h>
+
 float CRacer::s_fConstHeight = 2.5f;
 float CRacer::s_fMaxBitRate = 100.0f;
 float CRacer::s_fMaxRotation = 75.0f;
@@ -26,7 +29,7 @@ void CRacer::Free() {
   m_vVec = 0.0f;
 }
 
-bool CRacer::Init(UINT uModelType) {
+bool CRacer::Init(unsigned uModelType) {
   Free();
 
   switch (uModelType) {
@@ -107,7 +110,7 @@ void CRacer::SetRotation(float fRotation) {
   m_fRotation = fRotation;
 }
 
-void CRacer::SetColor(DWORD dwColor) {
+void CRacer::SetColor(unsigned dwColor) {
   m_dwColor = dwColor;
 }
 

@@ -32,8 +32,8 @@ public:
     float	m_fValue;
     float	m_fHealth;
     float	m_fTemp;
-    UINT	m_uType;
-    UINT	m_uModelType;
+    unsigned	m_uType;
+    unsigned	m_uModelType;
     bool	m_bCanDelete;
   public:
     enum ENTITY_TYPE {
@@ -41,13 +41,13 @@ public:
       ET_BONUS = 1,
       ET_ENEMY = 2
     };
-    CEntity(vec2 vPos, vec2 vVec, vec3 vColor, UINT uModelType);
-    bool	Engine(float fDT, float fRacerPosX, CShot** aShotList, const UINT uShotCount);
+    CEntity(vec2 vPos, vec2 vVec, vec3 vColor, unsigned uModelType);
+    bool	Engine(float fDT, float fRacerPosX, CShot** aShotList, const unsigned uShotCount);
     void	Render();
     float	GetValue();
     float	GetHealth();
-    UINT	GetType();
-    UINT	GetModelType();
+    unsigned	GetType();
+    unsigned	GetModelType();
     vec2	GetPos();
     void SetCanDelete(bool bSet);
     bool GetCanDelete();
@@ -74,13 +74,13 @@ private:
   float	m_fGameOverTime;
   float	m_fGameOverTime2;
   vec3	m_vFSQColor;
-  UINT	m_uPoints;
-  UINT	m_uNeedPoints;
-  UINT	m_uDifLevel;
-  UINT	m_uFireCount;
-  UINT	m_uTrackState;
-  UINT	m_uIntroState;
-  UINT	m_uGameOverCharCount;
+  unsigned	m_uPoints;
+  unsigned	m_uNeedPoints;
+  unsigned	m_uDifLevel;
+  unsigned	m_uFireCount;
+  unsigned	m_uTrackState;
+  unsigned	m_unsignedroState;
+  unsigned	m_uGameOverCharCount;
   bool	m_bGameOver;
   bool	m_bGameRuning;
   std::string m_strGameOver;
@@ -108,7 +108,7 @@ private:
   void DeleteShot(size_t i);
   void Clear();
   std::string GetDifLevelString();
-  UINT GetLevelModelType();
+  unsigned GetLevelModelType();
 public:
   enum DIF_LEVEL {
     DL_VERY_EASY = 0,
@@ -145,10 +145,10 @@ public:
   void Engine(float fDT);
 
   void FireWeapon();
-  UINT GetDifLevel();
-  void SetDifLevel(UINT uDifLevel);
-  UINT GetPoints();
-  void SetPoints(UINT uPoints);
+  unsigned GetDifLevel();
+  void SetDifLevel(unsigned uDifLevel);
+  unsigned GetPoints();
+  void SetPoints(unsigned uPoints);
   void SkipIntro();
   bool IsGameOver();
   bool IsGameRuning();

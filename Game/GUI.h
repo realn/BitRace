@@ -1,11 +1,10 @@
 #pragma once
 
-#include <SDL.h>
-#include <glm/glm.hpp>
-
-#include "../Common/GLDevice.h"
 #include "../Common/Vector.h"
 #include "../Common/Files.h"
+
+#include <SDL.h>
+#include <glm/glm.hpp>
 #include <vector>
 
 class CGame;

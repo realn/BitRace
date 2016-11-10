@@ -1,6 +1,6 @@
 #include "Game.h"
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) {
+int __stdcall WinMain(void* hInstance, void* hPrevInstance, char* lpCmdLine, int nShowCmd) {
   CGame Game;
 
   if (!Game.Init(lpCmdLine))

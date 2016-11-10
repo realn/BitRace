@@ -1,7 +1,11 @@
 #include "Intro.h"
 
+#include "../Common/Log.h"
+#define GLEW_STATIC
+#include <GL/glew.h>
+
 CIntro::CIntro() :
-  m_uIntroState(IS_STATE1),
+  m_IntroState(IS_STATE1),
   m_uLogosTex(0),
   m_uCharCount(0),
   m_fTime(0.0f),
@@ -24,19 +28,19 @@ bool CIntro::Init(std::string strLogosFile) {
 
 void CIntro::Free() {
   if (glIsTexture(m_uLogosTex))
-    glDeleteTextures(1, (GLuint*)&m_uLogosTex);
+    glDeleteTextures(1, &m_uLogosTex);
 
-  m_uIntroState = 0;
+  m_IntroState = 0;
   m_uLogosTex = 0;
   m_fTime = 0.0f;
 }
 
 void CIntro::Engine(float fDT) {
-  switch (m_uIntroState) {
+  switch (m_IntroState) {
   case IS_STATE1:
     m_fTime += 0.5f * fDT;
     if (m_fTime > 1.0f) {
-      m_uIntroState = IS_STATE2;
+      m_IntroState = IS_STATE2;
       m_fTime = 0.0f;
     }
     break;
@@ -47,7 +51,7 @@ void CIntro::Engine(float fDT) {
       if (m_uCharCount < unsigned(m_strText1.length()))
         m_uCharCount++;
       else {
-        m_uIntroState = IS_STATE3;
+        m_IntroState = IS_STATE3;
         m_uCharCount = 0;
       }
       m_fTime = 0.0f;
@@ -57,7 +61,7 @@ void CIntro::Engine(float fDT) {
   case IS_STATE3:
     m_fTime += 1.0f * fDT;
     if (m_fTime > 3.0f) {
-      m_uIntroState = IS_STATE4;
+      m_IntroState = IS_STATE4;
       m_fTime = 0.0f;
     }
     break;
@@ -68,7 +72,7 @@ void CIntro::Engine(float fDT) {
       if (m_uCharCount < unsigned(m_strText2.length()))
         m_uCharCount++;
       else {
-        m_uIntroState = IS_STATE5;
+        m_IntroState = IS_STATE5;
         m_uCharCount = 0;
       }
       m_fTime = 0.0f;
@@ -78,7 +82,7 @@ void CIntro::Engine(float fDT) {
   case IS_STATE5:
     m_fTime += 1.0f * fDT;
     if (m_fTime > 2.0f) {
-      m_uIntroState = IS_STATE6;
+      m_IntroState = IS_STATE6;
       m_fTime = 0.0f;
     }
     break;
@@ -89,7 +93,7 @@ void CIntro::Engine(float fDT) {
       if (m_uCharCount < unsigned(m_strText3.length()))
         m_uCharCount++;
       else {
-        m_uIntroState = IS_STATE7;
+        m_IntroState = IS_STATE7;
         m_uCharCount = 0;
       }
       m_fTime = 0.0f;
@@ -99,7 +103,7 @@ void CIntro::Engine(float fDT) {
   case IS_STATE7:
     m_fTime += 0.8f * fDT;
     if (m_fTime > 1.0f) {
-      m_uIntroState = IS_STATE8;
+      m_IntroState = IS_STATE8;
       m_fTime = 0.0f;
     }
     break;
@@ -107,7 +111,7 @@ void CIntro::Engine(float fDT) {
   case IS_STATE8:
     m_fTime += 0.8f * fDT;
     if (m_fTime > 1.0f) {
-      m_uIntroState = IS_STATE9;
+      m_IntroState = IS_STATE9;
       m_fTime = 0.0f;
     }
     break;
@@ -115,7 +119,7 @@ void CIntro::Engine(float fDT) {
   case IS_STATE9:
     m_fTime += 1.0f * fDT;
     if (m_fTime > 1.0f) {
-      m_uIntroState = IS_STATE10;
+      m_IntroState = IS_STATE10;
       m_fTime = 0.0f;
     }
     break;
@@ -123,7 +127,7 @@ void CIntro::Engine(float fDT) {
   case IS_STATE10:
     m_fTime += 1.0f * fDT;
     if (m_fTime > 1.0f) {
-      m_uIntroState = IS_STATE11;
+      m_IntroState = IS_STATE11;
       m_fTime = 0.0f;
     }
     break;
@@ -131,7 +135,7 @@ void CIntro::Engine(float fDT) {
   case IS_STATE11:
     m_fTime += 0.25f * fDT;
     if (m_fTime > 1.0f) {
-      m_uIntroState = IS_STATE12;
+      m_IntroState = IS_STATE12;
       m_fTime = 0.0f;
     }
     break;
@@ -139,7 +143,7 @@ void CIntro::Engine(float fDT) {
   case IS_STATE12:
     m_fTime += 1.0f * fDT;
     if (m_fTime > 2.0f) {
-      m_uIntroState = IS_STATE13;
+      m_IntroState = IS_STATE13;
       m_fTime = 0.0f;
     }
     break;
@@ -147,7 +151,7 @@ void CIntro::Engine(float fDT) {
   case IS_STATE13:
     m_fTime += 1.2f * fDT;
     if (m_fTime > 1.0f) {
-      m_uIntroState = IS_STATE1;
+      m_IntroState = IS_STATE1;
       m_fTime = 0.0f;
       m_bIntroEnd = true;
     }
@@ -160,7 +164,7 @@ void CIntro::Render() {
 }
 
 void CIntro::RenderGUI(CGUI *GUI) {
-  switch (m_uIntroState) {
+  switch (m_IntroState) {
   case IS_STATE1:
     glColor4f(1.0f, 1.0f, 1.0f, m_fTime);
     RenderLogo(0);
@@ -253,44 +257,39 @@ bool CIntro::IsIntroEnded() {
   return m_bIntroEnd;
 }
 
-bool CIntro::LoadTexture(std::string file) {
-  if (file.empty())
-    return false;
-  CFile fp;
-  if (!fp.Open(file))
+bool CIntro::LoadTexture(std::string filename) {
+  if (filename.empty())
     return false;
 
-  FGXHEADER fgx;
-  fp.Read(&fgx, sizeof(FGXHEADER));
-  if (strncmp(fgx.FILEID, FGX_FILEID, 3) != 0)
+  CFGXFile imgFile;
+  if (!imgFile.Load(filename)) {
     return false;
+  }
 
-  std::vector<BYTE> aData;
-  aData.resize(fgx.IMAGEWIDTH * fgx.IMAGEHEIGHT * fgx.IMAGEDEPTH);
-  fp.Read(&aData[0], 1, unsigned int(aData.size()));
-  fp.Close();
+  if (!imgFile.IsValid()) {
+    return false;
+  }
+
+  glm::ivec2 size = imgFile.GetSize();
+  const CFGXFile::CData& Data = imgFile.GetData();
 
   glGenTextures(1, &m_uLogosTex);
   glBindTexture(GL_TEXTURE_2D, m_uLogosTex);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-  UINT format = 0;
-  switch (fgx.IMAGEDEPTH) {
+  unsigned format = 0;
+  switch (imgFile.GetImgDepth()) {
   case 1: format = GL_LUMINANCE8;	break;
   case 2: format = GL_LUMINANCE8_ALPHA8;	break;
   case 3: format = GL_RGB;	break;
   case 4: format = GL_RGBA;	break;
   };
 
-  int err;
-  if ((err = gluBuild2DMipmaps(GL_TEXTURE_2D,
-                               fgx.IMAGEDEPTH, fgx.IMAGEWIDTH, fgx.IMAGEHEIGHT,
-                               format, GL_UNSIGNED_BYTE, &aData[0])) != 0) {
-    Log("GLU ERROR: Can't create font texture: %s", (char*)gluErrorString(err));
-    return false;
-  }
-  aData.clear();
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, &Data[0]);
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
   return true;
 }
 

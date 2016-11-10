@@ -6,13 +6,16 @@
 #define GAME_DI_BUFSIZE 32
 #define	GAME_BLEND_TEX_SIZE	64
 
-#define DXRELEASE( A ) if( A != NULL ){ A->Release(); A = NULL; }
+#define GLEW_STATIC
+#include <GL/glew.h>
+//#include <GL/wglew.h>
+
+#include "../Common/Vector.h"
+#include "../Common/Log.h"
 
 #include <SDL.h>
 #include <glm/glm.hpp>
 
-#include "../Common/GLDevice.h"
-#include "../Common/Vector.h"
 #include "../Common/Files.h"
 #include "../Common/IniFiles.h"
 #include "RaceTrack.h"
@@ -91,15 +94,15 @@ private:
     GS_GAME,
     GS_HIGH
   };
-  UINT m_uGameState;
+  unsigned m_uGameState;
 
   struct	SCREENPARAMS {
-    UINT	uWidth;
-    UINT	uHeight;
-    UINT	uColorBits;
-    UINT	uRefreshRate;
+    unsigned	uWidth;
+    unsigned	uHeight;
+    unsigned	uColorBits;
+    unsigned	uRefreshRate;
 
-    UINT	uDevID;
+    unsigned	uDevID;
 
     bool	bSmoothLines;
     bool	bSmoothShade;
@@ -111,13 +114,9 @@ private:
     const glm::vec2 GetSize() const;
     const float GetAspectRatio() const;
   }	ScrParam;
-  struct DISPMODEID {
-    UINT	uWidth;
-    UINT	uHeight;
-    UINT	uRefreshRate;
-    DWORD	uID;
-  };
-  std::vector<DISPMODEID> m_aMode;
+
+  SDL_DisplayMode m_ModeOryginal;
+  std::vector<SDL_DisplayMode> m_ModeList;
 
 public:
   CGame();

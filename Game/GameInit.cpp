@@ -1,5 +1,7 @@
 #include "Game.h"
 
+#include <GL/wglew.h>
+
 bool CGame::Init(std::string strCmdLine) {
   Log_Init("main.log", "BIT_RACE_LOG");
 
@@ -8,10 +10,10 @@ bool CGame::Init(std::string strCmdLine) {
   CIniFile ini;
   ini.Open(m_strConfigFile);
 
-  ScrParam.uWidth = UINT(ini.ReadInt("GRAPHIC", "uWidth", 640));
-  ScrParam.uHeight = UINT(ini.ReadInt("GRAPHIC", "uHeight", 480));
-  ScrParam.uColorBits = UINT(ini.ReadInt("GRAPHIC", "uColorBits", 32));
-  ScrParam.uRefreshRate = UINT(ini.ReadInt("GRAPHIC", "uRefreshRate", 60));
+  ScrParam.uWidth = Uint32(ini.ReadInt("GRAPHIC", "uWidth", 640));
+  ScrParam.uHeight = Uint32(ini.ReadInt("GRAPHIC", "uHeight", 480));
+  ScrParam.uColorBits = Uint32(ini.ReadInt("GRAPHIC", "uColorBits", 32));
+  ScrParam.uRefreshRate = Uint32(ini.ReadInt("GRAPHIC", "uRefreshRate", 60));
   ScrParam.bFullscreen = ini.ReadBool("GRAPHIC", "bFullscreen", true);
   ScrParam.bSmoothShade = ini.ReadBool("GRAPHIC", "bSmoothShade", true);
   ScrParam.bSmoothLines = ini.ReadBool("GRAPHIC", "bSmoothLines", true);
@@ -151,8 +153,6 @@ bool CGame::InitOpenGL() {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
-  CHECK_GL_ERRORS();
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   m_cGUI.Begin(glm::vec2(640.0f, 480.0f));
   glColor3f(1.0f, 1.0f, 1.0f);
@@ -175,14 +175,10 @@ bool CGame::InitOpenGL() {
 bool CGame::InitGame() {
   char		szBuffer[1000];
 
-  if (!QueryPerformanceFrequency((LARGE_INTEGER*)&m_iFreq)) {
-    Log_Error("Can't recover CPU Timer Frequency - can't continue without a Timer.");
-    Free();
-    return false;
-  }
-  else QueryPerformanceCounter((LARGE_INTEGER*)&m_iLastTick);
+  this->m_iFreq = SDL_GetPerformanceFrequency();
+  this->m_iLastTick = SDL_GetPerformanceCounter();
 
-  srand(GetTickCount());
+  srand((Uint32)this->m_iLastTick);
 
 
   this->ScanDispModes();
@@ -210,7 +206,7 @@ bool CGame::InitGame() {
   Menu = this->m_MenuMng.AddMenu(MENU_OPTIONS, "Options");
   sprintf_s(szBuffer, 1000, "Resolution: %d X %d", ScrParam.uWidth, ScrParam.uHeight);
   Menu->AddMenuItem(MI_RESOLUTION, szBuffer, vec2(40.0f, 100.0f), ScrParam.uDevID);
-  Menu->AddMenuItem(MI_FULLSCREEN, (ScrParam.bFullscreen) ? "Fullscreen: Enabled" : "FullScreen: Disabled", vec2(40.0f, 130.0f), UINT(ScrParam.bFullscreen));
+  Menu->AddMenuItem(MI_FULLSCREEN, (ScrParam.bFullscreen) ? "Fullscreen: Enabled" : "FullScreen: Disabled", vec2(40.0f, 130.0f), Uint32(ScrParam.bFullscreen));
   Menu->AddMenuItem(MI_SMOOTHSHADE, (ScrParam.bSmoothShade) ? "Smooth Shading: Enabled" : "Smooth Shading: Disabled", vec2(40.0f, 160.0f), 0);
   Menu->AddMenuItem(MI_SMOOTHLINE, (ScrParam.bSmoothLines) ? "Smooth Lines: Enabled" : "Smooth Lines: Disabled", vec2(40.0f, 190.0f), 0);
   Menu->AddMenuItem(MI_FPSCOUNTER, (ScrParam.bFPSCount) ? "FPS Counter: Enabled" : "FPS Counter: Disabled", vec2(40.0f, 220.0f), 0);
@@ -242,60 +238,42 @@ bool CGame::InitGame() {
 }
 
 void CGame::ScanDispModes() {
-  DEVMODEA	CurMode;
-  DEVMODEA	DMode;
+  SDL_DisplayMode	curDispMode;
+  memset(&curDispMode, 0, sizeof(SDL_DisplayMode));
 
-  memset(&CurMode, 0, sizeof(DEVMODEA));
-  memset(&DMode, 0, sizeof(DEVMODEA));
-  this->m_aMode.clear();
+  if (SDL_GetCurrentDisplayMode(0, &curDispMode) != 0)
+    return;
 
-  CurMode.dmSize = sizeof(DEVMODEA);
-  DMode.dmSize = sizeof(DEVMODEA);
-
-  EnumDisplaySettingsA(NULL, ENUM_CURRENT_SETTINGS, &CurMode);
-
-  DISPMODEID	DMI;
-  DWORD		i = 0;
-  while (EnumDisplaySettingsA(NULL, i, &DMode)) {
-    if (DMode.dmBitsPerPel != 32 || DMode.dmDisplayFrequency != CurMode.dmDisplayFrequency) {
-      i++;
+  int dispNum = SDL_GetNumDisplayModes(0);
+  for (int i = 0; i < dispNum; i++) {
+    SDL_DisplayMode mode;
+    memset(&mode, 0, sizeof(SDL_DisplayMode));
+    if (SDL_GetDisplayMode(0, i, &mode) != 0) {
       continue;
     }
 
-    DMI.uWidth = DMode.dmPelsWidth;
-    DMI.uHeight = DMode.dmPelsHeight;
-    DMI.uRefreshRate = DMode.dmDisplayFrequency;
-    DMI.uID = i;
+    if (mode.format != curDispMode.format || mode.refresh_rate != curDispMode.refresh_rate) {
+      continue;
+    }
 
-    if (DMI.uWidth == ScrParam.uWidth && DMI.uHeight == ScrParam.uHeight)
-      ScrParam.uDevID = DMI.uID;
+    if (mode.w == curDispMode.w && mode.h == curDispMode.h) {
+      ScrParam.uDevID = i;
+    }
 
-    this->m_aMode.push_back(DMI);
-
-    memset(&DMode, 0, sizeof(DEVMODEA));
-    DMode.dmSize = sizeof(DEVMODEA);
-    i++;
+    this->m_ModeList.push_back(mode);
   }
 }
 
 void CGame::ChangeDispMode() {
-  DEVMODEA	CurMode;
+  SDL_DisplayMode mode;
 
-  memset(&CurMode, 0, sizeof(DEVMODEA));
-  CurMode.dmSize = sizeof(DEVMODEA);
+  if (SDL_GetCurrentDisplayMode(0, &mode) != 0)
+    return;
 
-  //if( !EnumDisplaySettingsA( NULL, ENUM_CURRENT_SETTINGS, &CurMode ) )
-  //{
-  //	Log_Error( "Can't read current display settings" );
-  //	return;
-  //}
+  mode.w = ScrParam.uWidth;
+  mode.h = ScrParam.uHeight;
 
-  CurMode.dmBitsPerPel = 32;
-  CurMode.dmPelsWidth = ScrParam.uWidth;
-  CurMode.dmPelsHeight = ScrParam.uHeight;
-  CurMode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL;// | DM_DISPLAYFREQUENCY;
-
-  if (ChangeDisplaySettingsExA(NULL, &CurMode, NULL, CDS_FULLSCREEN, NULL) != DISP_CHANGE_SUCCESSFUL) {
+  if (SDL_SetWindowDisplayMode(this->m_pWindow, &mode) != 0) {
     Log_Error("Can't change display settings to %ux%u", ScrParam.uWidth, ScrParam.uHeight);
     return;
   }

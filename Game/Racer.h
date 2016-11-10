@@ -1,17 +1,17 @@
 #pragma once
 
-#include "Model.h"
 #include "../Common/Vector.h"
+#include "Model.h"
 
 class CRacer {
 private:
   CModel*				m_cModel;
   float				m_fRotation;
-  float				m_fBitRate;
-  float				m_fXSpeed;
-  float				m_fZSpeed;
-  vec3				m_vVec;
-  DWORD				m_dwColor;
+  float				  m_fBitRate;
+  float				  m_fXSpeed;
+  float				  m_fZSpeed;
+  vec3				  m_vVec;
+  unsigned				m_dwColor;
 
 public:
   static float		s_fConstHeight;
@@ -22,11 +22,11 @@ public:
   ~CRacer();
 
   void Free();
-  bool Init(UINT uModelType);
+  bool Init(unsigned uModelType);
 
   void ModRotation(float fRotation);
   void SetRotation(float fRotation);
-  void SetColor(DWORD dwColor);
+  void SetColor(unsigned dwColor);
   vec3 GetVec();
   float GetBitRate();
   void ModBitRate(float fBitRate);

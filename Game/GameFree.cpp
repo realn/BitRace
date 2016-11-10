@@ -22,8 +22,9 @@ void CGame::FreeRender() {
     this->m_pGLContext = nullptr;
   }
 
-  if (ScrParam.bFullscreen)
-    ChangeDisplaySettings(NULL, 0);
+  if (ScrParam.bFullscreen) {
+    SDL_SetWindowDisplayMode(this->m_pWindow, &this->m_ModeOryginal);
+  }
 
   SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
