@@ -41,7 +41,7 @@ void CGame::FreeOpenGL() {
 void CGame::FreeGame() {
   m_RaceTrack.Free();
   m_Racer.Free();
-  m_MMag.Clear();
+  m_MenuMng.Clear();
   m_cGUI.Free();
   m_Intro.Free();
   CModel::FreeModels();

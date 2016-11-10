@@ -565,17 +565,17 @@ void CRaceTrack::RenderGUI(CGUI *GUI) {
   if (m_uTrackState == TS_GAMEOVER) {
     if (m_fGameOverTime < 1.0f) {
       glColor4f(1.0f, 1.0f, 1.0f, m_fGameOverTime);
-      GUI->RenderFSQuad();
+      GUI->RenderFSQuad(glm::vec2(640.0f, 480.0f));
     }
     else {
       if (m_fGameOverTime < 2.0f) {
         float a = 1.0f - (m_fGameOverTime - 1.0f);
         glColor3f(a, a, a);
-        GUI->RenderFSQuad();
+        GUI->RenderFSQuad(glm::vec2(640.0f, 480.0f));
       }
       else {
         glColor3f(0.0f, 0.0f, 0.0f);
-        GUI->RenderFSQuad();
+        GUI->RenderFSQuad(glm::vec2(640.0f, 480.0f));
         glColor3f(0.0f, 1.0f, 0.0f);
         GUI->Print(270.0f, 230.0f,
                    m_strGameOver.substr(0, m_uGameOverCharCount) + "_");
@@ -604,7 +604,7 @@ void CRaceTrack::RenderGUI(CGUI *GUI) {
   }
   if (this->m_fFSQTime < this->m_fFSQTimeOut) {
     glColor4f(m_vFSQColor.X, m_vFSQColor.Y, m_vFSQColor.Z, ((m_fFSQTimeOut - m_fFSQTime) / m_fFSQTimeOut) * 0.5f);
-    GUI->RenderFSQuad();
+    GUI->RenderFSQuad(glm::vec2(640.0f, 480.0f));
   }
 }
 

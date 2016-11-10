@@ -30,7 +30,6 @@
     <ClCompile Include="GameEngine.cpp" />
     <ClCompile Include="GameFree.cpp" />
     <ClCompile Include="GameInit.cpp" />
-    <ClCompile Include="GameMain.cpp" />
     <ClCompile Include="GameRender.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Game.cpp" />

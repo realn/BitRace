@@ -3,7 +3,7 @@
 #include "../Common/FGXFile.h"
 #include <stdarg.h>
 
-CGUI::CGUI() : m_pDevice(NULL) {
+CGUI::CGUI() {
 
 }
 
@@ -11,45 +11,35 @@ CGUI::~CGUI() {
   Free();
 }
 
-bool CGUI::LoadFontTexture(std::string file) {
-  FGXHEADER head;
-  CFile fp;
-  if (!fp.Open(file, "rb"))
+bool CGUI::LoadFontTexture(std::string filename) {
+  CFGXFile imgFile;
+  if (!imgFile.Load(filename)) {
     return false;
+  }
 
-  fp.Read(&head, sizeof(FGXHEADER));
-
-  if (strncmp(head.FILEID, FGX_FILEID, 3) != 0)
+  if (!imgFile.IsValid()) {
     return false;
-  if (head.FILEVERSION != FGX_VERSION)
-    return false;
+  }
 
-  std::vector<BYTE> Data;
-  Data.resize(head.IMAGEWIDTH * head.IMAGEHEIGHT * head.IMAGEDEPTH);
-
-  fp.Read(&Data[0], 1, (unsigned int)Data.size());
-  fp.Close();
-
-  glGenTextures(1, &this->m_uFontID);
-  glBindTexture(GL_TEXTURE_2D, this->m_uFontID);
+  glGenTextures(1, &this->m_FontTexture);
+  glBindTexture(GL_TEXTURE_2D, this->m_FontTexture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+  glm::ivec2 size = imgFile.GetSize();
   Uint32 format = 0;
-  switch (head.IMAGEDEPTH) {
+  switch (imgFile.GetImgDepth()) {
   case 1: format = GL_LUMINANCE8;
   case 2: format = GL_LUMINANCE8_ALPHA8;
   case 3: format = GL_RGB;
   case 4: format = GL_RGBA;
   };
+  const CFGXFile::CData& Data = imgFile.GetData();
 
-  int err;
-  if ((err = gluBuild2DMipmaps(GL_TEXTURE_2D,
-                               head.IMAGEDEPTH, head.IMAGEWIDTH, head.IMAGEHEIGHT,
-                               format, GL_UNSIGNED_BYTE, &Data[0])) != 0) {
-    Log("GLU ERROR: Can't create font texture: %s", (char*)gluErrorString(err));
-    return false;
-  }
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, &Data[0]);
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
   return true;
 }
 
@@ -87,13 +77,11 @@ bool CGUI::InitFont() {
   return true;
 }
 
-bool CGUI::Init(CGLDevice *pDevice) {
+bool CGUI::Init() {
   if (!LoadFontTexture("font.fgx"))
     return false;
   if (!InitFont())
     return false;
-
-  m_pDevice = pDevice;
 
   return true;
 }
@@ -101,17 +89,16 @@ bool CGUI::Init(CGLDevice *pDevice) {
 void CGUI::Free() {
   if (glIsList(this->m_uFontList))
     glDeleteLists(this->m_uFontList, 256);
-  if (glIsTexture(this->m_uFontID))
-    glDeleteTextures(1, &this->m_uFontID);
-  m_pDevice = NULL;
+  if (glIsTexture(this->m_FontTexture))
+    glDeleteTextures(1, &this->m_FontTexture);
 }
 
-void CGUI::GUIMode_Start() {
+void CGUI::Begin(const glm::vec2& size) {
   glPushMatrix();
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
-  gluOrtho2D(0.0f, 640.0f, 480.0f, 0.0f);
+  gluOrtho2D(0.0f, size.x, size.y, 0.0f);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glPushAttrib(GL_ENABLE_BIT);
@@ -120,10 +107,10 @@ void CGUI::GUIMode_Start() {
   glEnable(GL_BLEND);
   glEnable(GL_TEXTURE_2D);
 
-  glBindTexture(GL_TEXTURE_2D, this->m_uFontID);
+  glBindTexture(GL_TEXTURE_2D, this->m_FontTexture);
 }
 
-void CGUI::GUIMode_End() {
+void CGUI::End() {
   glPopAttrib();
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();
@@ -183,27 +170,27 @@ void CGUI::RenderProgressBar(vec2 vPos, vec2 vSize, float fProgress) {
   glEnable(GL_TEXTURE_2D);
 }
 
-void CGUI::RenderFSQuad() {
+void CGUI::RenderFSQuad(const glm::vec2& size) {
   glDisable(GL_TEXTURE_2D);
   glBegin(GL_QUADS);
-  glVertex2i(0, 0);
-  glVertex2i(640, 0);
-  glVertex2i(640, 480);
-  glVertex2i(0, 480);
+  glVertex2f(0.0f, 0.0f);
+  glVertex2f(size.x, 0.0f);
+  glVertex2f(size.x, size.y);
+  glVertex2f(0.0f, size.y);
   glEnd();
   glEnable(GL_TEXTURE_2D);
 }
 
-void CGUI::RenderFSQuadTex() {
+void CGUI::RenderFSQuadTex(const glm::vec2& size) {
   glBegin(GL_QUADS);
   glTexCoord2i(0, 1);
-  glVertex2i(0, 0);
+  glVertex2f(0.0f, 0.0f);
   glTexCoord2i(1, 1);
-  glVertex2i(640, 0);
+  glVertex2f(size.x, 0.0f);
   glTexCoord2i(1, 0);
-  glVertex2i(640, 480);
+  glVertex2f(size.x, size.y);
   glTexCoord2i(0, 0);
-  glVertex2i(0, 480);
+  glVertex2f(0.0f, size.y);
   glEnd();
 }
 
@@ -548,29 +535,35 @@ void CGUIMenu::ForceHide() {
 
 //===========================================================
 
-CGUIMenuManager::CGUIMenuManager() :
+CGUIMenuManager::CGUIMenuManager(const glm::vec2& size) :
+  m_Size(size),
   m_MousePos(0.0f),
   m_uCurrMenu(0),
-  m_uGoToMenu(0),
-  m_bPress(false) {
-
-}
+  m_uGoToMenu(0) {}
 
 CGUIMenuManager::~CGUIMenuManager() {
   Clear();
 }
 
-bool CGUIMenuManager::Update(CGame* pGame, float fDT) {
+void CGUIMenuManager::SetSize(const glm::vec2 & size) {
+  this->m_Size = size;
+}
+
+const glm::vec2 & CGUIMenuManager::GetSize() const {
+  return this->m_Size;
+}
+
+bool CGUIMenuManager::Update(CGame* pGame, float timeDelta) {
   this->m_MousePos = pGame->GetMousePos();
 
   if (m_MousePos.x < 0.0f)
     m_MousePos.x = 0.0f;
-  if (m_MousePos.x > 640.0f)
-    m_MousePos.x = 640.0f;
+  if (m_MousePos.x > m_Size.x)
+    m_MousePos.x = m_Size.x;
   if (m_MousePos.y < 0.0f)
     m_MousePos.y = 0.0f;
-  if (m_MousePos.y > 480.0f)
-    m_MousePos.y = 480.0f;
+  if (m_MousePos.y > m_Size.y)
+    m_MousePos.y = m_Size.y;
 
   if (this->m_aMenu.size() == 0)
     return false;
@@ -597,13 +590,9 @@ bool CGUIMenuManager::Update(CGame* pGame, float fDT) {
 
   Menu = this->GetCurrentMenu();
   if (Menu != NULL) {
-    if (Menu->Update(pGame, fDT)) {
-      if (!m_bPress) {
-        m_bPress = true;
-        return true;
-      }
+    if (Menu->Update(pGame, timeDelta)) {
+      return true;
     }
-    else m_bPress = false;
   }
   return false;
 }

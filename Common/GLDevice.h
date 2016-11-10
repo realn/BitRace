@@ -11,10 +11,6 @@
 #include <GL/GLU.h>
 #include <windows.h>
 
-#pragma comment( lib, "opengl32.lib" )
-#pragma comment( lib, "glu32.lib" )
-#pragma comment( lib, "glew32s.lib" )
-
 class CGLDevice
 {
 protected:

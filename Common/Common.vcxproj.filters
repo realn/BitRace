@@ -44,5 +44,8 @@
     <ClCompile Include="IniFiles.cpp">
       <Filter>File</Filter>
     </ClCompile>
+    <ClCompile Include="FGXFile.cpp">
+      <Filter>File</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -6,16 +6,13 @@
 #include "../Common/GLDevice.h"
 #include "../Common/Vector.h"
 #include "../Common/Files.h"
-#define DIRECTINPUT_VERSION 0x0800
-#include <DInput.h>
 #include <vector>
 
 class CGame;
 
 class CGUI {
 private:
-  CGLDevice* m_pDevice;
-  unsigned int m_uFontID;
+  unsigned int m_FontTexture;
   unsigned int m_uFontList;
 
   bool LoadFontTexture(std::string file);
@@ -25,17 +22,17 @@ public:
   CGUI();
   ~CGUI();
 
-  bool Init(CGLDevice* pDevice);
+  bool Init();
   void Free();
 
-  void GUIMode_Start();
-  void GUIMode_End();
+  void Begin(const glm::vec2& size);
+  void End();
 
   void Print(float x, float y, std::string str, ...);
 
   static void RenderProgressBar(vec2 vPos, vec2 vSize, float fProgress);
-  static void RenderFSQuad();
-  static void RenderFSQuadTex();
+  static void RenderFSQuad(const glm::vec2& size);
+  static void RenderFSQuadTex(const glm::vec2& size);
 };
 
 class CGUIMenuItem {
@@ -128,16 +125,20 @@ public:
 class CGUIMenuManager {
 private:
   std::vector<CGUIMenu*>	m_aMenu;
+  glm::vec2 m_Size;
   glm::vec2	m_MousePos;
   Uint32	m_uCurrMenu;
   Uint32	m_uGoToMenu;
-  bool	m_bPress;
 
 public:
-  CGUIMenuManager();
+  CGUIMenuManager(const glm::vec2& size = glm::vec2(640.0f, 480.0f));
   ~CGUIMenuManager();
 
-  bool Update(CGame* pGame, float fDT);
+  void SetSize(const glm::vec2& size);
+
+  const glm::vec2&  GetSize() const;
+
+  bool Update(CGame* pGame, float timeDelta);
   void Render(CGUI* GUI);
 
   CGUIMenu* AddMenu(Uint32 uID, std::string strName);

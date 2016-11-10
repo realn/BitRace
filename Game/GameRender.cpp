@@ -5,44 +5,44 @@ void CGame::Render() {
   glLoadIdentity();
 
   if (m_bGamePause) {
-    if (ScrParam.bBlur) {
-      glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT);
-      glViewport(0, 0, m_uBlurTexSize, m_uBlurTexSize);
-      glPushMatrix();
-      glMatrixMode(GL_PROJECTION);
-      glPushMatrix();
-      glLoadIdentity();
-      gluPerspective(50.0, double(ScrParam.uWidth) / double(ScrParam.uHeight), 1.0, 50000.0);
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
+    //if (ScrParam.bBlur) {
+    //  glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT);
+    //  glViewport(0, 0, m_uBlurTexSize, m_uBlurTexSize);
+    //  glPushMatrix();
+    //  glMatrixMode(GL_PROJECTION);
+    //  glPushMatrix();
+    //  glLoadIdentity();
+    //  gluPerspective(50.0, ScrParam.GetAspectRatio(), 1.0, 50000.0);
+    //  glMatrixMode(GL_MODELVIEW);
+    //  glLoadIdentity();
 
-      RenderGame();
+    //  RenderGame();
 
-      glBindTexture(GL_TEXTURE_2D, m_uBlurTexture);
-      glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0,
-                       m_uBlurTexSize, m_uBlurTexSize, 0);
+    //  glBindTexture(GL_TEXTURE_2D, m_uBlurTexture);
+    //  glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0,
+    //                   m_uBlurTexSize, m_uBlurTexSize, 0);
 
-      glMatrixMode(GL_PROJECTION);
-      glPopMatrix();
-      glMatrixMode(GL_MODELVIEW);
-      glPopMatrix();
-      glPopAttrib();
+    //  glMatrixMode(GL_PROJECTION);
+    //  glPopMatrix();
+    //  glMatrixMode(GL_MODELVIEW);
+    //  glPopMatrix();
+    //  glPopAttrib();
 
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
+    //  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //}
 
     RenderGame();
 
-    if (ScrParam.bBlur) {
-      m_cGUI.GUIMode_Start();
-      glBindTexture(GL_TEXTURE_2D, m_uBlurTexture);
-      glColor4f(1.0f, 1.0f, 1.0f, m_fBlurTexAlpha);
-      m_cGUI.RenderFSQuadTex();
-      m_cGUI.GUIMode_End();
-    }
+    //if (ScrParam.bBlur) {
+    //  m_cGUI.Begin(glm::vec2(1.0f, 1.0f));
+    //  glBindTexture(GL_TEXTURE_2D, m_uBlurTexture);
+    //  glColor4f(1.0f, 1.0f, 1.0f, m_fBlurTexAlpha);
+    //  m_cGUI.RenderFSQuadTex(glm::vec2(1.0f, 1.0f));
+    //  m_cGUI.End();
+    //}
   }
 
-  m_cGUI.GUIMode_Start();
+  m_cGUI.Begin(ScrParam.GetSize());
   switch (m_uGameState) {
   case GS_INTRO:
     m_Intro.Render();
@@ -54,7 +54,7 @@ void CGame::Render() {
     break;
 
   case GS_GAME:
-    if (!m_MMag.GetCurrentMenu()->IsHiden())
+    if (!m_MenuMng.GetCurrentMenu()->IsHiden())
       RenderMenu();
     else m_RaceTrack.RenderGUI(&m_cGUI);
     break;
@@ -67,7 +67,7 @@ void CGame::Render() {
     glColor3f(1.0f, 1.0f, 1.0f);
     m_cGUI.Print(530.0f, 5.0f, "FPS: %d", int(1.0f / (this->m_fDT != 0.0f ? this->m_fDT : 1.0f)));
   }
-  m_cGUI.GUIMode_End();
+  m_cGUI.End();
 
   if (m_bTakeScreen) {
     this->TakeScreenshot();
@@ -84,11 +84,10 @@ void CGame::RenderGame() {
 void CGame::RenderMenu() {
   if (m_bGamePause) {
     glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-    m_cGUI.RenderFSQuad();
+    m_cGUI.RenderFSQuad(ScrParam.GetSize());
   }
-  m_MMag.Render(&m_cGUI);
+  m_MenuMng.Render(&m_cGUI);
 }
-#define GL_BGRA                           0x80E1
 
 void CGame::TakeScreenshot() {
   std::vector<BYTE> Buffer;

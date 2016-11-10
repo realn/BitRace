@@ -1,13 +1,6 @@
 #include "Model.h"
 
-PFNGLBINDBUFFERARBPROC		glBindBufferARB = NULL;
-PFNGLDELETEBUFFERSARBPROC	glDeleteBuffersARB = NULL;
-PFNGLGENBUFFERSARBPROC		glGenBuffersARB = NULL;
-PFNGLISBUFFERARBPROC		glIsBufferARB = NULL;
-PFNGLBUFFERDATAARBPROC		glBufferDataARB = NULL;
-
 CModel	g_Model[MODELTYPE_COUNT];
-bool	g_bVBOEnabled = false;
 
 CModel::CModel() : m_uModelType(0) {
 
@@ -23,10 +16,8 @@ void CModel::Free() {
   m_auIndexLines.clear();
   m_strModelName = "";
   m_uModelType = MT_NONE;
-  if (g_bVBOEnabled) {
-    if (glIsBufferARB(m_uVBOVertex))
-      glDeleteBuffersARB(1, &m_uVBOVertex);
-  }
+  if (glIsBufferARB(m_uVBOVertex))
+    glDeleteBuffersARB(1, &m_uVBOVertex);
 }
 
 bool CModel::Generate(UINT uModelType) {
@@ -342,12 +333,9 @@ bool CModel::Generate(UINT uModelType) {
   this->m_uModelType = uModelType;
   CreateIndexLines();
 
-  if (g_bVBOEnabled) {
-    glGenBuffersARB(1, &m_uVBOVertex);
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uVBOVertex);
-    glBufferDataARB(GL_ARRAY_BUFFER_ARB,
-                    m_afVertex.size() * sizeof(float), &m_afVertex[0], GL_STATIC_DRAW_ARB);
-  }
+  glGenBuffersARB(1, &m_uVBOVertex);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uVBOVertex);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB, m_afVertex.size() * sizeof(float), &m_afVertex[0], GL_STATIC_DRAW_ARB);
 
   return true;
 }
@@ -380,11 +368,8 @@ void CModel::Render() {
   if (m_afVertex.size() == 0 || m_auIndexTriangles.size() == 0 || m_auIndexLines.size() == 0)
     return;
   glEnableClientState(GL_VERTEX_ARRAY);
-  if (g_bVBOEnabled) {
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uVBOVertex);
-    glVertexPointer(3, GL_FLOAT, 0, NULL);
-  }
-  else glVertexPointer(3, GL_FLOAT, 0, &m_afVertex[0]);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uVBOVertex);
+  glVertexPointer(3, GL_FLOAT, 0, NULL);
 
   glPushAttrib(GL_CURRENT_BIT);
   glColor3f(0.0f, 0.0f, 0.0f);
@@ -392,7 +377,7 @@ void CModel::Render() {
   glPopAttrib();
   glDrawElements(GL_LINES, (GLsizei)m_auIndexLines.size(), GL_UNSIGNED_INT, &m_auIndexLines[0]);
 
-  if (g_bVBOEnabled) glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
   glDisableClientState(GL_VERTEX_ARRAY);
 }
 
@@ -402,25 +387,11 @@ UINT CModel::GetModelType() {
 
 //=================================================
 
-#define VBO_Check( type, name ) if( ( name = ( type )wglGetProcAddress( #name ) ) == NULL ) return false;
-bool InitVBO() {
-  VBO_Check(PFNGLBINDBUFFERARBPROC, glBindBufferARB);
-  VBO_Check(PFNGLDELETEBUFFERSARBPROC, glDeleteBuffersARB);
-  VBO_Check(PFNGLGENBUFFERSARBPROC, glGenBuffersARB);
-  VBO_Check(PFNGLISBUFFERARBPROC, glIsBufferARB);
-  VBO_Check(PFNGLBUFFERDATAARBPROC, glBufferDataARB);
-  return true;
-};
-#undef VBO_Check
-
 bool CModel::InitModels() {
-  g_bVBOEnabled = InitVBO();
-
   for (UINT i = 0; i < MODELTYPE_COUNT; i++)
     g_Model[i].Generate(i);
 
-  if (g_bVBOEnabled)
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
   return true;
 }

@@ -1,12 +1,5 @@
 #include "Game.h"
 
-#pragma comment(lib, "SDL2.lib")
-#pragma comment(lib, "SDL2main.lib")
-
-PFNWGLSWAPINTERVALEXTPROC		wglSwapIntervalEXT = NULL;
-PFNWGLGETSWAPINTERVALEXTPROC	wglGetSwapIntervalEXT = NULL;
-
-
 bool CGame::Init(std::string strCmdLine) {
   Log_Init("main.log", "BIT_RACE_LOG");
 
@@ -99,8 +92,6 @@ bool CGame::InitRender() {
 
   SDL_GL_MakeCurrent(this->m_pWindow, this->m_pGLContext);
 
-  m_cGUI.Init(NULL);
-  srand(GetTickCount());
 
   return true;
 }
@@ -121,6 +112,12 @@ bool  CGame::InitInput() {
 }
 
 bool CGame::InitOpenGL() {
+  if (glewInit() != GLEW_OK) {
+    return false;
+  }
+
+  m_cGUI.Init();
+
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClearDepth(1.0f);
   glClearStencil(0);
@@ -157,10 +154,10 @@ bool CGame::InitOpenGL() {
   CHECK_GL_ERRORS();
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  m_cGUI.GUIMode_Start();
+  m_cGUI.Begin(glm::vec2(640.0f, 480.0f));
   glColor3f(1.0f, 1.0f, 1.0f);
   m_cGUI.Print(100.0f, 200.0f, "Please wait, loading game...");
-  m_cGUI.GUIMode_End();
+  m_cGUI.End();
 
   SDL_GL_SwapWindow(this->m_pWindow);
 
@@ -185,6 +182,9 @@ bool CGame::InitGame() {
   }
   else QueryPerformanceCounter((LARGE_INTEGER*)&m_iLastTick);
 
+  srand(GetTickCount());
+
+
   this->ScanDispModes();
 
   CModel::InitModels();
@@ -195,21 +195,19 @@ bool CGame::InitGame() {
   this->m_RaceTrack.SetRacer(&m_Racer);
   this->m_HS.LoadScores("score.hsf");
 
-  wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-  wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
-  if (wglSwapIntervalEXT != NULL) {
+  if (WGLEW_EXT_swap_control) {
     if (ScrParam.bVSync)
       wglSwapIntervalEXT(1);
     else wglSwapIntervalEXT(0);
   }
 
-  CGUIMenu* Menu = this->m_MMag.AddMenu(MENU_MAIN, "BitRace");
+  CGUIMenu* Menu = this->m_MenuMng.AddMenu(MENU_MAIN, "BitRace");
   Menu->AddMenuItem(MI_RETURN, "Return to Game", vec2(40.0f, 70.0f), 0)->SetEnable(false);
   Menu->AddMenuItem(MI_NEWGAME, "New Game", vec2(40.0f, 100.0f), 0);
   Menu->AddMenuItem(MI_HIGH, "High Scores", vec2(40.0f, 130.0f), MENU_HIGH);
   Menu->AddMenuItem(MI_OPTIONS, "Options", vec2(40.0f, 160.0f), MENU_OPTIONS);
   Menu->AddMenuItem(MI_EXIT, "Exit Game", vec2(40.0f, 190.0f), 0);
-  Menu = this->m_MMag.AddMenu(MENU_OPTIONS, "Options");
+  Menu = this->m_MenuMng.AddMenu(MENU_OPTIONS, "Options");
   sprintf_s(szBuffer, 1000, "Resolution: %d X %d", ScrParam.uWidth, ScrParam.uHeight);
   Menu->AddMenuItem(MI_RESOLUTION, szBuffer, vec2(40.0f, 100.0f), ScrParam.uDevID);
   Menu->AddMenuItem(MI_FULLSCREEN, (ScrParam.bFullscreen) ? "Fullscreen: Enabled" : "FullScreen: Disabled", vec2(40.0f, 130.0f), UINT(ScrParam.bFullscreen));
@@ -217,11 +215,12 @@ bool CGame::InitGame() {
   Menu->AddMenuItem(MI_SMOOTHLINE, (ScrParam.bSmoothLines) ? "Smooth Lines: Enabled" : "Smooth Lines: Disabled", vec2(40.0f, 190.0f), 0);
   Menu->AddMenuItem(MI_FPSCOUNTER, (ScrParam.bFPSCount) ? "FPS Counter: Enabled" : "FPS Counter: Disabled", vec2(40.0f, 220.0f), 0);
   Menu->AddMenuItem(MI_VSYNC, (ScrParam.bVSync) ? "VSync: Enabled" : "VSync: Disabled", vec2(40.0f, 250.0f), 0);
-  if (wglSwapIntervalEXT == NULL)
+  if (WGLEW_EXT_swap_control) {
     Menu->GetMenuItem(MI_VSYNC)->SetEnable(false);
+  }
   Menu->AddMenuItem(MI_OPWARNING, "WARNING: You must restart the game, to apply changes", vec2(20.0f, 300.0f), 0)->SetEnable(false);
   Menu->AddMenuItem(MI_GOBACK, "Return to Main Menu", vec2(40.0f, 330.0f), MENU_MAIN);
-  Menu = this->m_MMag.AddMenu(MENU_HIGH, "High Scores");
+  Menu = this->m_MenuMng.AddMenu(MENU_HIGH, "High Scores");
   Menu->AddMenuItem(MI_HS1, "1. --EMPTY SCORE--", vec2(40.0f, 100.0f), 0);
   Menu->AddMenuItem(MI_HS2, "2. --EMPTY SCORE--", vec2(40.0f, 120.0f), 0);
   Menu->AddMenuItem(MI_HS3, "3. --EMPTY SCORE--", vec2(40.0f, 140.0f), 0);

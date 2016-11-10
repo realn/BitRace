@@ -1,13 +1,5 @@
 #include "Space.h"
 
-extern PFNGLBINDBUFFERARBPROC		glBindBufferARB;
-extern PFNGLDELETEBUFFERSARBPROC	glDeleteBuffersARB;
-extern PFNGLGENBUFFERSARBPROC		glGenBuffersARB;
-extern PFNGLISBUFFERARBPROC			glIsBufferARB;
-extern PFNGLBUFFERDATAARBPROC		glBufferDataARB;
-
-extern bool	g_bVBOEnabled;
-
 CSpace::CSpace() {}
 
 CSpace::~CSpace() {
@@ -17,9 +9,8 @@ CSpace::~CSpace() {
 void CSpace::Free() {
   m_afVertex.clear();
   m_auIndex.clear();
-  if (g_bVBOEnabled)
-    if (glIsBufferARB(m_uVBOVertex))
-      glDeleteBuffersARB(1, &m_uVBOVertex);
+  if (glIsBufferARB(m_uVBOVertex))
+    glDeleteBuffersARB(1, &m_uVBOVertex);
 };
 
 bool CSpace::Generate(float fWidth, float fHeight, unsigned int uCountX, unsigned int uCountY, float fY) {
@@ -40,13 +31,11 @@ bool CSpace::Generate(float fWidth, float fHeight, unsigned int uCountX, unsigne
     m_afVertex[i + 2] = fStartY + float(h) * fSizeY;
   };
 
-  if (g_bVBOEnabled) {
-    glGenBuffersARB(1, &m_uVBOVertex);
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uVBOVertex);
-    glBufferDataARB(GL_ARRAY_BUFFER_ARB,
-                    m_afVertex.size() * sizeof(float), &m_afVertex[0], GL_STATIC_DRAW_ARB);
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-  }
+  glGenBuffersARB(1, &m_uVBOVertex);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uVBOVertex);
+  glBufferDataARB(GL_ARRAY_BUFFER_ARB,
+                  m_afVertex.size() * sizeof(float), &m_afVertex[0], GL_STATIC_DRAW_ARB);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
   unsigned int X, Y;
   for (Y = 0; Y < uCountY; ++Y) {
@@ -95,14 +84,10 @@ void CSpace::Render(vec3 vColor) {
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glColor3fv(vColor.ToFloat());
-  if (g_bVBOEnabled) {
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uVBOVertex);
-    glVertexPointer(3, GL_FLOAT, 0, NULL);
-  }
-  else glVertexPointer(3, GL_FLOAT, 0, &m_afVertex[0]);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uVBOVertex);
+  glVertexPointer(3, GL_FLOAT, 0, NULL);
   glDrawElements(GL_LINES, (GLsizei)m_auIndex.size(), GL_UNSIGNED_INT, &m_auIndex[0]);
-  if (g_bVBOEnabled)
-    glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+  glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
   glEnable(GL_BLEND);
   glColor4f(vColor.X, vColor.Y, vColor.Z, 0.2f);

@@ -20,11 +20,6 @@
 #include "Intro.h"
 #include "HighScore.h"
 
-#pragma comment( lib, "Common.lib")
-
-extern PFNWGLSWAPINTERVALEXTPROC	wglSwapIntervalEXT;
-extern PFNWGLGETSWAPINTERVALEXTPROC	wglGetSwapIntervalEXT;
-
 class CGame {
 private:
   SDL_Window*   m_pWindow;
@@ -53,7 +48,7 @@ private:
   CRaceTrack		m_RaceTrack;
   CSpace			m_Space;
   CRacer			m_Racer;
-  CGUIMenuManager	m_MMag;
+  CGUIMenuManager	m_MenuMng;
   CIntro			m_Intro;
   CHighScore		m_HS;
 
@@ -112,6 +107,9 @@ private:
     bool	bFPSCount;
     bool	bVSync;
     bool	bBlur;
+
+    const glm::vec2 GetSize() const;
+    const float GetAspectRatio() const;
   }	ScrParam;
   struct DISPMODEID {
     UINT	uWidth;

@@ -35,11 +35,11 @@ void CGame::UpdateLogic(const float timeDelta) {
 		break;
 
 	case GS_GAME:
-		if (!m_MMag.GetCurrentMenu()->IsHiden()) {
-			CGUIMenu* M = m_MMag.GetCurrentMenu();
+		if (!m_MenuMng.GetCurrentMenu()->IsHiden()) {
+			CGUIMenu* M = m_MenuMng.GetCurrentMenu();
 			if (!M->IsHideing())
 				M->Hide();
-			m_MMag.Update(this, timeDelta);
+      m_MenuMng.Update(this, timeDelta);
 		}
 		else 
 			this->UpdateGame(timeDelta);
@@ -50,7 +50,7 @@ void CGame::UpdateLogic(const float timeDelta) {
 		if (m_HS.IsEnded()) {
 			m_HS.SaveScores("score.hsf");
 			UpdateHS();
-			m_MMag.ForceSwitchToMenu(MENU_HIGH);
+      m_MenuMng.ForceSwitchToMenu(MENU_HIGH);
 			m_uGameState = GS_MENU;
 		}
 		break;
@@ -107,21 +107,21 @@ void CGame::UpdateGame(const float timeDelta) {
 	static bool down = false;
 	if (m_RaceTrack.IsGameRuning()) {
 		this->m_Racer.ModRotation(float(this->GetMousePosDelta().x));
-    if (this->IsMouseButtonPressed(SDL_BUTTON_LEFT)) {
-      this->m_RaceTrack.FireWeapon();
-    }
+		if (this->IsMouseButtonPressed(SDL_BUTTON_LEFT)) {
+			this->m_RaceTrack.FireWeapon();
+		}
 	}
 	if (m_RaceTrack.IsGameOver()) {
-		m_MMag.ForceSwitchToMenu(MENU_MAIN);
-		m_MMag.GetMenu(MENU_MAIN)->GetMenuItem(MI_RETURN)->SetEnable(false);
+		m_MenuMng.ForceSwitchToMenu(MENU_MAIN);
+    m_MenuMng.GetMenu(MENU_MAIN)->GetMenuItem(MI_RETURN)->SetEnable(false);
 		m_HS.SetTempScore(m_RaceTrack.GetPoints());
 		m_uGameState = GS_HIGH;
 		return;
 	}
 
 	if (this->IsKeyboardKeyPressed(SDL_SCANCODE_ESCAPE)) {
-		m_MMag.ForceSwitchToMenu(MENU_MAIN);
-		m_MMag.GetMenu(MENU_MAIN)->GetMenuItem(MI_RETURN)->SetEnable(true);
+    m_MenuMng.ForceSwitchToMenu(MENU_MAIN);
+    m_MenuMng.GetMenu(MENU_MAIN)->GetMenuItem(MI_RETURN)->SetEnable(true);
 		m_uGameState = GS_MENU;
 		return;
 	}
@@ -134,10 +134,10 @@ void CGame::UpdateMenu(const float timeDelta) {
 	CIniFile ini;
 	char szBuffer[1000];
 	static bool down = false;
-	if (m_MMag.Update(this, timeDelta)) {
+	if (m_MenuMng.Update(this, timeDelta)) {
 		if (down)
 			return;
-		CGUIMenu* Menu = m_MMag.GetCurrentMenu();
+		CGUIMenu* Menu = m_MenuMng.GetCurrentMenu();
 		CGUIMenuItem* Item = Menu->GetMenuItem(Menu->GetClickedID());
 		switch (Menu->GetClickedID()) {
 		case MI_RETURN:
@@ -157,7 +157,7 @@ void CGame::UpdateMenu(const float timeDelta) {
 		case MI_HIGH:
 		case MI_OPTIONS:
 		case MI_GOBACK:
-			m_MMag.SwitchToMenu(Item->GetUserDefID());
+      m_MenuMng.SwitchToMenu(Item->GetUserDefID());
 			break;
 
 		case MI_RESOLUTION:
@@ -260,7 +260,7 @@ void CGame::UpdateMenu(const float timeDelta) {
 }
 
 void CGame::UpdateHS() {
-	CGUIMenu* Menu = m_MMag.GetMenu(MENU_HIGH);
+	CGUIMenu* Menu = m_MenuMng.GetMenu(MENU_HIGH);
 	std::string strName;
 	UINT uScore, i;
 	char szBuffer[1000];
