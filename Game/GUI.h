@@ -47,9 +47,9 @@ public:
   enum MENUITEMFLAG {
     MIF_FOCUS = 0x0001,
     MIF_ENABLED = 0x0002,
-    MIF_SHOWANI = 0x0004,
-    MIF_HIDEANI = 0x0008,
-    MIF_HIDEN = 0x0010
+    MIF_SHOWANIM = 0x0004,
+    MIF_HIDEANIM = 0x0008,
+    MIF_HIDDEN = 0x0010
   };
   CGUIMenuItem(UINT uID, std::string strName, vec2 vPos, UINT uUserDefID);
   ~CGUIMenuItem();
@@ -93,7 +93,7 @@ public:
   enum MENUFLAG {
     MF_SHOWANIM = 0x01,
     MF_HIDEANIM = 0x02,
-    MF_HIDEN = 0x04
+    MF_HIDDEN = 0x04
   };
   CGUIMenu(UINT uID, std::string strName);
   ~CGUIMenu();
@@ -132,7 +132,7 @@ public:
   CGUIMenuManager();
   ~CGUIMenuManager();
 
-  bool Engine(BYTE* Key, DIMOUSESTATE2* Mouse, float fDT);
+  bool Update( DIMOUSESTATE2* Mouse, float fDT);
   void Render(CGUI* GUI);
 
   CGUIMenu* AddMenu(UINT uID, std::string strName);

@@ -1,16 +1,10 @@
 #include "Game.h"
 
-CGame::~CGame() {
-  Free();
-  GInst = NULL;
-
-  SDL_Quit();
-}
-
 void CGame::Free() {
   this->FreeGame();
   this->FreeOpenGL();
-  this->FreeDevice();
+  this->FreeInput();
+  this->FreeRender();
   this->FreeWindow();
   Log_Free();
 }
@@ -22,19 +16,23 @@ void CGame::FreeWindow() {
   }
 }
 
-void CGame::FreeDevice() {
+void CGame::FreeRender() {
   if(this->m_pGLContext) {
     SDL_GL_DeleteContext(this->m_pGLContext);
     this->m_pGLContext = nullptr;
   }
 
-  DXRELEASE(this->m_cDIMouse);
-  DXRELEASE(this->m_cDIKey);
-  DXRELEASE(this->m_cDInput);
   if (ScrParam.bFullscreen)
     ChangeDisplaySettings(NULL, 0);
 
   SDL_QuitSubSystem(SDL_INIT_VIDEO);
+}
+
+void CGame::FreeInput() {
+  DXRELEASE(this->m_cDIMouse);
+  DXRELEASE(this->m_cDInput);
+
+  SDL_QuitSubSystem(SDL_INIT_EVENTS);
 }
 
 void CGame::FreeOpenGL() {

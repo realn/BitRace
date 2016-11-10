@@ -6,27 +6,6 @@
 PFNWGLSWAPINTERVALEXTPROC		wglSwapIntervalEXT = NULL;
 PFNWGLGETSWAPINTERVALEXTPROC	wglGetSwapIntervalEXT = NULL;
 
-CGame::CGame() :
-  m_pWindow(NULL),
-  m_pGLContext(NULL),
-  m_cDInput(NULL),
-  m_cDIKey(NULL),
-  m_cDIMouse(NULL),
-  m_bShutdown(false),
-  m_bGamePause(false),
-  m_bTakeScreen(false),
-  m_iLastTick(0),
-  m_iFreq(0),
-  m_fDT(0.0f),
-  m_fBlurTexAlpha(0.3f),
-  m_uGameState(GS_INTRO),
-  m_uBlurTexture(0),
-  m_uBlurTexSize(64) 
-{
-  SDL_Init(0);
-
-  GInst = this;
-}
 
 bool CGame::Init(std::string strCmdLine) {
   Log_Init("main.log", "BIT_RACE_LOG");
@@ -52,15 +31,19 @@ bool CGame::Init(std::string strCmdLine) {
   ini.Close();
 
   if (!this->InitWindow(GAME_FULLNAME)) {
-    Log_Error("Can't Create Window...");
+    Log_Error("Can't initialize window.");
     Free();
     return false;
   }
-  if (!this->InitDevice()) {
-    Log_Error("Can't Initialize Devices");
+  if (!this->InitRender()) {
+    Log_Error("Can't Initialize render.");
     Free();
     return false;
   }
+  if(!this->InitInput()) {
+    Log_Error("Can't initialize input.");
+  }
+
   if (!this->InitOpenGL()) {
     Log_Error("Can't Initialize OpenGL");
     Free();
@@ -87,7 +70,7 @@ bool CGame::InitWindow(std::string strTitle) {
     winFlags |= SDL_WINDOW_BORDERLESS;
   }
   this->m_pWindow = SDL_CreateWindow(strTitle.c_str(),
-                                     0, 0,
+                                     SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                      int(ScrParam.uWidth), int(ScrParam.uHeight),
                                      winFlags);
   if(this->m_pWindow == nullptr) {
@@ -99,32 +82,9 @@ bool CGame::InitWindow(std::string strTitle) {
   return true;
 }
 
-bool CGame::InitDevice() {
+bool CGame::InitRender() {
   if (ScrParam.bFullscreen)
     ChangeDispMode();
-
-  if (DI_OK != DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&this->m_cDInput, NULL)) {
-    this->FreeDevice();
-    return false;
-  }
-  if (DI_OK != this->m_cDInput->CreateDevice(GUID_SysKeyboard, &this->m_cDIKey, NULL)) {
-    this->FreeDevice();
-    return false;
-  }
-  if (DI_OK != this->m_cDInput->CreateDevice(GUID_SysMouse, &this->m_cDIMouse, NULL)) {
-    this->FreeDevice();
-    return false;
-  }
-
-  HWND pWindow = reinterpret_cast<HWND>(SDL_GetWindowID(this->m_pWindow));
-
-  this->m_cDIKey->SetDataFormat(&c_dfDIKeyboard);
-  this->m_cDIKey->SetCooperativeLevel(pWindow, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
-  this->m_cDIKey->Acquire();
-
-  this->m_cDIMouse->SetDataFormat(&c_dfDIMouse2);
-  this->m_cDIMouse->SetCooperativeLevel(pWindow, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
-  this->m_cDIMouse->Acquire();
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
   SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, int(ScrParam.uColorBits));
@@ -141,6 +101,28 @@ bool CGame::InitDevice() {
 
   m_cGUI.Init(NULL);
   srand(GetTickCount());
+
+  return true;
+}
+
+bool  CGame::InitInput() {
+  SDL_InitSubSystem(SDL_INIT_EVENTS);
+
+  if(DI_OK != DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&this->m_cDInput, NULL)) {
+    this->FreeRender();
+    return false;
+  }
+  if(DI_OK != this->m_cDInput->CreateDevice(GUID_SysMouse, &this->m_cDIMouse, NULL)) {
+    this->FreeRender();
+    return false;
+  }
+
+  memset(this->m_KeyState, 0, sizeof(Uint8) * SDL_NUM_SCANCODES);
+  memset(this->m_KeyStatePrev, 0, sizeof(Uint8) * SDL_NUM_SCANCODES);
+
+  this->m_cDIMouse->SetDataFormat(&c_dfDIMouse2);
+  this->m_cDIMouse->SetCooperativeLevel(NULL, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
+  this->m_cDIMouse->Acquire();
 
   return true;
 }

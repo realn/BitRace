@@ -91,6 +91,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameEngine.cpp" />
     <ClCompile Include="GameFree.cpp" />
     <ClCompile Include="GameInit.cpp" />

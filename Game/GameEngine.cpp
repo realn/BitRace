@@ -24,7 +24,7 @@ void CGame::UpdateLogic(const float timeDelta) {
 	switch (m_uGameState) {
 	case GS_INTRO:
 		m_Intro.Engine(timeDelta);
-		if (m_Intro.IsIntroEnded() || KEYDOWN(DIK_ESCAPE)) {
+		if (m_Intro.IsIntroEnded() || this->IsKeyboardKeyDown(SDL_SCANCODE_ESCAPE)) {
 			m_Intro.Free();
 			m_uGameState = GS_MENU;
 		}
@@ -39,14 +39,14 @@ void CGame::UpdateLogic(const float timeDelta) {
 			CGUIMenu* M = m_MMag.GetCurrentMenu();
 			if (!M->IsHideing())
 				M->Hide();
-			m_MMag.Engine(this->m_cKeyState, &this->m_cMouseState, timeDelta);
+			m_MMag.Update(&this->m_cMouseState, timeDelta);
 		}
 		else 
 			this->UpdateGame(timeDelta);
 		break;
 
 	case GS_HIGH:
-		m_HS.Engine(this->m_cKeyState, timeDelta);
+		m_HS.Update(this, timeDelta);
 		if (m_HS.IsEnded()) {
 			m_HS.SaveScores("score.hsf");
 			UpdateHS();
@@ -55,8 +55,8 @@ void CGame::UpdateLogic(const float timeDelta) {
 		}
 		break;
 	};
-	if (KEYDOWN(DIK_F11)) {
-    SDL_MinimizeWindow(this->m_pWindow);
+	if (this->IsKeyboardKeyPressed(SDL_SCANCODE_F11)) {
+		SDL_MinimizeWindow(this->m_pWindow);
 
 		if (ScrParam.bFullscreen)
 			ChangeDisplaySettings(NULL, 0);
@@ -65,20 +65,21 @@ void CGame::UpdateLogic(const float timeDelta) {
 
 		if (ScrParam.bFullscreen)
 			this->ChangeDispMode();
-		m_cKeyState[DIK_F11] = 0;
 	}
-	if (KEYDOWN(DIK_F12)) {
-		if (!down2) {
+	if (this->IsKeyboardKeyPressed(SDL_SCANCODE_F12)) {
 			this->m_bTakeScreen = true;
-			down2 = true;
-		}
 	}
-	else down2 = false;
 }
 
 void CGame::UpdateKeyboard() {
-	this->m_cDIKey->Acquire();
-	this->m_cDIKey->GetDeviceState(256, (LPVOID)m_cKeyState);
+
+	const Uint8* keyboardState = SDL_GetKeyboardState(nullptr);
+
+	memcpy(this->m_KeyStatePrev, this->m_KeyState, sizeof(Uint8) * SDL_NUM_SCANCODES);
+	memcpy(this->m_KeyState, keyboardState, sizeof(Uint8) * SDL_NUM_SCANCODES);
+
+	//this->m_cDIKey->Acquire();
+	//this->m_cDIKey->GetDeviceState(256, (LPVOID)m_cKeyState);
 }
 
 void CGame::UpdateMouse() {
@@ -115,7 +116,7 @@ void CGame::UpdateGame(const float timeDelta) {
 		return;
 	}
 
-	if (KEYDOWN(DIK_ESCAPE)) {
+	if (this->IsKeyboardKeyPressed(SDL_SCANCODE_ESCAPE)) {
 		m_MMag.ForceSwitchToMenu(MENU_MAIN);
 		m_MMag.GetMenu(MENU_MAIN)->GetMenuItem(MI_RETURN)->SetEnable(true);
 		m_uGameState = GS_MENU;
@@ -130,7 +131,7 @@ void CGame::UpdateMenu(const float timeDelta) {
 	CIniFile ini;
 	char szBuffer[1000];
 	static bool down = false;
-	if (m_MMag.Engine(this->m_cKeyState, &this->m_cMouseState, timeDelta)) {
+	if (m_MMag.Update(&this->m_cMouseState, timeDelta)) {
 		if (down)
 			return;
 		CGUIMenu* Menu = m_MMag.GetCurrentMenu();

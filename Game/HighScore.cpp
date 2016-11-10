@@ -1,4 +1,5 @@
 #include "HighScore.h"
+#include "Game.h"
 
 struct HSHEADER {
   char	FILEID[3];
@@ -116,20 +117,11 @@ void CHighScore::SetTempScore(UINT uScore) {
   memset(m_bKeyDown, 0, sizeof(bool) * 256);
 }
 
-void CHighScore::Engine(BYTE *Key, float fDT) {
-  UINT i;
-  for (i = 0; i < 256; i++) {
-    if (Key[i] & 0x80) {
-      if (m_bKeyDown[i])
-        continue;
-      else {
-        m_bKeyDown[i] = true;
-        ParseKey(i);
-        continue;
-      }
+void CHighScore::Update(CGame* pGame, float fDT) {
+  for (unsigned key = 0; key < SDL_NUM_SCANCODES; key++) {
+    if (pGame->IsKeyboardKeyPressed((SDL_Scancode)key)) {
+      this->ParseKey(key);
     }
-    else if (m_bKeyDown[i])
-      m_bKeyDown[i] = false;
   }
 
   std::stringstream ss;
@@ -280,63 +272,63 @@ bool CHighScore::IsEnded() {
   return m_bIsEnd;
 }
 
-void CHighScore::ParseKey(UINT Key) {
+void CHighScore::ParseKey(unsigned key) {
   if (!m_bCanWrite || m_uHSS != HSS_STATE7)
     return;
 
-  if (Key == DIK_RETURN && m_strTempName.length() > 0) {
+  if (key == SDL_SCANCODE_RETURN && m_strTempName.length() > 0) {
     strncpy_s(m_aScore[m_uHSPos].m_acName, 7, m_strTempName.c_str(), 6);
     m_uHSS = HSS_STATE8;
     m_bCanWrite = false;
     return;
   }
-  if (Key == DIK_BACK) {
+  if (key == SDL_SCANCODE_BACKSPACE) {
     if (m_strTempName.length() > 0)
       m_strTempName = m_strTempName.substr(0, m_strTempName.length() - 1);
   }
 
   if (m_strTempName.length() < 6) {
-    switch (Key) {
-    case DIK_0: m_strTempName += "0"; break;
-    case DIK_1: m_strTempName += "1"; break;
-    case DIK_2: m_strTempName += "2"; break;
-    case DIK_3: m_strTempName += "3"; break;
-    case DIK_4: m_strTempName += "4"; break;
-    case DIK_5: m_strTempName += "5"; break;
-    case DIK_6: m_strTempName += "6"; break;
-    case DIK_7: m_strTempName += "7"; break;
-    case DIK_8: m_strTempName += "8"; break;
-    case DIK_9: m_strTempName += "9"; break;
+    switch (key) {
+    case SDL_SCANCODE_0: m_strTempName += "0"; break;
+    case SDL_SCANCODE_1: m_strTempName += "1"; break;
+    case SDL_SCANCODE_2: m_strTempName += "2"; break;
+    case SDL_SCANCODE_3: m_strTempName += "3"; break;
+    case SDL_SCANCODE_4: m_strTempName += "4"; break;
+    case SDL_SCANCODE_5: m_strTempName += "5"; break;
+    case SDL_SCANCODE_6: m_strTempName += "6"; break;
+    case SDL_SCANCODE_7: m_strTempName += "7"; break;
+    case SDL_SCANCODE_8: m_strTempName += "8"; break;
+    case SDL_SCANCODE_9: m_strTempName += "9"; break;
 
-    case DIK_A: m_strTempName += "A"; break;
-    case DIK_B: m_strTempName += "B"; break;
-    case DIK_C: m_strTempName += "C"; break;
-    case DIK_D: m_strTempName += "D"; break;
-    case DIK_E: m_strTempName += "E"; break;
-    case DIK_F: m_strTempName += "F"; break;
-    case DIK_G: m_strTempName += "G"; break;
-    case DIK_H: m_strTempName += "H"; break;
-    case DIK_I: m_strTempName += "I"; break;
-    case DIK_J: m_strTempName += "J"; break;
-    case DIK_K: m_strTempName += "K"; break;
-    case DIK_L: m_strTempName += "L"; break;
-    case DIK_M: m_strTempName += "M"; break;
-    case DIK_N: m_strTempName += "N"; break;
-    case DIK_O: m_strTempName += "O"; break;
-    case DIK_P: m_strTempName += "P"; break;
-    case DIK_Q: m_strTempName += "Q"; break;
-    case DIK_R: m_strTempName += "R"; break;
-    case DIK_S: m_strTempName += "S"; break;
-    case DIK_T: m_strTempName += "T"; break;
-    case DIK_U: m_strTempName += "U"; break;
-    case DIK_V: m_strTempName += "V"; break;
-    case DIK_W: m_strTempName += "W"; break;
-    case DIK_X: m_strTempName += "X"; break;
-    case DIK_Y: m_strTempName += "Y"; break;
-    case DIK_Z: m_strTempName += "Z"; break;
+    case SDL_SCANCODE_A: m_strTempName += "A"; break;
+    case SDL_SCANCODE_B: m_strTempName += "B"; break;
+    case SDL_SCANCODE_C: m_strTempName += "C"; break;
+    case SDL_SCANCODE_D: m_strTempName += "D"; break;
+    case SDL_SCANCODE_E: m_strTempName += "E"; break;
+    case SDL_SCANCODE_F: m_strTempName += "F"; break;
+    case SDL_SCANCODE_G: m_strTempName += "G"; break;
+    case SDL_SCANCODE_H: m_strTempName += "H"; break;
+    case SDL_SCANCODE_I: m_strTempName += "I"; break;
+    case SDL_SCANCODE_J: m_strTempName += "J"; break;
+    case SDL_SCANCODE_K: m_strTempName += "K"; break;
+    case SDL_SCANCODE_L: m_strTempName += "L"; break;
+    case SDL_SCANCODE_M: m_strTempName += "M"; break;
+    case SDL_SCANCODE_N: m_strTempName += "N"; break;
+    case SDL_SCANCODE_O: m_strTempName += "O"; break;
+    case SDL_SCANCODE_P: m_strTempName += "P"; break;
+    case SDL_SCANCODE_Q: m_strTempName += "Q"; break;
+    case SDL_SCANCODE_R: m_strTempName += "R"; break;
+    case SDL_SCANCODE_S: m_strTempName += "S"; break;
+    case SDL_SCANCODE_T: m_strTempName += "T"; break;
+    case SDL_SCANCODE_U: m_strTempName += "U"; break;
+    case SDL_SCANCODE_V: m_strTempName += "V"; break;
+    case SDL_SCANCODE_W: m_strTempName += "W"; break;
+    case SDL_SCANCODE_X: m_strTempName += "X"; break;
+    case SDL_SCANCODE_Y: m_strTempName += "Y"; break;
+    case SDL_SCANCODE_Z: m_strTempName += "Z"; break;
 
-    case DIK_SPACE: m_strTempName += " "; break;
-    case DIK_MINUS: m_strTempName += "-"; break;
+    case SDL_SCANCODE_SPACE: m_strTempName += " "; break;
+    case SDL_SCANCODE_MINUS: m_strTempName += "-"; break;
     }
   }
 }

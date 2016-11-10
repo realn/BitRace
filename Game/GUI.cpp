@@ -214,7 +214,7 @@ CGUIMenuItem::CGUIMenuItem(UINT uID, std::string strName, vec2 vPos, UINT uUserD
   m_vPos(vPos),
   m_vCurrPos(vPos.X, -20.0f),
   m_uUserDefID(uUserDefID),
-  m_uFlag(MIF_ENABLED | MIF_HIDEN),
+  m_uFlag(MIF_ENABLED | MIF_HIDDEN),
   m_fFocusLight(0.0f) {
 
 }
@@ -227,7 +227,7 @@ bool CGUIMenuItem::Engine(vec2 vMousePos, BYTE *MouseKey, float fDT) {
   if (IsShowing()) {
     m_vCurrPos += (m_vPos - vec2(m_vPos.X, -20.0f)) * 3.0f * fDT;
     if (m_vPos.Y - m_vCurrPos.Y < 0.1f) {
-      this->m_uFlag &= ~MIF_SHOWANI;
+      this->m_uFlag &= ~MIF_SHOWANIM;
       m_vCurrPos = m_vPos;
     }
     else return false;
@@ -235,8 +235,8 @@ bool CGUIMenuItem::Engine(vec2 vMousePos, BYTE *MouseKey, float fDT) {
   if (IsHideing()) {
     m_vCurrPos += (vec2(m_vPos.X, -20.0f) - m_vPos) * 3.0f * fDT;
     if (m_vCurrPos.Y + 20.0f < 0.1f) {
-      this->m_uFlag &= ~MIF_HIDEANI;
-      this->m_uFlag |= MIF_HIDEN;
+      this->m_uFlag &= ~MIF_HIDEANIM;
+      this->m_uFlag |= MIF_HIDDEN;
       m_vCurrPos = vec2(m_vPos.X, -20.0f);
     }
     else return false;
@@ -303,15 +303,15 @@ bool CGUIMenuItem::IsAnimating() {
 }
 
 bool CGUIMenuItem::IsHideing() {
-  return (m_uFlag & MIF_HIDEANI) ? true : false;
+  return (m_uFlag & MIF_HIDEANIM) ? true : false;
 }
 
 bool CGUIMenuItem::IsHiden() {
-  return (m_uFlag & MIF_HIDEN) ? true : false;
+  return (m_uFlag & MIF_HIDDEN) ? true : false;
 }
 
 bool CGUIMenuItem::IsShowing() {
-  return (m_uFlag & MIF_SHOWANI) ? true : false;
+  return (m_uFlag & MIF_SHOWANIM) ? true : false;
 }
 
 UINT CGUIMenuItem::GetID() {
@@ -351,21 +351,21 @@ void CGUIMenuItem::SetUserDefID(UINT uSet) {
 }
 
 void CGUIMenuItem::Show() {
-  m_uFlag |= MIF_SHOWANI;
-  m_uFlag &= ~MIF_HIDEN;
+  m_uFlag |= MIF_SHOWANIM;
+  m_uFlag &= ~MIF_HIDDEN;
 }
 
 void CGUIMenuItem::Hide() {
-  m_uFlag |= MIF_HIDEANI;
+  m_uFlag |= MIF_HIDEANIM;
 }
 
 void CGUIMenuItem::ForceShow() {
-  m_uFlag &= ~MIF_HIDEN;
+  m_uFlag &= ~MIF_HIDDEN;
   m_vCurrPos = m_vPos;
 }
 
 void CGUIMenuItem::ForceHide() {
-  m_uFlag |= MIF_HIDEN;
+  m_uFlag |= MIF_HIDDEN;
   m_vCurrPos = vec2(m_vPos.X, -20.0f);
 }
 
@@ -374,7 +374,7 @@ void CGUIMenuItem::ForceHide() {
 CGUIMenu::CGUIMenu(UINT uID, std::string strName) :
   m_strName(strName),
   m_uID(uID),
-  m_uFlag(MF_HIDEN),
+  m_uFlag(MF_HIDDEN),
   m_fTime(0.0f),
   m_uIndex(0),
   m_uClickedID(0) {
@@ -413,7 +413,7 @@ bool CGUIMenu::Engine(vec2 vMousePos, BYTE *MouseKey, float fDT) {
             j++;
         if (j == m_aItem.size()) {
           m_uFlag &= ~MF_HIDEANIM;
-          m_uFlag |= MF_HIDEN;
+          m_uFlag |= MF_HIDDEN;
         }
       }
       else {
@@ -491,7 +491,7 @@ void CGUIMenu::Hide() {
 }
 
 void CGUIMenu::Show() {
-  m_uFlag &= ~MF_HIDEN;
+  m_uFlag &= ~MF_HIDDEN;
   m_uFlag &= ~MF_HIDEANIM;
   m_uFlag |= MF_SHOWANIM;
   m_uIndex = UINT(m_aItem.size());
@@ -506,7 +506,7 @@ bool CGUIMenu::IsHideing() {
 }
 
 bool CGUIMenu::IsHiden() {
-  return (m_uFlag & MF_HIDEN) ? true : false;
+  return (m_uFlag & MF_HIDDEN) ? true : false;
 }
 
 bool CGUIMenu::IsShowing() {
@@ -530,14 +530,14 @@ UINT CGUIMenu::GetID() {
 }
 
 void CGUIMenu::ForceShow() {
-  m_uFlag &= ~MF_HIDEN;
+  m_uFlag &= ~MF_HIDDEN;
   size_t i;
   for (i = 0; i < m_aItem.size(); i++)
     m_aItem[i]->ForceShow();
 }
 
 void CGUIMenu::ForceHide() {
-  m_uFlag |= MF_HIDEN;
+  m_uFlag |= MF_HIDDEN;
   size_t i;
   for (i = 0; i < m_aItem.size(); i++)
     m_aItem[i]->ForceHide();
@@ -557,7 +557,7 @@ CGUIMenuManager::~CGUIMenuManager() {
   Clear();
 }
 
-bool CGUIMenuManager::Engine(BYTE *Key, DIMOUSESTATE2 *Mouse, float fDT) {
+bool CGUIMenuManager::Update(DIMOUSESTATE2 *Mouse, float fDT) {
   this->m_vMouseAbsolute.X += float(Mouse->lX);
   this->m_vMouseAbsolute.Y += float(Mouse->lY);
 

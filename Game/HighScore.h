@@ -4,6 +4,10 @@
 #include "../Common/Files.h"
 #include <sstream>
 
+#include <SDL.h>
+
+class CGame;
+
 class CHighScore {
 public:
   class CScore {
@@ -29,7 +33,7 @@ private:
   bool	m_bIsEnd;
   bool	m_bKeyDown[256];
 
-  void	ParseKey(UINT Key);
+  void	ParseKey(unsigned key);
   bool	CheckScore();
 
   enum	HIGHSCORE_STATE {
@@ -51,7 +55,7 @@ public:
 
   void	SetTempScore(UINT uScore);
 
-  void	Engine(BYTE* Key, float fDT);
+  void	Update(CGame* pGame, float fDT);
   void	RenderGUI(CGUI* GUI);
 
   std::string GetName(UINT uIndex);

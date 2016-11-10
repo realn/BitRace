@@ -34,8 +34,10 @@ private:
   SDL_GLContext m_pGLContext;
   CGUI		m_cGUI;
 
+  Uint8 m_KeyState[SDL_NUM_SCANCODES];
+  Uint8 m_KeyStatePrev[SDL_NUM_SCANCODES];
+
   LPDIRECTINPUT8			m_cDInput;
-  LPDIRECTINPUTDEVICE8	m_cDIKey;
   LPDIRECTINPUTDEVICE8	m_cDIMouse;
 
   bool			m_bShutdown;
@@ -126,13 +128,15 @@ public:
 
   bool Init(std::string strCmdLine);
   bool InitWindow(std::string strTitle);
-  bool InitDevice();
+  bool InitRender();
+  bool InitInput();
   bool InitOpenGL();
   bool InitGame();
 
   void Free();
   void FreeWindow();
-  void FreeDevice();
+  void FreeRender();
+  void FreeInput();
   void FreeOpenGL();
   void FreeGame();
 
@@ -147,11 +151,11 @@ public:
   void ScanDispModes();
   void ChangeDispMode();
 
-  int ParseMsg(UINT msg, WPARAM wParam, LPARAM lParam);
+  bool  IsKeyboardKeyDown(const SDL_Scancode code) const;
+  bool  IsKeyboardKeyPressed(const SDL_Scancode code) const;
+
   int MainLoop();
 
-  static LRESULT WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-  static CGame* GInst;
   static float	s_fMaxDT;
 
   void UpdateKeyboard();
@@ -160,6 +164,4 @@ public:
   void UpdateHS();
 
   DIMOUSESTATE2	m_cMouseState;
-  BYTE			m_cKeyState[256];
-  bool			m_bKeyDown[256];
 };
