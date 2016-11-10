@@ -39,7 +39,7 @@ void CGame::UpdateLogic(const float timeDelta) {
 			CGUIMenu* M = m_MMag.GetCurrentMenu();
 			if (!M->IsHideing())
 				M->Hide();
-			m_MMag.Update(&this->m_cMouseState, timeDelta);
+			m_MMag.Update(this, timeDelta);
 		}
 		else 
 			this->UpdateGame(timeDelta);
@@ -83,8 +83,15 @@ void CGame::UpdateKeyboard() {
 }
 
 void CGame::UpdateMouse() {
-	this->m_cDIMouse->Acquire();
-	this->m_cDIMouse->GetDeviceState(sizeof(DIMOUSESTATE2), (LPVOID)&m_cMouseState);
+	
+	glm::ivec2 mousePos;
+	Uint32 mouseState = SDL_GetMouseState(&mousePos.x, &mousePos.y);
+
+	this->m_MouseButtonStatePrev = this->m_MouseButtonState;
+	this->m_MouseButtonState = mouseState;
+
+	this->m_MousePosPrev = this->m_MousePos;
+	this->m_MousePos = mousePos;
 }
 
 void CGame::UpdateTimer() {
@@ -99,14 +106,10 @@ void CGame::UpdateTimer() {
 void CGame::UpdateGame(const float timeDelta) {
 	static bool down = false;
 	if (m_RaceTrack.IsGameRuning()) {
-		this->m_Racer.ModRotation(float(m_cMouseState.lX));
-		if (this->m_cMouseState.rgbButtons[0] & 0x80) {
-			if (!down) {
-				this->m_RaceTrack.FireWeapon();
-				down = true;
-			}
-		}
-		else down = false;
+		this->m_Racer.ModRotation(float(this->GetMousePosDelta().x));
+    if (this->IsMouseButtonPressed(SDL_BUTTON_LEFT)) {
+      this->m_RaceTrack.FireWeapon();
+    }
 	}
 	if (m_RaceTrack.IsGameOver()) {
 		m_MMag.ForceSwitchToMenu(MENU_MAIN);
@@ -131,7 +134,7 @@ void CGame::UpdateMenu(const float timeDelta) {
 	CIniFile ini;
 	char szBuffer[1000];
 	static bool down = false;
-	if (m_MMag.Update(&this->m_cMouseState, timeDelta)) {
+	if (m_MMag.Update(this, timeDelta)) {
 		if (down)
 			return;
 		CGUIMenu* Menu = m_MMag.GetCurrentMenu();

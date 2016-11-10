@@ -108,21 +108,14 @@ bool CGame::InitRender() {
 bool  CGame::InitInput() {
   SDL_InitSubSystem(SDL_INIT_EVENTS);
 
-  if(DI_OK != DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&this->m_cDInput, NULL)) {
-    this->FreeRender();
-    return false;
-  }
-  if(DI_OK != this->m_cDInput->CreateDevice(GUID_SysMouse, &this->m_cDIMouse, NULL)) {
-    this->FreeRender();
-    return false;
-  }
-
   memset(this->m_KeyState, 0, sizeof(Uint8) * SDL_NUM_SCANCODES);
   memset(this->m_KeyStatePrev, 0, sizeof(Uint8) * SDL_NUM_SCANCODES);
 
-  this->m_cDIMouse->SetDataFormat(&c_dfDIMouse2);
-  this->m_cDIMouse->SetCooperativeLevel(NULL, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
-  this->m_cDIMouse->Acquire();
+  this->m_MouseButtonState = 0;
+  this->m_MouseButtonStatePrev = 0;
+
+  this->m_MousePos = glm::ivec2(0);
+  this->m_MousePosPrev = glm::ivec2(0);
 
   return true;
 }

@@ -3,8 +3,6 @@
 CGame::CGame() :
   m_pWindow(NULL),
   m_pGLContext(NULL),
-  m_cDInput(NULL),
-  m_cDIMouse(NULL),
   m_bShutdown(false),
   m_bGamePause(false),
   m_bTakeScreen(false),

@@ -1,4 +1,5 @@
 #include "GUI.h"
+#include "Game.h"
 #include "../Common/FGXFile.h"
 #include <stdarg.h>
 
@@ -34,7 +35,7 @@ bool CGUI::LoadFontTexture(std::string file) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-  UINT format = 0;
+  Uint32 format = 0;
   switch (head.IMAGEDEPTH) {
   case 1: format = GL_LUMINANCE8;
   case 2: format = GL_LUMINANCE8_ALPHA8;
@@ -55,7 +56,7 @@ bool CGUI::LoadFontTexture(std::string file) {
 bool CGUI::InitFont() {
   this->m_uFontList = glGenLists(256);
 
-  UINT i;
+  Uint32 i;
   float cx;
   float cy;
   for (i = 0; i < 256; ++i) {
@@ -208,7 +209,7 @@ void CGUI::RenderFSQuadTex() {
 
 //==========================================================
 
-CGUIMenuItem::CGUIMenuItem(UINT uID, std::string strName, vec2 vPos, UINT uUserDefID) :
+CGUIMenuItem::CGUIMenuItem(Uint32 uID, std::string strName, vec2 vPos, Uint32 uUserDefID) :
   m_uID(uID),
   m_strName(strName),
   m_vPos(vPos),
@@ -223,7 +224,7 @@ CGUIMenuItem::~CGUIMenuItem() {
 
 }
 
-bool CGUIMenuItem::Engine(vec2 vMousePos, BYTE *MouseKey, float fDT) {
+bool CGUIMenuItem::Update(CGame* pGame, float fDT) {
   if (IsShowing()) {
     m_vCurrPos += (m_vPos - vec2(m_vPos.X, -20.0f)) * 3.0f * fDT;
     if (m_vPos.Y - m_vCurrPos.Y < 0.1f) {
@@ -232,7 +233,7 @@ bool CGUIMenuItem::Engine(vec2 vMousePos, BYTE *MouseKey, float fDT) {
     }
     else return false;
   }
-  if (IsHideing()) {
+  if (IsHiding()) {
     m_vCurrPos += (vec2(m_vPos.X, -20.0f) - m_vPos) * 3.0f * fDT;
     if (m_vCurrPos.Y + 20.0f < 0.1f) {
       this->m_uFlag &= ~MIF_HIDEANIM;
@@ -258,10 +259,12 @@ bool CGUIMenuItem::Engine(vec2 vMousePos, BYTE *MouseKey, float fDT) {
 
   float width = 16.0f * float(m_strName.length());
 
-  if (vMousePos.X > m_vPos.X && vMousePos.X < m_vPos.X + width &&
-      vMousePos.Y > m_vPos.Y && vMousePos.Y < m_vPos.Y + 16.0f) {
+  glm::vec2 vMousePos = glm::vec2(pGame->GetMousePos());
+
+  if (vMousePos.x > m_vPos.X && vMousePos.x < m_vPos.X + width &&
+      vMousePos.y > m_vPos.Y && vMousePos.y < m_vPos.Y + 16.0f) {
     SetFocus(true);
-    if (MouseKey[0] & 0x80)
+    if (pGame->IsMouseButtonPressed(SDL_BUTTON_LEFT))
       return true;
   }
   else SetFocus(false);
@@ -269,7 +272,7 @@ bool CGUIMenuItem::Engine(vec2 vMousePos, BYTE *MouseKey, float fDT) {
 }
 
 void CGUIMenuItem::Render(CGUI *GUI) {
-  if (!IsEnabled() || IsHiden())
+  if (!IsEnabled() || IsHidden())
     return;
 
   if (!IsAnimating()) {
@@ -299,14 +302,14 @@ bool CGUIMenuItem::IsEnabled() {
 }
 
 bool CGUIMenuItem::IsAnimating() {
-  return (IsShowing() || IsHideing());
+  return (IsShowing() || IsHiding());
 }
 
-bool CGUIMenuItem::IsHideing() {
+bool CGUIMenuItem::IsHiding() {
   return (m_uFlag & MIF_HIDEANIM) ? true : false;
 }
 
-bool CGUIMenuItem::IsHiden() {
+bool CGUIMenuItem::IsHidden() {
   return (m_uFlag & MIF_HIDDEN) ? true : false;
 }
 
@@ -314,7 +317,7 @@ bool CGUIMenuItem::IsShowing() {
   return (m_uFlag & MIF_SHOWANIM) ? true : false;
 }
 
-UINT CGUIMenuItem::GetID() {
+Uint32 CGUIMenuItem::GetID() {
   return m_uID;
 }
 
@@ -326,7 +329,7 @@ vec2 CGUIMenuItem::GetPos() {
   return m_vPos;
 }
 
-UINT CGUIMenuItem::GetUserDefID() {
+Uint32 CGUIMenuItem::GetUserDefID() {
   return m_uUserDefID;
 }
 
@@ -346,7 +349,7 @@ void CGUIMenuItem::SetName(std::string strName) {
   m_strName = strName;
 }
 
-void CGUIMenuItem::SetUserDefID(UINT uSet) {
+void CGUIMenuItem::SetUserDefID(Uint32 uSet) {
   m_uUserDefID = uSet;
 }
 
@@ -371,7 +374,7 @@ void CGUIMenuItem::ForceHide() {
 
 //========================================================
 
-CGUIMenu::CGUIMenu(UINT uID, std::string strName) :
+CGUIMenu::CGUIMenu(Uint32 uID, std::string strName) :
   m_strName(strName),
   m_uID(uID),
   m_uFlag(MF_HIDDEN),
@@ -385,7 +388,7 @@ CGUIMenu::~CGUIMenu() {
   Clear();
 }
 
-bool CGUIMenu::Engine(vec2 vMousePos, BYTE *MouseKey, float fDT) {
+bool CGUIMenu::Update(CGame* pGame, float fDT) {
   size_t i, j;
   if (IsShowing()) {
     m_fTime += fDT;
@@ -407,9 +410,9 @@ bool CGUIMenu::Engine(vec2 vMousePos, BYTE *MouseKey, float fDT) {
   if (IsHideing()) {
     m_fTime += fDT;
     if (m_fTime > 0.2f) {
-      if (m_uIndex >= UINT(m_aItem.size())) {
+      if (m_uIndex >= Uint32(m_aItem.size())) {
         for (j = 0, i = 0; i < m_aItem.size(); i++)
-          if (m_aItem[i]->IsHiden())
+          if (m_aItem[i]->IsHidden())
             j++;
         if (j == m_aItem.size()) {
           m_uFlag &= ~MF_HIDEANIM;
@@ -424,7 +427,7 @@ bool CGUIMenu::Engine(vec2 vMousePos, BYTE *MouseKey, float fDT) {
   }
 
   for (i = 0; i < m_aItem.size(); i++) {
-    if (m_aItem[i]->Engine(vMousePos, MouseKey, fDT)) {
+    if (m_aItem[i]->Update(pGame, fDT)) {
       m_uClickedID = m_aItem[i]->GetID();
       return true;
     }
@@ -447,7 +450,7 @@ void CGUIMenu::Render(CGUI *GUI) {
     m_aItem[i]->Render(GUI);
 }
 
-CGUIMenuItem* CGUIMenu::AddMenuItem(UINT uID, std::string strName, vec2 vPos, UINT uUserDefID) {
+CGUIMenuItem* CGUIMenu::AddMenuItem(Uint32 uID, std::string strName, vec2 vPos, Uint32 uUserDefID) {
   size_t i;
   for (i = 0; i < m_aItem.size(); i++)
     if (m_aItem[i]->GetID() == uID)
@@ -458,7 +461,7 @@ CGUIMenuItem* CGUIMenu::AddMenuItem(UINT uID, std::string strName, vec2 vPos, UI
   return m;
 }
 
-void CGUIMenu::DelMenuItem(UINT uID) {
+void CGUIMenu::DelMenuItem(Uint32 uID) {
   size_t i;
   for (i = 0; i < m_aItem.size(); i++) {
     if (m_aItem[i]->GetID() == uID) {
@@ -468,7 +471,7 @@ void CGUIMenu::DelMenuItem(UINT uID) {
   }
 }
 
-CGUIMenuItem* CGUIMenu::GetMenuItem(UINT uID) {
+CGUIMenuItem* CGUIMenu::GetMenuItem(Uint32 uID) {
   size_t i;
   for (i = 0; i < m_aItem.size(); i++)
     if (m_aItem[i]->GetID() == uID)
@@ -494,7 +497,7 @@ void CGUIMenu::Show() {
   m_uFlag &= ~MF_HIDDEN;
   m_uFlag &= ~MF_HIDEANIM;
   m_uFlag |= MF_SHOWANIM;
-  m_uIndex = UINT(m_aItem.size());
+  m_uIndex = Uint32(m_aItem.size());
 }
 
 bool CGUIMenu::IsAnimating() {
@@ -513,7 +516,7 @@ bool CGUIMenu::IsShowing() {
   return (m_uFlag & MF_SHOWANIM) ? true : false;
 }
 
-UINT CGUIMenu::GetClickedID() {
+Uint32 CGUIMenu::GetClickedID() {
   return m_uClickedID;
 }
 
@@ -525,7 +528,7 @@ void CGUIMenu::SetName(std::string strName) {
   m_strName = strName;
 }
 
-UINT CGUIMenu::GetID() {
+Uint32 CGUIMenu::GetID() {
   return m_uID;
 }
 
@@ -546,7 +549,7 @@ void CGUIMenu::ForceHide() {
 //===========================================================
 
 CGUIMenuManager::CGUIMenuManager() :
-  m_vMouseAbsolute(0.0f),
+  m_MousePos(0.0f),
   m_uCurrMenu(0),
   m_uGoToMenu(0),
   m_bPress(false) {
@@ -557,18 +560,17 @@ CGUIMenuManager::~CGUIMenuManager() {
   Clear();
 }
 
-bool CGUIMenuManager::Update(DIMOUSESTATE2 *Mouse, float fDT) {
-  this->m_vMouseAbsolute.X += float(Mouse->lX);
-  this->m_vMouseAbsolute.Y += float(Mouse->lY);
+bool CGUIMenuManager::Update(CGame* pGame, float fDT) {
+  this->m_MousePos = pGame->GetMousePos();
 
-  if (m_vMouseAbsolute.X < 0.0f)
-    m_vMouseAbsolute.X = 0.0f;
-  if (m_vMouseAbsolute.X > 640.0f)
-    m_vMouseAbsolute.X = 640.0f;
-  if (m_vMouseAbsolute.Y < 0.0f)
-    m_vMouseAbsolute.Y = 0.0f;
-  if (m_vMouseAbsolute.Y > 480.0f)
-    m_vMouseAbsolute.Y = 480.0f;
+  if (m_MousePos.x < 0.0f)
+    m_MousePos.x = 0.0f;
+  if (m_MousePos.x > 640.0f)
+    m_MousePos.x = 640.0f;
+  if (m_MousePos.y < 0.0f)
+    m_MousePos.y = 0.0f;
+  if (m_MousePos.y > 480.0f)
+    m_MousePos.y = 480.0f;
 
   if (this->m_aMenu.size() == 0)
     return false;
@@ -595,7 +597,7 @@ bool CGUIMenuManager::Update(DIMOUSESTATE2 *Mouse, float fDT) {
 
   Menu = this->GetCurrentMenu();
   if (Menu != NULL) {
-    if (Menu->Engine(this->m_vMouseAbsolute, Mouse->rgbButtons, fDT)) {
+    if (Menu->Update(pGame, fDT)) {
       if (!m_bPress) {
         m_bPress = true;
         return true;
@@ -616,14 +618,14 @@ void CGUIMenuManager::Render(CGUI *GUI) {
   glDisable(GL_TEXTURE_2D);
   glColor3f(0.0f, 1.0f, 0.0f);
   glBegin(GL_TRIANGLES);
-  glVertex2f(m_vMouseAbsolute.X, m_vMouseAbsolute.Y);
-  glVertex2f(m_vMouseAbsolute.X + 20.0f, m_vMouseAbsolute.Y + 10.0f);
-  glVertex2f(m_vMouseAbsolute.X + 10.0f, m_vMouseAbsolute.Y + 20.0f);
+  glVertex2f(m_MousePos.x, m_MousePos.y);
+  glVertex2f(m_MousePos.x + 20.0f, m_MousePos.y + 10.0f);
+  glVertex2f(m_MousePos.x + 10.0f, m_MousePos.y + 20.0f);
   glEnd();
   glEnable(GL_TEXTURE_2D);
 }
 
-CGUIMenu* CGUIMenuManager::AddMenu(UINT uID, std::string strName) {
+CGUIMenu* CGUIMenuManager::AddMenu(Uint32 uID, std::string strName) {
   size_t i;
   for (i = 0; i < m_aMenu.size(); i++)
     if (m_aMenu[i]->GetID() == uID)
@@ -633,7 +635,7 @@ CGUIMenu* CGUIMenuManager::AddMenu(UINT uID, std::string strName) {
   return m;
 }
 
-void CGUIMenuManager::DelMenu(UINT uID) {
+void CGUIMenuManager::DelMenu(Uint32 uID) {
   size_t i;
   for (i = 0; i < m_aMenu.size(); i++)
     if (m_aMenu[i]->GetID() == uID) {
@@ -643,7 +645,7 @@ void CGUIMenuManager::DelMenu(UINT uID) {
     }
 }
 
-CGUIMenu* CGUIMenuManager::GetMenu(UINT uID) {
+CGUIMenu* CGUIMenuManager::GetMenu(Uint32 uID) {
   size_t i;
   for (i = 0; i < m_aMenu.size(); i++)
     if (m_aMenu[i]->GetID() == uID)
@@ -659,28 +661,28 @@ void CGUIMenuManager::Clear() {
 }
 
 CGUIMenu* CGUIMenuManager::GetCurrentMenu() {
-  if (this->m_uCurrMenu >= UINT(m_aMenu.size()))
+  if (this->m_uCurrMenu >= Uint32(m_aMenu.size()))
     return NULL;
   return m_aMenu[m_uCurrMenu];
 }
 
-bool CGUIMenuManager::SwitchToMenu(UINT uID) {
+bool CGUIMenuManager::SwitchToMenu(Uint32 uID) {
   size_t i;
   for (i = 0; i < m_aMenu.size(); i++) {
     if (m_aMenu[i]->GetID() == uID) {
-      this->m_uGoToMenu = UINT(i);
+      this->m_uGoToMenu = Uint32(i);
       return true;
     }
   }
   return false;
 }
 
-bool CGUIMenuManager::ForceSwitchToMenu(UINT uID) {
+bool CGUIMenuManager::ForceSwitchToMenu(Uint32 uID) {
   size_t i;
   for (i = 0; i < m_aMenu.size(); i++) {
     if (m_aMenu[i]->GetID() == uID) {
-      this->m_uCurrMenu = UINT(i);
-      this->m_uGoToMenu = UINT(i);
+      this->m_uCurrMenu = Uint32(i);
+      this->m_uGoToMenu = Uint32(i);
       return true;
     }
   }

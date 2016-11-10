@@ -1,11 +1,16 @@
 #pragma once
 
+#include <SDL.h>
+#include <glm/glm.hpp>
+
 #include "../Common/GLDevice.h"
 #include "../Common/Vector.h"
 #include "../Common/Files.h"
 #define DIRECTINPUT_VERSION 0x0800
 #include <DInput.h>
 #include <vector>
+
+class CGame;
 
 class CGUI {
 private:
@@ -38,9 +43,9 @@ private:
   vec2		m_vPos;
   vec2		m_vCurrPos;
   std::string m_strName;
-  UINT		m_uID;
-  UINT		m_uUserDefID;
-  UINT		m_uFlag;
+  Uint32		m_uID;
+  Uint32		m_uUserDefID;
+  Uint32		m_uFlag;
   float		m_fFocusLight;
 
 public:
@@ -51,27 +56,27 @@ public:
     MIF_HIDEANIM = 0x0008,
     MIF_HIDDEN = 0x0010
   };
-  CGUIMenuItem(UINT uID, std::string strName, vec2 vPos, UINT uUserDefID);
+  CGUIMenuItem(Uint32 uID, std::string strName, vec2 vPos, Uint32 uUserDefID);
   ~CGUIMenuItem();
 
-  bool Engine(vec2 vMousePos, BYTE* MouseKey, float fDT);
+  bool Update(CGame* pGame, float fDT);
   void Render(CGUI* GUI);
 
   bool HasFocus();
   bool IsEnabled();
   bool IsAnimating();
   bool IsShowing();
-  bool IsHideing();
-  bool IsHiden();
+  bool IsHiding();
+  bool IsHidden();
 
-  UINT GetID();
-  UINT GetUserDefID();
+  Uint32 GetID();
+  Uint32 GetUserDefID();
   std::string GetName();
   vec2 GetPos();
 
   void SetFocus(bool bSet);
   void SetEnable(bool bSet);
-  void SetUserDefID(UINT uSet);
+  void SetUserDefID(Uint32 uSet);
   void SetName(std::string strName);
   void Show();
   void Hide();
@@ -83,11 +88,11 @@ class CGUIMenu {
 private:
   std::vector<CGUIMenuItem*> m_aItem;
   std::string m_strName;
-  UINT	m_uID;
-  UINT	m_uFlag;
+  Uint32	m_uID;
+  Uint32	m_uFlag;
   float	m_fTime;
-  UINT	m_uIndex;
-  UINT	m_uClickedID;
+  Uint32	m_uIndex;
+  Uint32	m_uClickedID;
 
 public:
   enum MENUFLAG {
@@ -95,15 +100,15 @@ public:
     MF_HIDEANIM = 0x02,
     MF_HIDDEN = 0x04
   };
-  CGUIMenu(UINT uID, std::string strName);
+  CGUIMenu(Uint32 uID, std::string strName);
   ~CGUIMenu();
 
-  bool Engine(vec2 vMousePos, BYTE* MouseKey, float fDT);
+  bool Update(CGame* pGame, float fDT);
   void Render(CGUI* GUI);
 
-  CGUIMenuItem* AddMenuItem(UINT uID, std::string strName, vec2 vPos, UINT uUserDefID);
-  void DelMenuItem(UINT uID);
-  CGUIMenuItem* GetMenuItem(UINT uID);
+  CGUIMenuItem* AddMenuItem(Uint32 uID, std::string strName, vec2 vPos, Uint32 uUserDefID);
+  void DelMenuItem(Uint32 uID);
+  CGUIMenuItem* GetMenuItem(Uint32 uID);
   void Clear();
 
   void Hide();
@@ -114,8 +119,8 @@ public:
   bool IsHiden();
   bool IsHideing();
   bool IsShowing();
-  UINT GetClickedID();
-  UINT GetID();
+  Uint32 GetClickedID();
+  Uint32 GetID();
   std::string GetName();
   void SetName(std::string strName);
 };
@@ -123,23 +128,23 @@ public:
 class CGUIMenuManager {
 private:
   std::vector<CGUIMenu*>	m_aMenu;
-  vec2	m_vMouseAbsolute;
-  UINT	m_uCurrMenu;
-  UINT	m_uGoToMenu;
+  glm::vec2	m_MousePos;
+  Uint32	m_uCurrMenu;
+  Uint32	m_uGoToMenu;
   bool	m_bPress;
 
 public:
   CGUIMenuManager();
   ~CGUIMenuManager();
 
-  bool Update( DIMOUSESTATE2* Mouse, float fDT);
+  bool Update(CGame* pGame, float fDT);
   void Render(CGUI* GUI);
 
-  CGUIMenu* AddMenu(UINT uID, std::string strName);
-  void DelMenu(UINT uID);
-  CGUIMenu* GetMenu(UINT uID);
+  CGUIMenu* AddMenu(Uint32 uID, std::string strName);
+  void DelMenu(Uint32 uID);
+  CGUIMenu* GetMenu(Uint32 uID);
   void Clear();
   CGUIMenu* GetCurrentMenu();
-  bool SwitchToMenu(UINT uID);
-  bool ForceSwitchToMenu(UINT uID);
+  bool SwitchToMenu(Uint32 uID);
+  bool ForceSwitchToMenu(Uint32 uID);
 };

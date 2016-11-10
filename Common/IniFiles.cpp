@@ -83,9 +83,10 @@ bool CIniFile::Close() {
     return false;
   }
   size_t i;
-  for (i = 0; i < Lines.size(); i++) {
+  for (i = 0; i < Lines.size() - 1; i++) {
     fp.WriteStr(Lines[i] + "\n");
   }
+  fp.WriteStr(Lines[i]);
 
   FileName = "";
   Lines.clear();

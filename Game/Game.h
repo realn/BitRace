@@ -3,26 +3,23 @@
 #define DIRECTINPUT_VERSION 0x0800
 #define GAME_NAME "BitRace"
 #define GAME_FULLNAME "CodeRulers BitRace v1.0a"
-#define GAME_WCLASS "BITRACEWINCLASS"
 #define GAME_DI_BUFSIZE 32
 #define	GAME_BLEND_TEX_SIZE	64
 
 #define DXRELEASE( A ) if( A != NULL ){ A->Release(); A = NULL; }
 
 #include <SDL.h>
+#include <glm/glm.hpp>
 
 #include "../Common/GLDevice.h"
 #include "../Common/Vector.h"
 #include "../Common/Files.h"
 #include "../Common/IniFiles.h"
-#include <DInput.h>
 #include "RaceTrack.h"
 #include "GUI.h"
 #include "Intro.h"
 #include "HighScore.h"
 
-#pragma comment( lib, "DInput8.lib" )
-#pragma comment( lib, "DXGuid.lib" )
 #pragma comment( lib, "Common.lib")
 
 extern PFNWGLSWAPINTERVALEXTPROC	wglSwapIntervalEXT;
@@ -37,8 +34,10 @@ private:
   Uint8 m_KeyState[SDL_NUM_SCANCODES];
   Uint8 m_KeyStatePrev[SDL_NUM_SCANCODES];
 
-  LPDIRECTINPUT8			m_cDInput;
-  LPDIRECTINPUTDEVICE8	m_cDIMouse;
+  Uint32  m_MouseButtonState;
+  Uint32  m_MouseButtonStatePrev;
+  glm::ivec2  m_MousePos;
+  glm::ivec2  m_MousePosPrev;
 
   bool			m_bShutdown;
   bool			m_bGamePause;
@@ -153,6 +152,10 @@ public:
 
   bool  IsKeyboardKeyDown(const SDL_Scancode code) const;
   bool  IsKeyboardKeyPressed(const SDL_Scancode code) const;
+  bool  IsMouseButtonDown(const Uint32 button) const;
+  bool  IsMouseButtonPressed(const Uint32 button) const;
+  const glm::ivec2& GetMousePos() const;
+  const glm::ivec2  GetMousePosDelta() const;
 
   int MainLoop();
 
@@ -162,6 +165,4 @@ public:
   void UpdateMouse();
   void UpdateTimer();
   void UpdateHS();
-
-  DIMOUSESTATE2	m_cMouseState;
 };

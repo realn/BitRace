@@ -29,9 +29,6 @@ void CGame::FreeRender() {
 }
 
 void CGame::FreeInput() {
-  DXRELEASE(this->m_cDIMouse);
-  DXRELEASE(this->m_cDInput);
-
   SDL_QuitSubSystem(SDL_INIT_EVENTS);
 }
 

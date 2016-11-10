@@ -45,7 +45,7 @@
     <OutDir>$(SolutionDir)Output\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Intermediate\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SDKDIR)glew-1.12.0\include\;$(SDKDIR)SDL2-2.0.3\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SDKDIR)glew-1.12.0\include\;$(SDKDIR)SDL2-2.0.3\include;$(SDKDIR)glm-0.9.8.2;$(IncludePath)</IncludePath>
     <LibraryPath>$(SDKDIR)glew-1.12.0\lib\Release\Win32;$(SDKDIR)SDL2-2.0.3\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
