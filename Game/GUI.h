@@ -14,6 +14,7 @@ public:
   struct CFontChar {
     Uint8 m_Code;
     glm::vec2   m_TCoord[4];
+    glm::vec2   m_Size;
     float m_Adv;
   };
 
@@ -37,11 +38,17 @@ public:
   void Begin(const glm::vec2& size);
   void End();
 
-  void Print(float x, float y, std::string str, ...);
+  void Print(const glm::vec2& pos, std::string format, ...) const;
+
+  const glm::vec2 GetPrintSize(const std::string format, ...) const;
 
   static void RenderProgressBar(glm::vec2 vPos, glm::vec2 vSize, float fProgress);
   static void RenderFSQuad(const glm::vec2& size);
   static void RenderFSQuadTex(const glm::vec2& size);
+
+private:
+  const CFontChar&  GetChar(const char charCode) const;
+  const std::string FormatText(const std::string& format, va_list va) const;
 };
 
 class CGUIMenuItem {
@@ -52,6 +59,7 @@ private:
   Uint32		m_uID;
   Uint32		m_uUserDefID;
   Uint32		m_uFlag;
+  Uint32    m_uAlign;
   float		m_fFocusLight;
 
 public:
@@ -61,6 +69,12 @@ public:
     MIF_SHOWANIM = 0x0004,
     MIF_HIDEANIM = 0x0008,
     MIF_HIDDEN = 0x0010
+  };
+  enum MENUITEMALIGN {
+    MIA_LEFT  = 0x1,
+    MIA_RIGHT = 0x2,
+    MIA_TOP   = 0x4,
+    MIA_BOTTOM  = 0x8,
   };
   CGUIMenuItem(Uint32 uID, std::string strName, glm::vec2 vPos, Uint32 uUserDefID);
   ~CGUIMenuItem();
@@ -79,6 +93,7 @@ public:
   Uint32 GetUserDefID();
   std::string GetName();
   glm::vec2 GetPos();
+  const glm::vec2 GetRenderPos(const glm::vec2& size) const;
 
   void SetFocus(bool bSet);
   void SetEnable(bool bSet);

@@ -156,7 +156,7 @@ bool CGame::InitOpenGL() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   m_cGUI.Begin(glm::vec2(640.0f, 480.0f));
   glColor3f(1.0f, 1.0f, 1.0f);
-  m_cGUI.Print(100.0f, 200.0f, "Please wait, loading game...");
+  m_cGUI.Print(glm::vec2(100.0f, 200.0f), "Please wait, loading game...");
   m_cGUI.End();
 
   SDL_GL_SwapWindow(this->m_pWindow);
@@ -197,7 +197,9 @@ bool CGame::InitGame() {
     else wglSwapIntervalEXT(0);
   }
 
-  CGUIMenu* Menu = this->m_MenuMng.AddMenu(MENU_MAIN, "BitRace");
+  m_MenuMng.SetSize(ScrParam.GetSize());
+
+	CGUIMenu* Menu = this->m_MenuMng.AddMenu(MENU_MAIN, "BitRace");
   Menu->AddMenuItem(MI_RETURN, "Return to Game", glm::vec2(40.0f, 70.0f), 0)->SetEnable(false);
   Menu->AddMenuItem(MI_NEWGAME, "New Game", glm::vec2(40.0f, 100.0f), 0);
   Menu->AddMenuItem(MI_HIGH, "High Scores", glm::vec2(40.0f, 130.0f), MENU_HIGH);

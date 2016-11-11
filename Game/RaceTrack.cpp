@@ -579,7 +579,7 @@ void CRaceTrack::RenderGUI(CGUI *GUI) {
         glColor3f(0.0f, 0.0f, 0.0f);
         GUI->RenderFSQuad(glm::vec2(640.0f, 480.0f));
         glColor3f(0.0f, 1.0f, 0.0f);
-        GUI->Print(270.0f, 230.0f,
+        GUI->Print(glm::vec2(270.0f, 230.0f),
                    m_strGameOver.substr(0, m_uGameOverCharCount) + "_");
       }
     }
@@ -590,18 +590,18 @@ void CRaceTrack::RenderGUI(CGUI *GUI) {
   glColor4f(0.4f, 0.4f, 1.0f, 0.6f);
   GUI->RenderProgressBar(glm::vec2(8.0f, 3.0f), glm::vec2(400.0f, 40.0f), 100.0f);
   glColor3f(1.0f, 0.5f, 0.5f);
-  GUI->Print(10.0f, 5.0f, "POINTS: %u", m_uPoints);
+  GUI->Print(glm::vec2(10.0f, 5.0f), "POINTS: %u", m_uPoints);
   if (m_uDifLevel < DL_VERY_HARD)
-    GUI->Print(200.0f, 5.0f, "NEED POINTS: %u", m_uNeedPoints);
+    GUI->Print(glm::vec2(200.0f, 5.0f), "NEED POINTS: %u", m_uNeedPoints);
   glColor3f(1.0f, 1.0f, 1.0f);
-  GUI->Print(10.0f, 22.0f, "LEVEL: %s", this->GetDifLevelString().c_str());
+  GUI->Print(glm::vec2(10.0f, 22.0f), "LEVEL: %s", this->GetDifLevelString().c_str());
   glColor4f(1.0f, 0.0f, 0.0f, 0.6f);
   GUI->RenderProgressBar(glm::vec2(20.0f, 450.0f), glm::vec2(200.0f, 20.0f), this->m_pRacer->GetBitRate());
   if (this->m_fUpgTime < this->m_fUpgTimeOut) {
     glPushMatrix();
     glColor4f(1.0f, 1.0f, 1.0f, (m_fUpgTimeOut - m_fUpgTime) / m_fUpgTimeOut);
     glScalef(2.0f, 2.0f, 2.0f);
-    GUI->Print(120.0f, 35.0f, "UPGRADE");
+    GUI->Print(glm::vec2(120.0f, 35.0f), "UPGRADE");
     glPopMatrix();
   }
   if (this->m_fFSQTime < this->m_fFSQTimeOut) {

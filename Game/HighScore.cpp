@@ -227,44 +227,44 @@ void CHighScore::RenderGUI(CGUI *GUI) {
   switch (m_uHSS) {
   case HSS_STATE1:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(200.0f, 200.0f, m_strText1.substr(0, m_uCharCount) + "_");
+    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1.substr(0, m_uCharCount) + "_");
     break;
 
   case HSS_STATE2:
     ss << unsigned(floor(m_fTime));
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(200.0f, 200.0f, m_strText1 + ss.str() + "_");
+    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1 + ss.str() + "_");
     break;
 
   case HSS_STATE3:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(200.0f, 200.0f, m_strText1);
+    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1);
     break;
 
   case HSS_STATE4:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(200.0f, 200.0f, m_strText1);
-    GUI->Print(200.0f, 220.0f, m_strText2.substr(0, m_uCharCount) + "_");
+    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1);
+    GUI->Print(glm::vec2(200.0f, 220.0f), m_strText2.substr(0, m_uCharCount) + "_");
     break;
 
   case HSS_STATE5:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(200.0f, 200.0f, m_strText1);
-    GUI->Print(200.0f, 220.0f, m_strText2);
+    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1);
+    GUI->Print(glm::vec2(200.0f, 220.0f), m_strText2);
     break;
 
   case HSS_STATE6:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(200.0f, 200.0f, m_strText1);
-    GUI->Print(200.0f, 220.0f, m_strText2);
-    GUI->Print(200.0f, 240.0f, m_strText3.substr(0, m_uCharCount) + "_");
+    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1);
+    GUI->Print(glm::vec2(200.0f, 220.0f), m_strText2);
+    GUI->Print(glm::vec2(200.0f, 240.0f), m_strText3.substr(0, m_uCharCount) + "_");
     break;
 
   case HSS_STATE7:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(200.0f, 200.0f, m_strText1);
-    GUI->Print(200.0f, 220.0f, m_strText2);
-    GUI->Print(200.0f, 240.0f, m_strText3 + m_strTempName + "_");
+    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1);
+    GUI->Print(glm::vec2(200.0f, 220.0f), m_strText2);
+    GUI->Print(glm::vec2(200.0f, 240.0f), m_strText3 + m_strTempName + "_");
     break;
   }
 }

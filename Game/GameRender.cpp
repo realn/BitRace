@@ -31,7 +31,6 @@ void CGame::Render() {
     //  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     //}
 
-    RenderGame();
 
     //if (ScrParam.bBlur) {
     //  m_cGUI.Begin(glm::vec2(1.0f, 1.0f));
@@ -42,6 +41,25 @@ void CGame::Render() {
     //}
   }
 
+  RenderGame();
+	RenderGUI();
+
+  if (m_bTakeScreen) {
+    this->TakeScreenshot();
+    m_bTakeScreen = false;
+  }
+
+  SDL_GL_SwapWindow(this->m_pWindow);
+}
+
+void CGame::RenderGame() {
+	if(this->m_uGameState != GS_GAME && !(this->m_uGameState == GS_MENU && m_bGamePause))
+		return;
+
+	m_RaceTrack.Render();
+}
+
+void CGame::RenderGUI() {
   m_cGUI.Begin(ScrParam.GetSize());
   switch (m_uGameState) {
   case GS_INTRO:
@@ -65,20 +83,9 @@ void CGame::Render() {
   };
   if (ScrParam.bFPSCount && m_uGameState != GS_INTRO) {
     glColor3f(1.0f, 1.0f, 1.0f);
-    m_cGUI.Print(530.0f, 5.0f, "FPS: %d", int(1.0f / (this->m_fDT != 0.0f ? this->m_fDT : 1.0f)));
+    m_cGUI.Print(glm::vec2(530.0f, 5.0f), "FPS: %d", int(1.0f / (this->m_fDT != 0.0f ? this->m_fDT : 1.0f)));
   }
   m_cGUI.End();
-
-  if (m_bTakeScreen) {
-    this->TakeScreenshot();
-    m_bTakeScreen = false;
-  }
-
-  SDL_GL_SwapWindow(this->m_pWindow);
-}
-
-void CGame::RenderGame() {
-  m_RaceTrack.Render();
 }
 
 void CGame::RenderMenu() {

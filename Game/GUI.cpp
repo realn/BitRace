@@ -60,32 +60,17 @@ bool CGUI::InitFont() {
     CFontChar fontChar;
     
     fontChar.m_Code = (Uint8)i;
+
     fontChar.m_TCoord[0] = glm::vec2(cx, 1 - cy - 0.0625f);
     fontChar.m_TCoord[1] = glm::vec2(cx + 0.0625f, 1 - cy - 0.0625f);
     fontChar.m_TCoord[2] = glm::vec2(cx + 0.0625f, 1 - cy);
     fontChar.m_TCoord[3] = glm::vec2(cx, 1 - cy);
+
+    fontChar.m_Size = glm::vec2(16.0f, 16.0f);
+
     fontChar.m_Adv = 10.0f;
 
     this->m_CharList[(Uint8)i] = fontChar;
-    //glNewList(this->m_uFontList + i, GL_COMPILE);
-    //glBegin(GL_QUADS);
-
-    //glTexCoord2f(cx, 1 - cy - 0.0625f);
-    //glVertex2i(0, 16);
-
-    //glTexCoord2f(cx + 0.0625f, 1 - cy - 0.0625f);
-    //glVertex2i(16, 16);
-
-    //glTexCoord2f(cx + 0.0625f, 1 - cy);
-    //glVertex2i(16, 0);
-
-    //glTexCoord2f(cx, 1 - cy);
-    //glVertex2i(0, 0);
-
-    //glEnd();
-    //glTranslatef(10.0f, 0.0f, 0.0f);
-
-    //glEndList();
   }
 
   return true;
@@ -134,19 +119,15 @@ void CGUI::End() {
   glPopMatrix();
 }
 
-void CGUI::Print(float x, float y, std::string format, ...) {
+void CGUI::Print(const glm::vec2& pos, std::string format, ...) const {
   if (format.empty())
     return;
 
   std::string text;
-  int len;
   va_list ap;
 
   va_start(ap, format);
-  len = _vscprintf(format.c_str(), ap);
-  text.resize(len);
-
-  vsprintf_s(&text[0], len + 1, format.c_str(), ap);
+  text = FormatText(format, ap);
   va_end(ap);
 
   std::vector<glm::vec2> vertList;
@@ -155,18 +136,16 @@ void CGUI::Print(float x, float y, std::string format, ...) {
   vertList.resize(4 * text.length());
   texList.resize(4 * text.length());
 
-  glm::vec2 pos = glm::vec2(x, y);
+  glm::vec2 textPos = pos;
   for (size_t i = 0; i < text.length(); i++) {
-    Uint8 code = (Uint8)text[i] - 32;
-
-    CFontChar& fontChar = this->m_CharList[code];
+    const CFontChar& fontChar = this->GetChar(text[i]);
 
     for (size_t j = 0; j < 4; j++) {
-      vertList[i * 4 + j] = this->m_Vertex[j] + pos;
+      vertList[i * 4 + j] = this->m_Vertex[j] + textPos;
       texList[i * 4 + j] = fontChar.m_TCoord[j];
     }
 
-    pos += glm::vec2(fontChar.m_Adv, 0.0f);
+    textPos += glm::vec2(fontChar.m_Adv, 0.0f);
   }
 
   glVertexPointer(2, GL_FLOAT, 0, &vertList[0]);
@@ -179,12 +158,24 @@ void CGUI::Print(float x, float y, std::string format, ...) {
 
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
 
-  //glPushMatrix();
-  //glTranslatef(x, y, 0.0f);
-  //glListBase(this->m_uFontList - 32);
-  //glCallLists((GLsizei)strlen(text), GL_UNSIGNED_BYTE, (unsigned char*)text);
-  //glPopMatrix();
+const glm::vec2 CGUI::GetPrintSize(const std::string format, ...) const {
+  std::string text;
+
+  va_list va;
+  va_start(va, format);
+  text = FormatText(format, va);
+  va_end(va);
+
+  glm::vec2 result;
+  for(int i = 0; i < text.length(); i++) {
+    const CFontChar& fontChar = this->GetChar(text[i]);
+
+    result.y = glm::max(fontChar.m_Size.y, result.y);
+    result.x += fontChar.m_Size.x;
+  }
+  return result;
 }
 
 void CGUI::RenderProgressBar(glm::vec2 vPos, glm::vec2 vSize, float fProgress) {
@@ -239,6 +230,20 @@ void CGUI::RenderFSQuadTex(const glm::vec2& size) {
   glTexCoord2i(0, 0);
   glVertex2f(0.0f, size.y);
   glEnd();
+}
+
+const CGUI::CFontChar & CGUI::GetChar(const char charCode) const {
+  Uint8 code = (Uint8)charCode - 32;
+
+  return this->m_CharList.at(code);
+}
+
+const std::string CGUI::FormatText(const std::string & format, va_list va) const {
+  std::string text;
+  int len = _vscprintf(format.c_str(), va);
+  text.resize(len);
+  vsprintf_s(&text[0], len + 1, format.c_str(), va);
+  return text;
 }
 
 //==========================================================
@@ -324,7 +329,7 @@ void CGUIMenuItem::Render(CGUI *GUI) {
   }
 
   glColor3f(1.0f, 1.0f, 1.0f);
-  GUI->Print(m_vCurrPos.x, m_vCurrPos.y, m_strName);
+  GUI->Print(m_vCurrPos, m_strName);
 }
 
 bool CGUIMenuItem::HasFocus() {
@@ -361,6 +366,10 @@ std::string CGUIMenuItem::GetName() {
 
 glm::vec2 CGUIMenuItem::GetPos() {
   return m_vPos;
+}
+
+const glm::vec2 CGUIMenuItem::GetRenderPos(const glm::vec2 & size) const {
+  return glm::vec2();
 }
 
 Uint32 CGUIMenuItem::GetUserDefID() {
@@ -476,7 +485,7 @@ void CGUIMenu::Render(CGUI *GUI) {
   glPushMatrix();
   glScalef(3.0f, 3.0f, 1.0f);
   glColor3f(1.0f, 1.0f, 1.0f);
-  GUI->Print(3.0f, 3.0f, m_strName);
+  GUI->Print(glm::vec2(3.0f, 3.0f), m_strName);
   glPopMatrix();
 
   size_t i;

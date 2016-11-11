@@ -139,10 +139,12 @@ public:
   void UpdateLogic(const float timeDelta);
   void UpdateMenu(const float timeDelta);
   void UpdateGame(const float timeDelta);
+
   void Render();
-  void RenderMenu();
-  void RenderGame();
-  void TakeScreenshot();
+	void RenderGame();
+	void RenderGUI();
+	void RenderMenu();
+	void TakeScreenshot();
   void ScanDispModes();
   void ChangeDispMode();
 
