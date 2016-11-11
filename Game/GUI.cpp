@@ -2,9 +2,13 @@
 #include "Game.h"
 #include "../Common/FGXFile.h"
 #include <stdarg.h>
+#include <glm/gtc/type_ptr.hpp>
 
 CGUI::CGUI() {
-
+  this->m_Vertex[0] = glm::vec2(0.0f, 16.0f);
+  this->m_Vertex[1] = glm::vec2(16.0f, 16.0f);
+  this->m_Vertex[2] = glm::vec2(16.0f, 0.0f);
+  this->m_Vertex[3] = glm::vec2(0.0f, 0.0f);
 }
 
 CGUI::~CGUI() {
@@ -53,25 +57,35 @@ bool CGUI::InitFont() {
     cx = float(i % 16) / 16.0f;
     cy = float(i / 16) / 16.0f;
 
-    glNewList(this->m_uFontList + i, GL_COMPILE);
-    glBegin(GL_QUADS);
+    CFontChar fontChar;
+    
+    fontChar.m_Code = (Uint8)i;
+    fontChar.m_TCoord[0] = glm::vec2(cx, 1 - cy - 0.0625f);
+    fontChar.m_TCoord[1] = glm::vec2(cx + 0.0625f, 1 - cy - 0.0625f);
+    fontChar.m_TCoord[2] = glm::vec2(cx + 0.0625f, 1 - cy);
+    fontChar.m_TCoord[3] = glm::vec2(cx, 1 - cy);
+    fontChar.m_Adv = 10.0f;
 
-    glTexCoord2f(cx, 1 - cy - 0.0625f);
-    glVertex2i(0, 16);
+    this->m_CharList[(Uint8)i] = fontChar;
+    //glNewList(this->m_uFontList + i, GL_COMPILE);
+    //glBegin(GL_QUADS);
 
-    glTexCoord2f(cx + 0.0625f, 1 - cy - 0.0625f);
-    glVertex2i(16, 16);
+    //glTexCoord2f(cx, 1 - cy - 0.0625f);
+    //glVertex2i(0, 16);
 
-    glTexCoord2f(cx + 0.0625f, 1 - cy);
-    glVertex2i(16, 0);
+    //glTexCoord2f(cx + 0.0625f, 1 - cy - 0.0625f);
+    //glVertex2i(16, 16);
 
-    glTexCoord2f(cx, 1 - cy);
-    glVertex2i(0, 0);
+    //glTexCoord2f(cx + 0.0625f, 1 - cy);
+    //glVertex2i(16, 0);
 
-    glEnd();
-    glTranslatef(10.0f, 0.0f, 0.0f);
+    //glTexCoord2f(cx, 1 - cy);
+    //glVertex2i(0, 0);
 
-    glEndList();
+    //glEnd();
+    //glTranslatef(10.0f, 0.0f, 0.0f);
+
+    //glEndList();
   }
 
   return true;
@@ -94,6 +108,8 @@ void CGUI::Free() {
 }
 
 void CGUI::Begin(const glm::vec2& size) {
+  this->m_Size = size;
+
   glPushMatrix();
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
@@ -118,54 +134,85 @@ void CGUI::End() {
   glPopMatrix();
 }
 
-void CGUI::Print(float x, float y, std::string str, ...) {
-  char* text;
+void CGUI::Print(float x, float y, std::string format, ...) {
+  if (format.empty())
+    return;
+
+  std::string text;
   int len;
   va_list ap;
 
-  va_start(ap, str);
+  va_start(ap, format);
+  len = _vscprintf(format.c_str(), ap);
+  text.resize(len);
 
-  len = _vscprintf(str.c_str(), ap) + 1;
-  text = new char[len];
-
-  vsprintf_s(text, len, str.c_str(), ap);
+  vsprintf_s(&text[0], len + 1, format.c_str(), ap);
   va_end(ap);
 
-  glPushMatrix();
-  glTranslatef(x, y, 0.0f);
-  glListBase(this->m_uFontList - 32);
-  glCallLists((GLsizei)strlen(text), GL_UNSIGNED_BYTE, (unsigned char*)text);
-  glPopMatrix();
+  std::vector<glm::vec2> vertList;
+  std::vector<glm::vec2> texList;
 
-  delete[] text;
+  vertList.resize(4 * text.length());
+  texList.resize(4 * text.length());
+
+  glm::vec2 pos = glm::vec2(x, y);
+  for (size_t i = 0; i < text.length(); i++) {
+    Uint8 code = (Uint8)text[i] - 32;
+
+    CFontChar& fontChar = this->m_CharList[code];
+
+    for (size_t j = 0; j < 4; j++) {
+      vertList[i * 4 + j] = this->m_Vertex[j] + pos;
+      texList[i * 4 + j] = fontChar.m_TCoord[j];
+    }
+
+    pos += glm::vec2(fontChar.m_Adv, 0.0f);
+  }
+
+  glVertexPointer(2, GL_FLOAT, 0, &vertList[0]);
+  glTexCoordPointer(2, GL_FLOAT, 0, &texList[0]);
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+  glDrawArrays(GL_QUADS, 0, vertList.size());
+
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+  //glPushMatrix();
+  //glTranslatef(x, y, 0.0f);
+  //glListBase(this->m_uFontList - 32);
+  //glCallLists((GLsizei)strlen(text), GL_UNSIGNED_BYTE, (unsigned char*)text);
+  //glPopMatrix();
 }
 
-void CGUI::RenderProgressBar(vec2 vPos, vec2 vSize, float fProgress) {
+void CGUI::RenderProgressBar(glm::vec2 vPos, glm::vec2 vSize, float fProgress) {
   glDisable(GL_TEXTURE_2D);
   glBegin(GL_LINES);
   glVertex2fv((GLfloat*)&vPos);
-  glVertex2f(vPos.X + vSize.X, vPos.Y);
+  glVertex2f(vPos.x + vSize.x, vPos.y);
 
-  glVertex2f(vPos.X + vSize.X, vPos.Y);
-  glVertex2f(vPos.X + vSize.X, vPos.Y + vSize.Y);
+  glVertex2f(vPos.x + vSize.x, vPos.y);
+  glVertex2f(vPos.x + vSize.x, vPos.y + vSize.y);
 
-  glVertex2f(vPos.X + vSize.X, vPos.Y + vSize.Y);
-  glVertex2f(vPos.X, vPos.Y + vSize.Y);
+  glVertex2f(vPos.x + vSize.x, vPos.y + vSize.y);
+  glVertex2f(vPos.x, vPos.y + vSize.y);
 
-  glVertex2f(vPos.X, vPos.Y + vSize.Y);
-  glVertex2fv((GLfloat*)&vPos);
+  glVertex2f(vPos.x, vPos.y + vSize.y);
+  glVertex2fv(glm::value_ptr(vPos));
   glEnd();
 
-  float fSizeX = vSize.X * (fProgress / 100.0f);
+  float fSizeX = vSize.x * (fProgress / 100.0f);
 
   glBegin(GL_QUADS);
-  glVertex2fv((GLfloat*)&vPos);
+  glVertex2fv(glm::value_ptr(vPos));
 
-  glVertex2f(vPos.X + fSizeX, vPos.Y);
+  glVertex2f(vPos.x + fSizeX, vPos.y);
 
-  glVertex2f(vPos.X + fSizeX, vPos.Y + vSize.Y);
+  glVertex2f(vPos.x + fSizeX, vPos.y + vSize.y);
 
-  glVertex2f(vPos.X, vPos.Y + vSize.Y);
+  glVertex2f(vPos.x, vPos.y + vSize.y);
   glEnd();
   glEnable(GL_TEXTURE_2D);
 }
@@ -196,11 +243,11 @@ void CGUI::RenderFSQuadTex(const glm::vec2& size) {
 
 //==========================================================
 
-CGUIMenuItem::CGUIMenuItem(Uint32 uID, std::string strName, vec2 vPos, Uint32 uUserDefID) :
+CGUIMenuItem::CGUIMenuItem(Uint32 uID, std::string strName, glm::vec2 vPos, Uint32 uUserDefID) :
   m_uID(uID),
   m_strName(strName),
   m_vPos(vPos),
-  m_vCurrPos(vPos.X, -20.0f),
+  m_vCurrPos(vPos.x, -20.0f),
   m_uUserDefID(uUserDefID),
   m_uFlag(MIF_ENABLED | MIF_HIDDEN),
   m_fFocusLight(0.0f) {
@@ -213,19 +260,19 @@ CGUIMenuItem::~CGUIMenuItem() {
 
 bool CGUIMenuItem::Update(CGame* pGame, float fDT) {
   if (IsShowing()) {
-    m_vCurrPos += (m_vPos - vec2(m_vPos.X, -20.0f)) * 3.0f * fDT;
-    if (m_vPos.Y - m_vCurrPos.Y < 0.1f) {
+    m_vCurrPos += (m_vPos - glm::vec2(m_vPos.x, -20.0f)) * 3.0f * fDT;
+    if (m_vPos.y - m_vCurrPos.y < 0.1f) {
       this->m_uFlag &= ~MIF_SHOWANIM;
       m_vCurrPos = m_vPos;
     }
     else return false;
   }
   if (IsHiding()) {
-    m_vCurrPos += (vec2(m_vPos.X, -20.0f) - m_vPos) * 3.0f * fDT;
-    if (m_vCurrPos.Y + 20.0f < 0.1f) {
+    m_vCurrPos += (glm::vec2(m_vPos.x, -20.0f) - m_vPos) * 3.0f * fDT;
+    if (m_vCurrPos.y + 20.0f < 0.1f) {
       this->m_uFlag &= ~MIF_HIDEANIM;
       this->m_uFlag |= MIF_HIDDEN;
-      m_vCurrPos = vec2(m_vPos.X, -20.0f);
+      m_vCurrPos = glm::vec2(m_vPos.x, -20.0f);
     }
     else return false;
   }
@@ -248,8 +295,8 @@ bool CGUIMenuItem::Update(CGame* pGame, float fDT) {
 
   glm::vec2 vMousePos = glm::vec2(pGame->GetMousePos());
 
-  if (vMousePos.x > m_vPos.X && vMousePos.x < m_vPos.X + width &&
-      vMousePos.y > m_vPos.Y && vMousePos.y < m_vPos.Y + 16.0f) {
+  if (vMousePos.x > m_vPos.x && vMousePos.x < m_vPos.x + width &&
+      vMousePos.y > m_vPos.y && vMousePos.y < m_vPos.y + 16.0f) {
     SetFocus(true);
     if (pGame->IsMouseButtonPressed(SDL_BUTTON_LEFT))
       return true;
@@ -267,17 +314,17 @@ void CGUIMenuItem::Render(CGUI *GUI) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBegin(GL_QUADS);
     glColor4f(1.0f, 1.0f, 1.0f, m_fFocusLight);
-    glVertex2f(0.0f, m_vPos.Y);
-    glVertex2f(0.0f, m_vPos.Y + 16.0f);
+    glVertex2f(0.0f, m_vPos.y);
+    glVertex2f(0.0f, m_vPos.y + 16.0f);
     glColor4f(1.0f, 1.0f, 1.0f, m_fFocusLight * 0.2f);
-    glVertex2f(640.0f, m_vPos.Y + 16.0f);
-    glVertex2f(640.0f, m_vPos.Y);
+    glVertex2f(640.0f, m_vPos.y + 16.0f);
+    glVertex2f(640.0f, m_vPos.y);
     glEnd();
     glEnable(GL_TEXTURE_2D);
   }
 
   glColor3f(1.0f, 1.0f, 1.0f);
-  GUI->Print(m_vCurrPos.X, m_vCurrPos.Y, m_strName);
+  GUI->Print(m_vCurrPos.x, m_vCurrPos.y, m_strName);
 }
 
 bool CGUIMenuItem::HasFocus() {
@@ -312,7 +359,7 @@ std::string CGUIMenuItem::GetName() {
   return m_strName;
 }
 
-vec2 CGUIMenuItem::GetPos() {
+glm::vec2 CGUIMenuItem::GetPos() {
   return m_vPos;
 }
 
@@ -356,7 +403,7 @@ void CGUIMenuItem::ForceShow() {
 
 void CGUIMenuItem::ForceHide() {
   m_uFlag |= MIF_HIDDEN;
-  m_vCurrPos = vec2(m_vPos.X, -20.0f);
+  m_vCurrPos = glm::vec2(m_vPos.x, -20.0f);
 }
 
 //========================================================
@@ -437,7 +484,7 @@ void CGUIMenu::Render(CGUI *GUI) {
     m_aItem[i]->Render(GUI);
 }
 
-CGUIMenuItem* CGUIMenu::AddMenuItem(Uint32 uID, std::string strName, vec2 vPos, Uint32 uUserDefID) {
+CGUIMenuItem* CGUIMenu::AddMenuItem(Uint32 uID, std::string strName, glm::vec2 vPos, Uint32 uUserDefID) {
   size_t i;
   for (i = 0; i < m_aItem.size(); i++)
     if (m_aItem[i]->GetID() == uID)

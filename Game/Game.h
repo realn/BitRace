@@ -10,7 +10,6 @@
 #include <GL/glew.h>
 //#include <GL/wglew.h>
 
-#include "../Common/Vector.h"
 #include "../Common/Log.h"
 
 #include <SDL.h>

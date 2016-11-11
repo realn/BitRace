@@ -41,7 +41,7 @@ void CGame::UpdateLogic(const float timeDelta) {
 			CGUIMenu* M = m_MenuMng.GetCurrentMenu();
 			if (!M->IsHideing())
 				M->Hide();
-      m_MenuMng.Update(this, timeDelta);
+			m_MenuMng.Update(this, timeDelta);
 		}
 		else 
 			this->UpdateGame(timeDelta);
@@ -52,7 +52,7 @@ void CGame::UpdateLogic(const float timeDelta) {
 		if (m_HS.IsEnded()) {
 			m_HS.SaveScores("score.hsf");
 			UpdateHS();
-      m_MenuMng.ForceSwitchToMenu(MENU_HIGH);
+			m_MenuMng.ForceSwitchToMenu(MENU_HIGH);
 			m_uGameState = GS_MENU;
 		}
 		break;
@@ -60,10 +60,10 @@ void CGame::UpdateLogic(const float timeDelta) {
 	if (this->IsKeyboardKeyPressed(SDL_SCANCODE_F11)) {
 		SDL_MinimizeWindow(this->m_pWindow);
 
-    if (ScrParam.bFullscreen)
-      SDL_SetWindowDisplayMode(this->m_pWindow, &this->m_ModeOryginal);
+		if (ScrParam.bFullscreen)
+			SDL_SetWindowDisplayMode(this->m_pWindow, &this->m_ModeOryginal);
 
-    SDL_WaitEvent(NULL);
+		SDL_WaitEvent(NULL);
 
 		if (ScrParam.bFullscreen)
 			this->ChangeDispMode();
@@ -98,12 +98,12 @@ void CGame::UpdateMouse() {
 
 void CGame::UpdateTimer() {
 	if (m_iFreq != 0) {
-    Uint64 thisTick = SDL_GetPerformanceCounter();
+		Uint64 thisTick = SDL_GetPerformanceCounter();
 		this->m_fDT = float(double(thisTick - this->m_iLastTick) / double(m_iFreq));
 		this->m_iLastTick = thisTick;
 	}
 	if (m_fDT == 0.0f) 
-    m_fDT = 0.030f;
+		m_fDT = 0.030f;
 }
 
 void CGame::UpdateGame(const float timeDelta) {
@@ -116,15 +116,15 @@ void CGame::UpdateGame(const float timeDelta) {
 	}
 	if (m_RaceTrack.IsGameOver()) {
 		m_MenuMng.ForceSwitchToMenu(MENU_MAIN);
-    m_MenuMng.GetMenu(MENU_MAIN)->GetMenuItem(MI_RETURN)->SetEnable(false);
+		m_MenuMng.GetMenu(MENU_MAIN)->GetMenuItem(MI_RETURN)->SetEnable(false);
 		m_HS.SetTempScore(m_RaceTrack.GetPoints());
 		m_uGameState = GS_HIGH;
 		return;
 	}
 
 	if (this->IsKeyboardKeyPressed(SDL_SCANCODE_ESCAPE)) {
-    m_MenuMng.ForceSwitchToMenu(MENU_MAIN);
-    m_MenuMng.GetMenu(MENU_MAIN)->GetMenuItem(MI_RETURN)->SetEnable(true);
+		m_MenuMng.ForceSwitchToMenu(MENU_MAIN);
+		m_MenuMng.GetMenu(MENU_MAIN)->GetMenuItem(MI_RETURN)->SetEnable(true);
 		m_uGameState = GS_MENU;
 		return;
 	}
@@ -160,7 +160,7 @@ void CGame::UpdateMenu(const float timeDelta) {
 		case MI_HIGH:
 		case MI_OPTIONS:
 		case MI_GOBACK:
-      m_MenuMng.SwitchToMenu(Item->GetUserDefID());
+			m_MenuMng.SwitchToMenu(Item->GetUserDefID());
 			break;
 
 		case MI_RESOLUTION:
@@ -171,7 +171,7 @@ void CGame::UpdateMenu(const float timeDelta) {
 			if (this->m_ModeList[id].w == ScrParam.uWidth && this->m_ModeList[id].h == ScrParam.uHeight)
 				Menu->GetMenuItem(MI_OPWARNING)->SetEnable(false);
 			else 
-        Menu->GetMenuItem(MI_OPWARNING)->SetEnable(true);
+				Menu->GetMenuItem(MI_OPWARNING)->SetEnable(true);
 
 			ini.Open(m_strConfigFile);
 			ini.WriteInt("GRAPHIC", "uWidth", int(m_ModeList[id].w));

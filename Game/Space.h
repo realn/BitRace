@@ -1,14 +1,15 @@
 #pragma once
 
-#include "../Common/Vector.h"
+#include <SDL_types.h>
+#include <glm/glm.hpp>
 #include <vector>
 
 class CSpace {
 private:
   unsigned				m_uVBOVertex;
-  std::vector<float>	m_afVertex;
-  std::vector<unsigned>	m_auIndex;
-  float	m_afQuadVertex[12];
+  std::vector<glm::vec3>	m_afVertex;
+  std::vector<Uint16>	m_auIndex;
+  glm::vec3	m_afQuadVertex[4];
   unsigned	m_auQuadIndex[6];
 
 public:
@@ -17,5 +18,5 @@ public:
 
   void Free();
   bool Generate(float fWidth, float fHeight, unsigned int uCountX, unsigned int uCountY, float fY);
-  void Render(vec3 vColor);
+  void Render(glm::vec3 vColor);
 };

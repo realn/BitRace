@@ -1,9 +1,12 @@
 #include "RaceTrack.h"
 
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/vector_angle.hpp>
+
 #define GLEW_STATIC
 #include <GL/glew.h>
 
-CRaceTrack::CShot::CShot(vec2 vVec, vec2 vStartPos, vec3 vColor, float fDamage) :
+CRaceTrack::CShot::CShot(glm::vec2 vVec, glm::vec2 vStartPos, glm::vec3 vColor, float fDamage) :
   m_vVec(vVec), m_vPos(vStartPos), m_vColor(vColor), m_fDamage(fDamage), m_bCanDelete(false) {
 
 }
@@ -15,29 +18,27 @@ void CRaceTrack::CShot::Engine(float fDT) {
   m_vPos += m_vVec * fDT;
 }
 
-void CRaceTrack::CShot::SetRender(vec3 *vpLine, vec3 *vpColor) {
+void CRaceTrack::CShot::SetRender(glm::vec3 *vpLine, glm::vec3 *vpColor) {
   if (m_bCanDelete)
     return;
 
-  vec2 t = m_vVec;
-  t.Normalize();
-  t *= 3.0f;
-  t += m_vPos;
-  vpLine[0] = vec3(t.X, 0.0f, t.Y);
-  vpLine[1] = vec3(m_vPos.X, 0.0f, m_vPos.Y);
+  glm::vec2 t = glm::normalize(m_vVec) * 3.0f + m_vPos;
+  vpLine[0] = glm::vec3(t.x, 0.0f, t.y);
+  vpLine[1] = glm::vec3(m_vPos.x, 0.0f, m_vPos.y);
 
   vpColor[0] = m_vColor;
   vpColor[1] = m_vColor;
 }
-vec2 CRaceTrack::CShot::GetPos() {
+
+glm::vec2 CRaceTrack::CShot::GetPos() const {
   return m_vPos;
 }
 
-vec2 CRaceTrack::CShot::GetVec() {
+glm::vec2 CRaceTrack::CShot::GetVec() const {
   return m_vVec;
 }
 
-float CRaceTrack::CShot::GetDamage() {
+float CRaceTrack::CShot::GetDamage() const {
   return m_fDamage;
 }
 
@@ -50,7 +51,7 @@ bool CRaceTrack::CShot::GetCanDelete() {
 }
 
 //===========================================
-CRaceTrack::CEntity::CEntity(vec2 vPos, vec2 vVec, vec3 vColor, unsigned uModelType) :
+CRaceTrack::CEntity::CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec3 vColor, unsigned uModelType) :
   m_vPos(vPos), m_vVec(vVec), m_vColor(vColor), m_fTemp(0.0f), m_uModelType(uModelType), m_bCanDelete(false), m_Model(NULL) {
   if (uModelType < 9) {
     this->m_uType = ET_NONE;
@@ -98,7 +99,7 @@ bool CRaceTrack::CEntity::Engine(float fDT, float fRacerPosX, CRaceTrack::CShot 
   for (i = 0; i < uShotCount; i++) {
     if (aShotList[i]->GetCanDelete())
       continue;
-    if (m_uModelType != CModel::MT_BOMB && vec2::LengthSq(this->m_vPos, aShotList[i]->GetPos()) < 1.4f * 1.4f) {
+    if (m_uModelType != CModel::MT_BOMB && glm::distance(this->m_vPos, aShotList[i]->GetPos()) < 1.4f) {
       this->m_fHealth -= aShotList[i]->GetDamage();
       aShotList[i]->SetCanDelete(true);
       continue;
@@ -126,22 +127,20 @@ bool CRaceTrack::CEntity::Engine(float fDT, float fRacerPosX, CRaceTrack::CShot 
       this->m_fTemp += fDT;
       if (m_fTemp > 0.4f) {
         m_fTemp = 0.0f;
-        vec2 vRPos = vec2(fRacerPosX, 0.0f);
-        this->m_vVec = vRPos - this->m_vPos;
-        this->m_vVec.Normalize();
-        if (this->m_vVec.Y < 0.4f)
-          this->m_vVec.Y = 0.4f;
+        glm::vec2 vRPos = glm::vec2(fRacerPosX, 0.0f);
+        this->m_vVec = glm::normalize(vRPos - this->m_vPos);
+        if (this->m_vVec.y < 0.4f)
+          this->m_vVec.y = 0.4f;
         this->m_vVec *= 30.0f;
       }
       break;
     case CModel::MT_HACK2:
-      vec2 vRPos = vec2(fRacerPosX, 0.0f);
-      this->m_vVec = vRPos - this->m_vPos;
-      this->m_vVec.Normalize();
-      if (this->m_vVec.Y < 0.4f)
-        this->m_vVec.Y = 0.4f;
+      glm::vec2 vRPos = glm::vec2(fRacerPosX, 0.0f);
+      this->m_vVec = glm::normalize(vRPos - this->m_vPos);
+      this->m_fTemp = glm::degrees(glm::orientedAngle(m_vVec, glm::vec2(0.0f, 1.0f)));
+      if (this->m_vVec.y < 0.4f)
+        this->m_vVec.y = 0.4f;
       this->m_vVec *= 50.0f;
-      this->m_fTemp = m_vVec.GetAngle();
       break;
     };
     break;
@@ -155,7 +154,7 @@ void CRaceTrack::CEntity::Render() {
 
   glPushMatrix();
 
-  glTranslatef(m_vPos.X, 3.0f, m_vPos.Y);
+  glTranslatef(m_vPos.x, 3.0f, m_vPos.y);
   switch (this->m_uModelType) {
   case CModel::MT_BOMB:
     glRotatef(-m_fTemp, 0.0f, 1.0f, 0.0f);
@@ -167,7 +166,7 @@ void CRaceTrack::CEntity::Render() {
     glRotatef(m_fTemp, 0.0f, 1.0f, 0.0f);
     break;
   }
-  glColor3fv(m_vColor.ToFloat());
+  glColor3fv(glm::value_ptr(m_vColor));
   m_Model->Render();
 
   glPopMatrix();
@@ -193,7 +192,7 @@ float CRaceTrack::CEntity::GetValue() {
   return m_fValue;
 }
 
-vec2 CRaceTrack::CEntity::GetPos() {
+glm::vec2 CRaceTrack::CEntity::GetPos() {
   return m_vPos;
 }
 
@@ -241,7 +240,7 @@ bool CRaceTrack::Init() {
 void CRaceTrack::Free() {
   this->m_SpaceSky.Free();
   this->m_SpaceGround.Free();
-  this->m_vMove = 0.0f;
+  this->m_vMove = glm::vec2(0.0f);
   this->m_fMoveX = 0.0f;
   m_fTime = 0.0f;
   m_uPoints = 0;
@@ -301,31 +300,31 @@ void CRaceTrack::Engine_Intro(float fDT) {
     if (m_fIntroTime > 0.7f) {
       m_unsignedroState = IS_STATE3;
       m_fIntroTime = 0.0f;
-      m_vMove.Y = -600.0f;
+      m_vMove.y = -600.0f;
     }
     break;
   case IS_STATE3:
-    this->m_vMove.Y += 120.0f * fDT;
-    if (this->m_vMove.Y > 20.0f)
-      this->m_vMove.Y -= 20.0f;
+    this->m_vMove.y += 120.0f * fDT;
+    if (this->m_vMove.y > 20.0f)
+      this->m_vMove.y -= 20.0f;
     if (m_fIntroTime > 2.0f) {
       m_unsignedroState = IS_STATE4;
       m_fIntroTime = 0.0f;
     }
     break;
   case IS_STATE4:
-    this->m_vMove.Y += 120.0f * fDT;
-    if (this->m_vMove.Y > 20.0f)
-      this->m_vMove.Y -= 20.0f;
+    this->m_vMove.y += 120.0f * fDT;
+    if (this->m_vMove.y > 20.0f)
+      this->m_vMove.y -= 20.0f;
     if (m_fIntroTime > 3.0f) {
       m_unsignedroState = IS_ENDSTATE;
       m_fIntroTime = 0.0f;
     }
     break;
   case IS_ENDSTATE:
-    this->m_vMove.Y += 120.0f * fDT;
-    if (this->m_vMove.Y > 20.0f)
-      this->m_vMove.Y -= 20.0f;
+    this->m_vMove.y += 120.0f * fDT;
+    if (this->m_vMove.y > 20.0f)
+      this->m_vMove.y -= 20.0f;
     if (m_fIntroTime > 2.0f) {
       m_unsignedroState = IS_STATE1;
       m_uTrackState = TS_GAME;
@@ -358,16 +357,16 @@ void CRaceTrack::Render_Intro() {
   case IS_STATE3:
     glColor3f(0.0f, 1.0f, 0.0f);
     glPushMatrix();
-    glTranslatef(0.0f, 0.0f, this->m_vMove.Y);
+    glTranslatef(0.0f, 0.0f, this->m_vMove.y);
 
     glPushMatrix();
     glTranslatef(0.0f, 20.0f * m_fIntroTime / 2.0f, 0.0f);
-    this->m_SpaceSky.Render(vec3(0.0f, 1.0f, 0.0f));
+    this->m_SpaceSky.Render(glm::vec3(0.0f, 1.0f, 0.0f));
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(0.0f, -20.0f * m_fIntroTime / 2.0f, 0.0f);
-    this->m_SpaceGround.Render(vec3(0.0f, 1.0f, 0.0f));
+    this->m_SpaceGround.Render(glm::vec3(0.0f, 1.0f, 0.0f));
     glPopMatrix();
     glPopMatrix();
     break;
@@ -377,16 +376,16 @@ void CRaceTrack::Render_Intro() {
     glRotatef(15.0f * m_fIntroTime / 3.0f, 1.0f, 0.0f, 0.0f);
 
     glPushMatrix();
-    glTranslatef(0.0f, 0.0f, this->m_vMove.Y);
+    glTranslatef(0.0f, 0.0f, this->m_vMove.y);
 
     glPushMatrix();
     glTranslatef(0.0f, 20.0f, 0.0f);
-    this->m_SpaceSky.Render(vec3(0.0f, 1.0f, 0.0f));
+    this->m_SpaceSky.Render(glm::vec3(0.0f, 1.0f, 0.0f));
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(0.0f, -20.0f, 0.0f);
-    this->m_SpaceGround.Render(vec3(0.0f, 1.0f, 0.0f));
+    this->m_SpaceGround.Render(glm::vec3(0.0f, 1.0f, 0.0f));
     glPopMatrix();
 
     glPopMatrix();
@@ -400,16 +399,16 @@ void CRaceTrack::Render_Intro() {
     glRotatef(15.0f, 1.0f, 0.0f, 0.0f);
 
     glPushMatrix();
-    glTranslatef(0.0f, 0.0f, this->m_vMove.Y);
+    glTranslatef(0.0f, 0.0f, this->m_vMove.y);
 
     glPushMatrix();
     glTranslatef(0.0f, 20.0f, 0.0f);
-    this->m_SpaceSky.Render(vec3(0.0f, 1.0f, 0.0f));
+    this->m_SpaceSky.Render(glm::vec3(0.0f, 1.0f, 0.0f));
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(0.0f, -20.0f, 0.0f);
-    this->m_SpaceGround.Render(vec3(0.0f, 1.0f, 0.0f));
+    this->m_SpaceGround.Render(glm::vec3(0.0f, 1.0f, 0.0f));
     glPopMatrix();
 
     glPopMatrix();
@@ -436,17 +435,17 @@ void CRaceTrack::Engine_Track(float fDT) {
 
   m_pRacer->Engine(fDT);
 
-  this->m_vMove.X -= m_pRacer->GetVec().X;
-  this->m_vMove.Y += 120.0f * fDT;
-  this->m_fMoveX += m_pRacer->GetVec().X;
+  this->m_vMove.x -= m_pRacer->GetVec().x;
+  this->m_vMove.y += 120.0f * fDT;
+  this->m_fMoveX += m_pRacer->GetVec().x;
 
-  if (this->m_vMove.Y > 20.0f)
-    this->m_vMove.Y -= 20.0f;
+  if (this->m_vMove.y > 20.0f)
+    this->m_vMove.y -= 20.0f;
 
-  if (this->m_vMove.X > 20.0f)
-    this->m_vMove.X -= 20.0f;
-  if (this->m_vMove.X < -20.0f)
-    this->m_vMove.X += 20.0f;
+  if (this->m_vMove.x > 20.0f)
+    this->m_vMove.x -= 20.0f;
+  if (this->m_vMove.x < -20.0f)
+    this->m_vMove.x += 20.0f;
 
   this->Engine_Entity(fDT);
   this->Engine_Shot(fDT);
@@ -463,11 +462,11 @@ void CRaceTrack::Render_Track() {
   glRotatef(15.0f, 1.0f, 0.0f, 0.0f);
 
   glPushMatrix();
-  glTranslatef(this->m_vMove.X, 0.0f, this->m_vMove.Y);
+  glTranslatef(this->m_vMove.x, 0.0f, this->m_vMove.y);
   glTranslatef(0.0f, 20.0f, 0.0f);
-  this->m_SpaceSky.Render(vec3(0.0f, 1.0f, 0.0f));
+  this->m_SpaceSky.Render(glm::vec3(0.0f, 1.0f, 0.0f));
   glTranslatef(0.0f, -40.0f, 0.0f);
-  this->m_SpaceGround.Render(vec3(0.0f, 1.0f, 0.0f));
+  this->m_SpaceGround.Render(glm::vec3(0.0f, 1.0f, 0.0f));
   glPopMatrix();
 
   glTranslatef(0.0f, -20.0f, 0.0f);
@@ -537,19 +536,19 @@ void CRaceTrack::DeleteShot(size_t i) {
 void CRaceTrack::FireWeapon() {
   float fSpeed = 50.0f;
   unsigned i;
-  vec2 vStPos = vec2(m_fMoveX, -2.0f);
-  vec2 vVec;
+  glm::vec2 vStPos = glm::vec2(m_fMoveX, -2.0f);
+  glm::vec2 vVec;
   for (i = 0; i < m_uFireCount; ++i) {
-    if (m_uFireCount == 1)
-      vVec = vec2(0.0f, -1.0f);
+    if(m_uFireCount == 1)
+      vVec = glm::vec2(0.0f, -1.0f);
     else
-      vVec.SetAngle(-6.0f * float(m_uFireCount - 1) / 2.0f + float(i) * 6.0f, -1.0f);
+      vVec = glm::rotate(glm::vec2(0.0f, -1.0f), glm::radians(-6.0f * float(m_uFireCount - 1) / 2.0f + float(i) * 6.0f));
 
-    this->m_aShotList.push_back(new CShot(vVec * fSpeed, vStPos, vec3(0.0f, 0.0f, 1.0f), m_fDamage));
-    this->m_avShotRenderList.push_back(vec3());
-    this->m_avShotRenderList.push_back(vec3());
-    this->m_avShotRenderColorList.push_back(vec3());
-    this->m_avShotRenderColorList.push_back(vec3());
+    this->m_aShotList.push_back(new CShot(vVec * fSpeed, vStPos, glm::vec3(0.0f, 0.0f, 1.0f), m_fDamage));
+    this->m_avShotRenderList.push_back(glm::vec3());
+    this->m_avShotRenderList.push_back(glm::vec3());
+    this->m_avShotRenderColorList.push_back(glm::vec3());
+    this->m_avShotRenderColorList.push_back(glm::vec3());
   }
 }
 
@@ -589,7 +588,7 @@ void CRaceTrack::RenderGUI(CGUI *GUI) {
   if (m_uTrackState != TS_GAME)
     return;
   glColor4f(0.4f, 0.4f, 1.0f, 0.6f);
-  GUI->RenderProgressBar(vec2(8.0f, 3.0f), vec2(400.0f, 40.0f), 100.0f);
+  GUI->RenderProgressBar(glm::vec2(8.0f, 3.0f), glm::vec2(400.0f, 40.0f), 100.0f);
   glColor3f(1.0f, 0.5f, 0.5f);
   GUI->Print(10.0f, 5.0f, "POINTS: %u", m_uPoints);
   if (m_uDifLevel < DL_VERY_HARD)
@@ -597,7 +596,7 @@ void CRaceTrack::RenderGUI(CGUI *GUI) {
   glColor3f(1.0f, 1.0f, 1.0f);
   GUI->Print(10.0f, 22.0f, "LEVEL: %s", this->GetDifLevelString().c_str());
   glColor4f(1.0f, 0.0f, 0.0f, 0.6f);
-  GUI->RenderProgressBar(vec2(20.0f, 450.0f), vec2(200.0f, 20.0f), this->m_pRacer->GetBitRate());
+  GUI->RenderProgressBar(glm::vec2(20.0f, 450.0f), glm::vec2(200.0f, 20.0f), this->m_pRacer->GetBitRate());
   if (this->m_fUpgTime < this->m_fUpgTimeOut) {
     glPushMatrix();
     glColor4f(1.0f, 1.0f, 1.0f, (m_fUpgTimeOut - m_fUpgTime) / m_fUpgTimeOut);
@@ -606,7 +605,7 @@ void CRaceTrack::RenderGUI(CGUI *GUI) {
     glPopMatrix();
   }
   if (this->m_fFSQTime < this->m_fFSQTimeOut) {
-    glColor4f(m_vFSQColor.X, m_vFSQColor.Y, m_vFSQColor.Z, ((m_fFSQTimeOut - m_fFSQTime) / m_fFSQTimeOut) * 0.5f);
+    glColor4f(m_vFSQColor.x, m_vFSQColor.y, m_vFSQColor.z, ((m_fFSQTimeOut - m_fFSQTime) / m_fFSQTimeOut) * 0.5f);
     GUI->RenderFSQuad(glm::vec2(640.0f, 480.0f));
   }
 }
@@ -621,34 +620,34 @@ void CRaceTrack::SetDifLevel(unsigned uDifLevel) {
     m_uDifLevel = DL_VERY_HARD;
 }
 
+const glm::vec2 CRaceTrack::CreateEntityPosition() {
+  float randF = float(rand() % 200 + 1 - 100);
+  return glm::vec2(randF / 100.0f * 30.0f + m_fMoveX + (100.0f * this->m_pRacer->GetVec().x), -80.0f);
+}
+
+void CRaceTrack::AddEntity(const glm::vec2& vec, const glm::vec3& color, const CModel::MODEL_TYPE type) {
+  CEntity* pEntity = new CEntity(this->CreateEntityPosition(), vec, color, type);
+  this->m_aEntityList.push_back(pEntity);
+}
+
 void CRaceTrack::AddEntity_DL() {
-  this->m_aEntityList.push_back(
-    new CEntity(vec2(float(rand() % 200 + 1 - 100) / 100.0f * 30.0f + m_fMoveX + (100.0f * this->m_pRacer->GetVec().X), -80.0f),
-                vec2(0.0f, 50.0f), vec3(1.0f, 1.0f, 0.0f), CModel::MT_DL_PART));
+  this->AddEntity(glm::vec2(0.0f, 50.0f), glm::vec3(1.0f, 1.0f, 0.0f), CModel::MT_DL_PART);
 }
 
 void CRaceTrack::AddEntity_DL2() {
-  this->m_aEntityList.push_back(
-    new CEntity(vec2(float(rand() % 200 + 1 - 100) / 100.0f * 30.0f + m_fMoveX + (100.0f * this->m_pRacer->GetVec().X), -80.0f),
-                vec2(0.0f, 40.0f), vec3(1.0f, 1.0f, 0.0f), CModel::MT_DL_PART2));
+  this->AddEntity(glm::vec2(0.0f, 40.0f), glm::vec3(1.0f, 1.0f, 0.0f), CModel::MT_DL_PART2);
 }
 
 void CRaceTrack::AddEntity_BOMB() {
-  this->m_aEntityList.push_back(
-    new CEntity(vec2(float(rand() % 200 + 1 - 100) / 100.0f * 30.0f + m_fMoveX + (100.0f * this->m_pRacer->GetVec().X), -80.0f),
-                vec2(0.0f, 50.0f), vec3(1.0f, 0.0f, 1.0f), CModel::MT_BOMB));
+  this->AddEntity(glm::vec2(0.0f, 50.0f), glm::vec3(1.0f, 0.0f, 1.0f), CModel::MT_BOMB);
 }
 
 void CRaceTrack::AddEntity_HACK() {
-  this->m_aEntityList.push_back(
-    new CEntity(vec2(float(rand() % 200 + 1 - 100) / 100.0f * 30.0f + m_fMoveX + (100.0f * this->m_pRacer->GetVec().X), -80.0f),
-                vec2(0.0f, 30.0f), vec3(0.5f, 0.2f, 0.8f), CModel::MT_HACK));
+  this->AddEntity(glm::vec2(0.0f, 30.0f), glm::vec3(0.5f, 0.2f, 0.8f), CModel::MT_HACK);
 }
 
 void CRaceTrack::AddEntity_HACK2() {
-  this->m_aEntityList.push_back(
-    new CEntity(vec2(float(rand() % 200 + 1 - 100) / 100.0f * 30.0f + m_fMoveX + (100.0f * this->m_pRacer->GetVec().X), -80.0f),
-                vec2(0.0f, 50.0f), vec3(1.0f, 0.0f, 0.0f), CModel::MT_HACK2));
+  this->AddEntity(glm::vec2(0.0f, 50.0f), glm::vec3(1.0f, 0.0f, 0.0f), CModel::MT_HACK2);
 }
 
 void CRaceTrack::GenRandomObject() {
@@ -745,25 +744,25 @@ void CRaceTrack::Engine_Entity(float fDT) {
       continue;
     }
 
-    vec3 vPos = vec3(this->m_aEntityList[i]->GetPos().X, 0.0f, this->m_aEntityList[i]->GetPos().Y);
+    glm::vec3 vPos = glm::vec3(this->m_aEntityList[i]->GetPos().x, 0.0f, this->m_aEntityList[i]->GetPos().y);
 
-    if (vec3::LengthSq(vec3(m_fMoveX, 0.0f, 0.0f), vPos) < 2.0f * 2.0f) {
+    if (glm::distance(glm::vec3(m_fMoveX, 0.0f, 0.0f), vPos) < 2.0f) {
       this->m_aEntityList[i]->SetCanDelete(true);
       switch (this->m_aEntityList[i]->GetModelType()) {
       case CModel::MT_BOMB:
       case CModel::MT_HACK:
       case CModel::MT_HACK2:
         this->m_pRacer->ModBitRate(-this->m_aEntityList[i]->GetValue());
-        this->SetFSQ(0.5f, vec3(1.0f, 0.0f, 0.0f));
+        this->SetFSQ(0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
         break;
       case CModel::MT_DL_PART:
       case CModel::MT_DL_PART2:
         this->m_uPoints += unsigned(this->m_aEntityList[i]->GetValue());
         this->m_pRacer->ModBitRate(20.0f);
-        this->SetFSQ(0.8f, vec3(0.0f, 1.0f, 0.0));
+        this->SetFSQ(0.8f, glm::vec3(0.0f, 1.0f, 0.0));
       }
     }
-    if (this->m_aEntityList[i]->GetPos().Y > 4.0f) {
+    if (this->m_aEntityList[i]->GetPos().y > 4.0f) {
       this->m_aEntityList[i]->SetCanDelete(true);
     }
   }
@@ -773,7 +772,7 @@ void CRaceTrack::Engine_Shot(float fDT) {
   int i;
   for (i = int(this->m_aShotList.size() - 1); i >= 0; --i) {
     this->m_aShotList[i]->Engine(fDT);
-    if (this->m_aShotList[i]->GetPos().Y < -100.0f) {
+    if (this->m_aShotList[i]->GetPos().y < -100.0f) {
       this->DeleteShot((size_t)i);
       continue;
     }
@@ -868,7 +867,7 @@ unsigned CRaceTrack::GetLevelModelType() {
   return CModel::MT_HTTP20;
 }
 
-void CRaceTrack::SetFSQ(float fTimeOut, vec3 vColor) {
+void CRaceTrack::SetFSQ(float fTimeOut, glm::vec3 vColor) {
   this->m_fFSQTime = 0.0f;
   this->m_fFSQTimeOut = fTimeOut;
   this->m_vFSQColor = vColor;
@@ -877,7 +876,7 @@ void CRaceTrack::SetFSQ(float fTimeOut, vec3 vColor) {
 void CRaceTrack::SetUpgScreen(float fTimeOut) {
   this->m_fUpgTime = 0.0f;
   this->m_fUpgTimeOut = fTimeOut;
-  this->SetFSQ(fTimeOut / 4.0f, vec3(1.0f, 1.0f, 0.0f));
+  this->SetFSQ(fTimeOut / 4.0f, glm::vec3(1.0f, 1.0f, 0.0f));
 }
 
 void CRaceTrack::SkipIntro() {

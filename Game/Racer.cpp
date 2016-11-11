@@ -11,8 +11,8 @@ CRacer::CRacer() :
   m_cModel(NULL),
   m_fRotation(0.0f),
   m_fBitRate(100.0f),
-  m_fXSpeed(60.0f),
-  m_fZSpeed(50.0f) {
+  m_Speed(60.0f, 0.0f, 50.0f) 
+{
 
 }
 
@@ -24,9 +24,8 @@ void CRacer::Free() {
   m_cModel = NULL;
   m_fRotation = 0.0f;
   m_fBitRate = 100.0f;
-  m_fXSpeed = 60.0f;
-  m_fZSpeed = 50.0f;
-  m_vVec = 0.0f;
+  m_Speed = glm::vec3(60.0f, 0.0f, 50.0f);
+  m_vVec = glm::vec3(0.0f);
 }
 
 bool CRacer::Init(unsigned uModelType) {
@@ -34,59 +33,53 @@ bool CRacer::Init(unsigned uModelType) {
 
   switch (uModelType) {
   case CModel::MT_HTTP10:
-    this->m_fZSpeed = 20.0f;
-    this->m_fXSpeed = 40.0f;
+    this->m_Speed = glm::vec3(40.0f, 0.0f, 20.0f);
     break;
 
   case CModel::MT_HTTP20:
-    this->m_fZSpeed = 25.0f;
-    this->m_fXSpeed = 40.0f;
+    this->m_Speed = glm::vec3(40.0f, 0.0f, 25.0f);
     break;
 
   case CModel::MT_P2PGNU:
-    this->m_fZSpeed = 30.0f;
-    this->m_fXSpeed = 50.0f;
+    this->m_Speed = glm::vec3(50.0f, 0.0f, 30.0f);
     break;
 
   case CModel::MT_P2PGNU2:
-    this->m_fZSpeed = 35.0f;
-    this->m_fXSpeed = 50.0f;
+    this->m_Speed = glm::vec3(50.0f, 0.0f, 35.0f);
     break;
 
   case CModel::MT_P2PFT:
-    this->m_fZSpeed = 40.0f;
-    this->m_fXSpeed = 50.0f;
+    this->m_Speed = glm::vec3(50.0f, 0.0f, 40.0f);
     break;
 
   case CModel::MT_P2PFT20:
-    this->m_fZSpeed = 50.0f;
-    this->m_fXSpeed = 55.0f;
+    this->m_Speed = glm::vec3(55.0f, 0.0f, 50.0f);
     break;
 
   case CModel::MT_P2PEDK2K:
-    this->m_fZSpeed = 55.0f;
-    this->m_fXSpeed = 60.0f;
+    this->m_Speed = glm::vec3(60.0f, 0.0f, 55.0f);
     break;
 
   case CModel::MT_P2PBT:
-    this->m_fZSpeed = 70.0f;
-    this->m_fXSpeed = 70.0f;
+    this->m_Speed = glm::vec3(70.0f, 0.0f, 70.0f);
     break;
+
   default:
     return false;
   };
+
   m_cModel = CModel::GetModel(uModelType);
 
   return true;
 }
 
 void CRacer::Engine(float fDT) {
-  if (fabsf(this->m_fRotation) > 0.0f)
+  if (glm::abs(this->m_fRotation) > 0.0f)
     this->m_fRotation -= 120.0f * (this->m_fRotation / this->s_fMaxRotation) * fDT;
-  if (fabsf(this->m_fRotation) > this->s_fMaxRotation)
+  if (glm::abs(this->m_fRotation) > this->s_fMaxRotation)
     this->m_fRotation = this->s_fMaxRotation * (m_fRotation / fabs(m_fRotation));
 
-  this->m_vVec.X = -this->m_fXSpeed * (this->m_fRotation / this->s_fMaxRotation) * fDT;
+  this->m_vVec.x = -this->m_Speed.x * (this->m_fRotation / this->s_fMaxRotation) * fDT;
 }
 
 void CRacer::Render() {
@@ -100,10 +93,7 @@ void CRacer::Render() {
 
 void CRacer::ModRotation(float fRotation) {
   m_fRotation -= fRotation;
-  if (m_fRotation > this->s_fMaxRotation)
-    m_fRotation = this->s_fMaxRotation;
-  if (m_fRotation < -this->s_fMaxRotation)
-    m_fRotation = -this->s_fMaxRotation;
+  m_fRotation = glm::clamp(this->m_fRotation, -s_fMaxRotation, s_fMaxRotation);
 }
 
 void CRacer::SetRotation(float fRotation) {
@@ -114,11 +104,11 @@ void CRacer::SetColor(unsigned dwColor) {
   m_dwColor = dwColor;
 }
 
-vec3 CRacer::GetVec() {
+glm::vec3 CRacer::GetVec() const {
   return m_vVec;
 }
 
-float CRacer::GetBitRate() {
+float CRacer::GetBitRate() const {
   return m_fBitRate;
 }
 

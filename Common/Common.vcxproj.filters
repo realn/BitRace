@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Vector.h">
-      <Filter>Math</Filter>
-    </ClInclude>
     <ClInclude Include="Log.h">
       <Filter>Logger</Filter>
     </ClInclude>

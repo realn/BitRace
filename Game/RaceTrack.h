@@ -1,34 +1,38 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include "Space.h"
 #include "Racer.h"
 #include "GUI.h"
 
 class CRaceTrack {
 public:
+
   class CShot {
   private:
-    vec2	m_vVec;
-    vec2	m_vPos;
-    vec3	m_vColor;
+    glm::vec2	m_vVec;
+    glm::vec2	m_vPos;
+    glm::vec3	m_vColor;
     float	m_fDamage;
     bool	m_bCanDelete;
   public:
-    CShot(vec2 vVec, vec2 vStartPos, vec3 vColor, float fDamage);
+    CShot(glm::vec2 vVec, glm::vec2 vStartPos, glm::vec3 vColor, float fDamage);
     void Engine(float fDT);
-    void SetRender(vec3* vpLine, vec3* vpColor);
-    vec2 GetPos();
-    vec2 GetVec();
-    float GetDamage();
+    void SetRender(glm::vec3* vpLine, glm::vec3* vpColor);
+    glm::vec2 GetPos() const;
+    glm::vec2 GetVec() const;
+    float GetDamage() const;
     void SetCanDelete(bool bSet);
     bool GetCanDelete();
   };
+
   class CEntity {
   private:
     CModel*	m_Model;
-    vec2	m_vPos;
-    vec2	m_vVec;
-    vec3	m_vColor;
+    glm::vec2	m_vPos;
+    glm::vec2	m_vVec;
+    glm::vec3	m_vColor;
     float	m_fValue;
     float	m_fHealth;
     float	m_fTemp;
@@ -41,14 +45,14 @@ public:
       ET_BONUS = 1,
       ET_ENEMY = 2
     };
-    CEntity(vec2 vPos, vec2 vVec, vec3 vColor, unsigned uModelType);
+    CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec3 vColor, unsigned uModelType);
     bool	Engine(float fDT, float fRacerPosX, CShot** aShotList, const unsigned uShotCount);
     void	Render();
     float	GetValue();
     float	GetHealth();
     unsigned	GetType();
     unsigned	GetModelType();
-    vec2	GetPos();
+    glm::vec2	GetPos();
     void SetCanDelete(bool bSet);
     bool GetCanDelete();
   };
@@ -58,11 +62,11 @@ private:
   CRacer* m_pRacer;
 
   std::vector<CShot*> m_aShotList;
-  std::vector<vec3>	m_avShotRenderList;
-  std::vector<vec3>	m_avShotRenderColorList;
+  std::vector<glm::vec3>	m_avShotRenderList;
+  std::vector<glm::vec3>	m_avShotRenderColorList;
   std::vector<CEntity*>	m_aEntityList;
 
-  vec2	m_vMove;
+  glm::vec2	m_vMove;
   float	m_fMoveX;
   float	m_fTime;
   float	m_fDamage;
@@ -73,7 +77,7 @@ private:
   float	m_fIntroTime;
   float	m_fGameOverTime;
   float	m_fGameOverTime2;
-  vec3	m_vFSQColor;
+  glm::vec3	m_vFSQColor;
   unsigned	m_uPoints;
   unsigned	m_uNeedPoints;
   unsigned	m_uDifLevel;
@@ -85,6 +89,9 @@ private:
   bool	m_bGameRuning;
   std::string m_strGameOver;
 
+  const glm::vec2 CreateEntityPosition();
+
+  void AddEntity(const glm::vec2& vec, const glm::vec3& color, const CModel::MODEL_TYPE type);
   void AddEntity_DL();
   void AddEntity_DL2();
   void AddEntity_BOMB();
@@ -103,7 +110,7 @@ private:
 
   void CheckDifLevel();
   void SetUpgScreen(float fTimeOut);
-  void SetFSQ(float fTimeOut, vec3 vColor);
+  void SetFSQ(float fTimeOut, glm::vec3 vColor);
   void GenRandomObject();
   void DeleteShot(size_t i);
   void Clear();

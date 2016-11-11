@@ -198,37 +198,37 @@ bool CGame::InitGame() {
   }
 
   CGUIMenu* Menu = this->m_MenuMng.AddMenu(MENU_MAIN, "BitRace");
-  Menu->AddMenuItem(MI_RETURN, "Return to Game", vec2(40.0f, 70.0f), 0)->SetEnable(false);
-  Menu->AddMenuItem(MI_NEWGAME, "New Game", vec2(40.0f, 100.0f), 0);
-  Menu->AddMenuItem(MI_HIGH, "High Scores", vec2(40.0f, 130.0f), MENU_HIGH);
-  Menu->AddMenuItem(MI_OPTIONS, "Options", vec2(40.0f, 160.0f), MENU_OPTIONS);
-  Menu->AddMenuItem(MI_EXIT, "Exit Game", vec2(40.0f, 190.0f), 0);
+  Menu->AddMenuItem(MI_RETURN, "Return to Game", glm::vec2(40.0f, 70.0f), 0)->SetEnable(false);
+  Menu->AddMenuItem(MI_NEWGAME, "New Game", glm::vec2(40.0f, 100.0f), 0);
+  Menu->AddMenuItem(MI_HIGH, "High Scores", glm::vec2(40.0f, 130.0f), MENU_HIGH);
+  Menu->AddMenuItem(MI_OPTIONS, "Options", glm::vec2(40.0f, 160.0f), MENU_OPTIONS);
+  Menu->AddMenuItem(MI_EXIT, "Exit Game", glm::vec2(40.0f, 190.0f), 0);
   Menu = this->m_MenuMng.AddMenu(MENU_OPTIONS, "Options");
   sprintf_s(szBuffer, 1000, "Resolution: %d X %d", ScrParam.uWidth, ScrParam.uHeight);
-  Menu->AddMenuItem(MI_RESOLUTION, szBuffer, vec2(40.0f, 100.0f), ScrParam.uDevID);
-  Menu->AddMenuItem(MI_FULLSCREEN, (ScrParam.bFullscreen) ? "Fullscreen: Enabled" : "FullScreen: Disabled", vec2(40.0f, 130.0f), Uint32(ScrParam.bFullscreen));
-  Menu->AddMenuItem(MI_SMOOTHSHADE, (ScrParam.bSmoothShade) ? "Smooth Shading: Enabled" : "Smooth Shading: Disabled", vec2(40.0f, 160.0f), 0);
-  Menu->AddMenuItem(MI_SMOOTHLINE, (ScrParam.bSmoothLines) ? "Smooth Lines: Enabled" : "Smooth Lines: Disabled", vec2(40.0f, 190.0f), 0);
-  Menu->AddMenuItem(MI_FPSCOUNTER, (ScrParam.bFPSCount) ? "FPS Counter: Enabled" : "FPS Counter: Disabled", vec2(40.0f, 220.0f), 0);
-  Menu->AddMenuItem(MI_VSYNC, (ScrParam.bVSync) ? "VSync: Enabled" : "VSync: Disabled", vec2(40.0f, 250.0f), 0);
+  Menu->AddMenuItem(MI_RESOLUTION, szBuffer, glm::vec2(40.0f, 100.0f), ScrParam.uDevID);
+  Menu->AddMenuItem(MI_FULLSCREEN, (ScrParam.bFullscreen) ? "Fullscreen: Enabled" : "FullScreen: Disabled", glm::vec2(40.0f, 130.0f), Uint32(ScrParam.bFullscreen));
+  Menu->AddMenuItem(MI_SMOOTHSHADE, (ScrParam.bSmoothShade) ? "Smooth Shading: Enabled" : "Smooth Shading: Disabled", glm::vec2(40.0f, 160.0f), 0);
+  Menu->AddMenuItem(MI_SMOOTHLINE, (ScrParam.bSmoothLines) ? "Smooth Lines: Enabled" : "Smooth Lines: Disabled", glm::vec2(40.0f, 190.0f), 0);
+  Menu->AddMenuItem(MI_FPSCOUNTER, (ScrParam.bFPSCount) ? "FPS Counter: Enabled" : "FPS Counter: Disabled", glm::vec2(40.0f, 220.0f), 0);
+  Menu->AddMenuItem(MI_VSYNC, (ScrParam.bVSync) ? "VSync: Enabled" : "VSync: Disabled", glm::vec2(40.0f, 250.0f), 0);
   if (WGLEW_EXT_swap_control) {
     Menu->GetMenuItem(MI_VSYNC)->SetEnable(false);
   }
-  Menu->AddMenuItem(MI_OPWARNING, "WARNING: You must restart the game, to apply changes", vec2(20.0f, 300.0f), 0)->SetEnable(false);
-  Menu->AddMenuItem(MI_GOBACK, "Return to Main Menu", vec2(40.0f, 330.0f), MENU_MAIN);
+  Menu->AddMenuItem(MI_OPWARNING, "WARNING: You must restart the game, to apply changes", glm::vec2(20.0f, 300.0f), 0)->SetEnable(false);
+  Menu->AddMenuItem(MI_GOBACK, "Return to Main Menu", glm::vec2(40.0f, 330.0f), MENU_MAIN);
   Menu = this->m_MenuMng.AddMenu(MENU_HIGH, "High Scores");
-  Menu->AddMenuItem(MI_HS1, "1. --EMPTY SCORE--", vec2(40.0f, 100.0f), 0);
-  Menu->AddMenuItem(MI_HS2, "2. --EMPTY SCORE--", vec2(40.0f, 120.0f), 0);
-  Menu->AddMenuItem(MI_HS3, "3. --EMPTY SCORE--", vec2(40.0f, 140.0f), 0);
-  Menu->AddMenuItem(MI_HS4, "4. --EMPTY SCORE--", vec2(40.0f, 160.0f), 0);
-  Menu->AddMenuItem(MI_HS5, "5. --EMPTY SCORE--", vec2(40.0f, 180.0f), 0);
-  Menu->AddMenuItem(MI_HS6, "6. --EMPTY SCORE--", vec2(40.0f, 200.0f), 0);
-  Menu->AddMenuItem(MI_HS7, "7. --EMPTY SCORE--", vec2(40.0f, 220.0f), 0);
-  Menu->AddMenuItem(MI_HS8, "8. --EMPTY SCORE--", vec2(40.0f, 240.0f), 0);
-  Menu->AddMenuItem(MI_HS9, "9. --EMPTY SCORE--", vec2(40.0f, 260.0f), 0);
-  Menu->AddMenuItem(MI_HS10, "10. --EMPTY SCORE--", vec2(40.0f, 280.0f), 0);
-  Menu->AddMenuItem(MI_HSRESET, "Reset Hight Scores", vec2(40.0f, 400.0f), 0);
-  Menu->AddMenuItem(MI_GOBACK, "Return to Main Menu", vec2(40.0f, 440.0f), MENU_MAIN);
+  Menu->AddMenuItem(MI_HS1, "1. --EMPTY SCORE--", glm::vec2(40.0f, 100.0f), 0);
+  Menu->AddMenuItem(MI_HS2, "2. --EMPTY SCORE--", glm::vec2(40.0f, 120.0f), 0);
+  Menu->AddMenuItem(MI_HS3, "3. --EMPTY SCORE--", glm::vec2(40.0f, 140.0f), 0);
+  Menu->AddMenuItem(MI_HS4, "4. --EMPTY SCORE--", glm::vec2(40.0f, 160.0f), 0);
+  Menu->AddMenuItem(MI_HS5, "5. --EMPTY SCORE--", glm::vec2(40.0f, 180.0f), 0);
+  Menu->AddMenuItem(MI_HS6, "6. --EMPTY SCORE--", glm::vec2(40.0f, 200.0f), 0);
+  Menu->AddMenuItem(MI_HS7, "7. --EMPTY SCORE--", glm::vec2(40.0f, 220.0f), 0);
+  Menu->AddMenuItem(MI_HS8, "8. --EMPTY SCORE--", glm::vec2(40.0f, 240.0f), 0);
+  Menu->AddMenuItem(MI_HS9, "9. --EMPTY SCORE--", glm::vec2(40.0f, 260.0f), 0);
+  Menu->AddMenuItem(MI_HS10, "10. --EMPTY SCORE--", glm::vec2(40.0f, 280.0f), 0);
+  Menu->AddMenuItem(MI_HSRESET, "Reset Hight Scores", glm::vec2(40.0f, 400.0f), 0);
+  Menu->AddMenuItem(MI_GOBACK, "Return to Main Menu", glm::vec2(40.0f, 440.0f), MENU_MAIN);
 
   UpdateHS();
 

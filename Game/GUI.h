@@ -1,20 +1,30 @@
 #pragma once
 
-#include "../Common/Vector.h"
 #include "../Common/Files.h"
 
 #include <SDL.h>
 #include <glm/glm.hpp>
 #include <vector>
+#include <map>
 
 class CGame;
 
 class CGUI {
+public:
+  struct CFontChar {
+    Uint8 m_Code;
+    glm::vec2   m_TCoord[4];
+    float m_Adv;
+  };
+
 private:
+  std::map<Uint8, CFontChar> m_CharList;
   unsigned int m_FontTexture;
   unsigned int m_uFontList;
+  glm::vec2 m_Size;
+  glm::vec2 m_Vertex[4];
 
-  bool LoadFontTexture(std::string file);
+  bool LoadFontTexture(std::string filename);
   bool InitFont();
 
 public:
@@ -29,15 +39,15 @@ public:
 
   void Print(float x, float y, std::string str, ...);
 
-  static void RenderProgressBar(vec2 vPos, vec2 vSize, float fProgress);
+  static void RenderProgressBar(glm::vec2 vPos, glm::vec2 vSize, float fProgress);
   static void RenderFSQuad(const glm::vec2& size);
   static void RenderFSQuadTex(const glm::vec2& size);
 };
 
 class CGUIMenuItem {
 private:
-  vec2		m_vPos;
-  vec2		m_vCurrPos;
+  glm::vec2		m_vPos;
+  glm::vec2		m_vCurrPos;
   std::string m_strName;
   Uint32		m_uID;
   Uint32		m_uUserDefID;
@@ -52,7 +62,7 @@ public:
     MIF_HIDEANIM = 0x0008,
     MIF_HIDDEN = 0x0010
   };
-  CGUIMenuItem(Uint32 uID, std::string strName, vec2 vPos, Uint32 uUserDefID);
+  CGUIMenuItem(Uint32 uID, std::string strName, glm::vec2 vPos, Uint32 uUserDefID);
   ~CGUIMenuItem();
 
   bool Update(CGame* pGame, float fDT);
@@ -68,7 +78,7 @@ public:
   Uint32 GetID();
   Uint32 GetUserDefID();
   std::string GetName();
-  vec2 GetPos();
+  glm::vec2 GetPos();
 
   void SetFocus(bool bSet);
   void SetEnable(bool bSet);
@@ -102,7 +112,7 @@ public:
   bool Update(CGame* pGame, float fDT);
   void Render(CGUI* GUI);
 
-  CGUIMenuItem* AddMenuItem(Uint32 uID, std::string strName, vec2 vPos, Uint32 uUserDefID);
+  CGUIMenuItem* AddMenuItem(Uint32 uID, std::string strName, glm::vec2 vPos, Uint32 uUserDefID);
   void DelMenuItem(Uint32 uID);
   CGUIMenuItem* GetMenuItem(Uint32 uID);
   void Clear();

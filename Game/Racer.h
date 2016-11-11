@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../Common/Vector.h"
+#include <glm/glm.hpp>
+
 #include "Model.h"
 
 class CRacer {
@@ -8,9 +9,8 @@ private:
   CModel*				m_cModel;
   float				m_fRotation;
   float				  m_fBitRate;
-  float				  m_fXSpeed;
-  float				  m_fZSpeed;
-  vec3				  m_vVec;
+  glm::vec3     m_Speed;
+  glm::vec3				  m_vVec;
   unsigned				m_dwColor;
 
 public:
@@ -27,8 +27,8 @@ public:
   void ModRotation(float fRotation);
   void SetRotation(float fRotation);
   void SetColor(unsigned dwColor);
-  vec3 GetVec();
-  float GetBitRate();
+  glm::vec3 GetVec() const;
+  float GetBitRate() const;
   void ModBitRate(float fBitRate);
   CModel* GetModel();
 
