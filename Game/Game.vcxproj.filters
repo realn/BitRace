@@ -4,11 +4,11 @@
     <Filter Include="Game">
       <UniqueIdentifier>{5e23173a-7563-4bdc-a868-751316fc9a26}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUI">
+      <UniqueIdentifier>{8d5914aa-72f0-4c8f-9a37-23923140a354}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GUI.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="HighScore.cpp">
       <Filter>Game</Filter>
     </ClCompile>
@@ -33,11 +33,17 @@
     <ClCompile Include="GameRender.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GUI.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIMenu.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIScreen.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GUI.h">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="HighScore.h">
       <Filter>Game</Filter>
     </ClInclude>
@@ -54,6 +60,15 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game.h" />
+    <ClInclude Include="GUI.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIScreen.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIMenu.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="RaceTrack.h">

@@ -155,8 +155,7 @@ bool CGame::InitOpenGL() {
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   m_GUI.Begin(glm::vec2(640.0f, 480.0f));
-  glColor3f(1.0f, 1.0f, 1.0f);
-  m_GUI.Print(glm::vec2(100.0f, 200.0f), "Please wait, loading game...");
+  m_GUI.Print(glm::vec2(100.0f, 200.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), "Please wait, loading game...");
   m_GUI.End();
 
   SDL_GL_SwapWindow(this->m_pWindow);

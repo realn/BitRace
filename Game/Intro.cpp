@@ -164,6 +164,8 @@ void CIntro::Render() {
 }
 
 void CIntro::RenderGUI(CGUI *GUI) {
+  glm::vec4 textColor(0.0f, 1.0f, 0.0f, 1.0f);
+
   switch (m_IntroState) {
   case IS_STATE1:
     glColor4f(1.0f, 1.0f, 1.0f, m_fTime);
@@ -173,67 +175,58 @@ void CIntro::RenderGUI(CGUI *GUI) {
   case IS_STATE2:
     glColor3f(1.0f, 1.0f, 1.0f);
     RenderLogo(0);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(275.0f, 340.0f), m_strText1.substr(0, m_uCharCount) + "_");
+    GUI->Print(glm::vec2(275.0f, 340.0f), textColor, m_strText1.substr(0, m_uCharCount) + "_");
     break;
 
   case IS_STATE3:
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f - (m_fTime - 2.0f));
     RenderLogo(0);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(275.0f, 340.0f), m_strText1);
+    GUI->Print(glm::vec2(275.0f, 340.0f), textColor, m_strText1);
     break;
 
   case IS_STATE4:
-    glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2.substr(0, m_uCharCount) + "_");
+    GUI->Print(glm::vec2(230.0f, 120.0f), textColor, m_strText2.substr(0, m_uCharCount) + "_");
     break;
 
   case IS_STATE5:
     glColor4f(1.0f, 1.0f, 1.0f, m_fTime);
     RenderLogo(3);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2);
+    GUI->Print(glm::vec2(230.0f, 120.0f), textColor, m_strText2);
     break;
 
   case IS_STATE6:
     glColor3f(1.0f, 1.0f, 1.0f);
     RenderLogo(3);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2);
-    GUI->Print(glm::vec2(270.0f, 340.0f), m_strText3.substr(0, m_uCharCount) + "_");
+    GUI->Print(glm::vec2(230.0f, 120.0f), textColor, m_strText2);
+    GUI->Print(glm::vec2(270.0f, 340.0f), textColor, m_strText3.substr(0, m_uCharCount) + "_");
     break;
 
   case IS_STATE7:
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f - m_fTime);
     RenderLogo(3);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2);
-    GUI->Print(glm::vec2(270.0f, 340.0f), m_strText3);
+    GUI->Print(glm::vec2(230.0f, 120.0f), textColor, m_strText2);
+    GUI->Print(glm::vec2(270.0f, 340.0f), textColor, m_strText3);
     break;
 
   case IS_STATE8:
     glColor4f(1.0f, 1.0f, 1.0f, m_fTime);
     RenderLogo(2);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2);
-    GUI->Print(glm::vec2(270.0f, 340.0f), m_strText3);
+    GUI->Print(glm::vec2(230.0f, 120.0f), textColor, m_strText2);
+    GUI->Print(glm::vec2(270.0f, 340.0f), textColor, m_strText3);
     break;
 
   case IS_STATE9:
     glColor3f(1.0f, 1.0f, 1.0f);
     RenderLogo(2);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2);
-    GUI->Print(glm::vec2(270.0f, 340.0f), m_strText3);
+    GUI->Print(glm::vec2(230.0f, 120.0f), textColor, m_strText2);
+    GUI->Print(glm::vec2(270.0f, 340.0f), textColor, m_strText3);
     break;
 
   case IS_STATE10:
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f - m_fTime);
     RenderLogo(2);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2);
-    GUI->Print(glm::vec2(270.0f, 340.0f), m_strText3);
+    GUI->Print(glm::vec2(230.0f, 120.0f), textColor, m_strText2);
+    GUI->Print(glm::vec2(270.0f, 340.0f), textColor, m_strText3);
     break;
 
   case IS_STATE11:

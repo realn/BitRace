@@ -19,6 +19,7 @@
 #include "../Common/IniFiles.h"
 #include "RaceTrack.h"
 #include "GUI.h"
+#include "GUIMenu.h"
 #include "Intro.h"
 #include "HighScore.h"
 
