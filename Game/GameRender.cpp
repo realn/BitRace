@@ -53,18 +53,30 @@ void CGame::Render() {
 }
 
 void CGame::RenderGame() {
-	if(this->m_uGameState != GS_GAME && !(this->m_uGameState == GS_MENU && m_bGamePause))
-		return;
+  switch(m_uGameState) {
+  case GS_INTRO:
+    m_Intro.Render();
+    break;
 
-	m_RaceTrack.Render();
+  case GS_MENU:
+    if(m_bGamePause)
+      m_RaceTrack.Render();
+    break;
+
+  case GS_GAME:
+    m_RaceTrack.Render();
+    break;
+
+  default:
+    break;
+  }
 }
 
 void CGame::RenderGUI() {
-  m_cGUI.Begin(ScrParam.GetSize());
+  m_GUI.Begin(ScrParam.GetSize());
   switch (m_uGameState) {
   case GS_INTRO:
-    m_Intro.Render();
-    m_Intro.RenderGUI(&m_cGUI);
+    m_Intro.RenderGUI(&m_GUI);
     break;
 
   case GS_MENU:
@@ -72,28 +84,27 @@ void CGame::RenderGUI() {
     break;
 
   case GS_GAME:
-    if (!m_MenuMng.GetCurrentMenu()->IsHiden())
+    if (!m_MenuMng.GetCurrentMenu()->IsHidden())
       RenderMenu();
-    else m_RaceTrack.RenderGUI(&m_cGUI);
+    else m_RaceTrack.RenderGUI(&m_GUI);
     break;
 
   case GS_HIGH:
-    m_HS.RenderGUI(&m_cGUI);
+    m_HS.RenderGUI(&m_GUI);
     break;
   };
   if (ScrParam.bFPSCount && m_uGameState != GS_INTRO) {
     glColor3f(1.0f, 1.0f, 1.0f);
-    m_cGUI.Print(glm::vec2(530.0f, 5.0f), "FPS: %d", int(1.0f / (this->m_fDT != 0.0f ? this->m_fDT : 1.0f)));
+    m_GUI.Print(glm::vec2(530.0f, 5.0f), "FPS: %d", int(1.0f / (this->m_fDT != 0.0f ? this->m_fDT : 1.0f)));
   }
-  m_cGUI.End();
+  m_GUI.End();
 }
 
 void CGame::RenderMenu() {
   if (m_bGamePause) {
-    glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-    m_cGUI.RenderFSQuad(ScrParam.GetSize());
+    m_GUI.RenderQuadFullScreen(ScrParam.GetSize(), glm::vec4(0.0f, 0.0f, 0.0f, 0.4f));
   }
-  m_MenuMng.Render(&m_cGUI);
+  m_MenuMng.Render();
 }
 
 void CGame::TakeScreenshot() {

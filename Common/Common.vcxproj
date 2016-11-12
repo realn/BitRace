@@ -92,6 +92,7 @@
     <ClInclude Include="Files.h" />
     <ClInclude Include="IniFiles.h" />
     <ClInclude Include="Log.h" />
+    <ClInclude Include="MathHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FGXFile.cpp" />

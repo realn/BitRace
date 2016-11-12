@@ -37,9 +37,9 @@ void CGame::UpdateLogic(const float timeDelta) {
 		break;
 
 	case GS_GAME:
-		if (!m_MenuMng.GetCurrentMenu()->IsHiden()) {
+		if (!m_MenuMng.GetCurrentMenu()->IsHidden()) {
 			CGUIMenu* M = m_MenuMng.GetCurrentMenu();
-			if (!M->IsHideing())
+			if (!M->IsHiding())
 				M->Hide();
 			m_MenuMng.Update(this, timeDelta);
 		}

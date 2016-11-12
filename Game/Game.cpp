@@ -18,6 +18,8 @@ const float CGame::SCREENPARAMS::GetAspectRatio() const {
 CGame::CGame() :
   m_pWindow(NULL),
   m_pGLContext(NULL),
+  m_GUI(),
+  m_MenuMng(&m_GUI),
   m_bShutdown(false),
   m_bGamePause(false),
   m_bTakeScreen(false),

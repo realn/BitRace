@@ -564,20 +564,20 @@ void CRaceTrack::Clear() {
 }
 
 void CRaceTrack::RenderGUI(CGUI *GUI) {
+  glm::vec2 screenSize(640.0f, 480.0f);
+
   if (m_uTrackState == TS_GAMEOVER) {
     if (m_fGameOverTime < 1.0f) {
-      glColor4f(1.0f, 1.0f, 1.0f, m_fGameOverTime);
-      GUI->RenderFSQuad(glm::vec2(640.0f, 480.0f));
+      GUI->RenderQuadFullScreen(screenSize, glm::vec4(1.0f, 1.0f, 1.0f, m_fGameOverTime));
     }
     else {
       if (m_fGameOverTime < 2.0f) {
         float a = 1.0f - (m_fGameOverTime - 1.0f);
         glColor3f(a, a, a);
-        GUI->RenderFSQuad(glm::vec2(640.0f, 480.0f));
+        GUI->RenderQuadFullScreen(screenSize, glm::vec4(a, a, a, 1.0f));
       }
       else {
-        glColor3f(0.0f, 0.0f, 0.0f);
-        GUI->RenderFSQuad(glm::vec2(640.0f, 480.0f));
+        GUI->RenderQuadFullScreen(screenSize, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
         glColor3f(0.0f, 1.0f, 0.0f);
         GUI->Print(glm::vec2(270.0f, 230.0f),
                    m_strGameOver.substr(0, m_uGameOverCharCount) + "_");
@@ -587,16 +587,14 @@ void CRaceTrack::RenderGUI(CGUI *GUI) {
   }
   if (m_uTrackState != TS_GAME)
     return;
-  glColor4f(0.4f, 0.4f, 1.0f, 0.6f);
-  GUI->RenderProgressBar(glm::vec2(8.0f, 3.0f), glm::vec2(400.0f, 40.0f), 100.0f);
+  GUI->RenderQuad(glm::vec2(8.0f, 3.0f), glm::vec2(400.0f, 40.0f), glm::vec4(0.4f, 0.4f, 1.0f, 0.6f));
   glColor3f(1.0f, 0.5f, 0.5f);
   GUI->Print(glm::vec2(10.0f, 5.0f), "POINTS: %u", m_uPoints);
   if (m_uDifLevel < DL_VERY_HARD)
     GUI->Print(glm::vec2(200.0f, 5.0f), "NEED POINTS: %u", m_uNeedPoints);
   glColor3f(1.0f, 1.0f, 1.0f);
   GUI->Print(glm::vec2(10.0f, 22.0f), "LEVEL: %s", this->GetDifLevelString().c_str());
-  glColor4f(1.0f, 0.0f, 0.0f, 0.6f);
-  GUI->RenderProgressBar(glm::vec2(20.0f, 450.0f), glm::vec2(200.0f, 20.0f), this->m_pRacer->GetBitRate());
+  GUI->RenderProgressBar(glm::vec2(20.0f, 450.0f), glm::vec2(200.0f, 20.0f), glm::vec4(1.0f, 0.0f, 0.0f, 0.6f), this->m_pRacer->GetBitRate());
   if (this->m_fUpgTime < this->m_fUpgTimeOut) {
     glPushMatrix();
     glColor4f(1.0f, 1.0f, 1.0f, (m_fUpgTimeOut - m_fUpgTime) / m_fUpgTimeOut);
@@ -605,8 +603,8 @@ void CRaceTrack::RenderGUI(CGUI *GUI) {
     glPopMatrix();
   }
   if (this->m_fFSQTime < this->m_fFSQTimeOut) {
-    glColor4f(m_vFSQColor.x, m_vFSQColor.y, m_vFSQColor.z, ((m_fFSQTimeOut - m_fFSQTime) / m_fFSQTimeOut) * 0.5f);
-    GUI->RenderFSQuad(glm::vec2(640.0f, 480.0f));
+    glm::vec4 color(m_vFSQColor.x, m_vFSQColor.y, m_vFSQColor.z, ((m_fFSQTimeOut - m_fFSQTime) / m_fFSQTimeOut) * 0.5f);
+    GUI->RenderQuadFullScreen(screenSize, color);
   }
 }
 

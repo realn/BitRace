@@ -1,6 +1,7 @@
 #include "GUI.h"
 #include "Game.h"
 #include "../Common/FGXFile.h"
+#include "../Common/MathHelper.h"
 #include <stdarg.h>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -41,7 +42,7 @@ bool CGUI::LoadFontTexture(std::string filename) {
   const CFGXFile::CData& Data = imgFile.GetData();
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, &Data[0]);
-  glGenerateMipmap(GL_TEXTURE_2D);
+  //glGenerateMipmap(GL_TEXTURE_2D);
 
   glBindTexture(GL_TEXTURE_2D, 0);
   return true;
@@ -107,6 +108,7 @@ void CGUI::Begin(const glm::vec2& size) {
   glDisable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glEnable(GL_TEXTURE_2D);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glBindTexture(GL_TEXTURE_2D, this->m_FontTexture);
 }
@@ -154,6 +156,8 @@ void CGUI::Print(const glm::vec2& pos, std::string format, ...) const {
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
+  //glm::vec4 color(1.0f);
+  //glColor4fv(glm::value_ptr(color));
   glDrawArrays(GL_QUADS, 0, vertList.size());
 
   glDisableClientState(GL_VERTEX_ARRAY);
@@ -169,7 +173,7 @@ const glm::vec2 CGUI::GetPrintSize(const std::string format, ...) const {
   va_end(va);
 
   glm::vec2 result;
-  for(int i = 0; i < text.length(); i++) {
+  for(unsigned i = 0; i < text.length(); i++) {
     const CFontChar& fontChar = this->GetChar(text[i]);
 
     result.y = glm::max(fontChar.m_Size.y, result.y);
@@ -178,58 +182,89 @@ const glm::vec2 CGUI::GetPrintSize(const std::string format, ...) const {
   return result;
 }
 
-void CGUI::RenderProgressBar(glm::vec2 vPos, glm::vec2 vSize, float fProgress) {
+void CGUI::RenderQuad(const glm::vec2 & pos, const glm::vec2 & size, const glm::vec4 & color, const Uint32 texId) {
+  glm::vec2 vert[4];
+  vert[0] = pos;
+  vert[1] = pos + glm::vec2(size.x, 0.0f);
+  vert[2] = pos + size;
+  vert[3] = pos + glm::vec2(0.0f, size.y);
+
+  glm::vec2 texc[4];
+  texc[0] = glm::vec2(0.0f, 0.0f);
+  texc[1] = glm::vec2(1.0f, 0.0f);
+  texc[2] = glm::vec2(1.0f, 1.0f);
+  texc[3] = glm::vec2(0.0f, 1.0f);
+
+  Uint16 ind[6];
+  ind[0] = 0;
+  ind[1] = 1;
+  ind[2] = 2;
+  ind[3] = 0;
+  ind[4] = 2;
+  ind[5] = 3;
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glVertexPointer(2, GL_FLOAT, 0, vert);
+  glTexCoordPointer(2, GL_FLOAT, 0, texc);
+
+  if(texId) {
+    glBindTexture(GL_TEXTURE_2D, texId);
+  }
+  else
+    glDisable(GL_TEXTURE_2D);
+
+  glColor4fv(glm::value_ptr(color));
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, ind);
+
+  if(texId) {
+    glBindTexture(GL_TEXTURE_2D, m_FontTexture);
+  }
+  else
+    glEnable(GL_TEXTURE_2D);
+
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
+void CGUI::RenderQuadLines(const glm::vec2 & pos, const glm::vec2 & size, const glm::vec4 & color) {
+  glm::vec2 vert[4];
+  vert[0] = pos;
+  vert[1] = pos + glm::vec2(size.x, 0.0f);
+  vert[2] = pos + size;
+  vert[3] = pos + glm::vec2(0.0f, size.y);
+
+  Uint16 ind[8];
+  ind[0] = 0;
+  ind[1] = 1;
+  ind[2] = 1;
+  ind[3] = 2;
+  ind[4] = 2;
+  ind[5] = 3;
+  ind[6] = 3;
+  ind[7] = 0;
+
   glDisable(GL_TEXTURE_2D);
-  glBegin(GL_LINES);
-  glVertex2fv((GLfloat*)&vPos);
-  glVertex2f(vPos.x + vSize.x, vPos.y);
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glVertexPointer(2, GL_FLOAT, 0, vert);
 
-  glVertex2f(vPos.x + vSize.x, vPos.y);
-  glVertex2f(vPos.x + vSize.x, vPos.y + vSize.y);
+  glColor4fv(glm::value_ptr(color));
+  glDrawElements(GL_LINES, 8, GL_UNSIGNED_SHORT, ind);
 
-  glVertex2f(vPos.x + vSize.x, vPos.y + vSize.y);
-  glVertex2f(vPos.x, vPos.y + vSize.y);
-
-  glVertex2f(vPos.x, vPos.y + vSize.y);
-  glVertex2fv(glm::value_ptr(vPos));
-  glEnd();
-
-  float fSizeX = vSize.x * (fProgress / 100.0f);
-
-  glBegin(GL_QUADS);
-  glVertex2fv(glm::value_ptr(vPos));
-
-  glVertex2f(vPos.x + fSizeX, vPos.y);
-
-  glVertex2f(vPos.x + fSizeX, vPos.y + vSize.y);
-
-  glVertex2f(vPos.x, vPos.y + vSize.y);
-  glEnd();
+  glDisableClientState(GL_VERTEX_ARRAY);
   glEnable(GL_TEXTURE_2D);
 }
 
-void CGUI::RenderFSQuad(const glm::vec2& size) {
-  glDisable(GL_TEXTURE_2D);
-  glBegin(GL_QUADS);
-  glVertex2f(0.0f, 0.0f);
-  glVertex2f(size.x, 0.0f);
-  glVertex2f(size.x, size.y);
-  glVertex2f(0.0f, size.y);
-  glEnd();
-  glEnable(GL_TEXTURE_2D);
+void CGUI::RenderQuadFullScreen(const glm::vec2& size, const glm::vec4& color, const Uint32 texId) {
+  this->RenderQuad(glm::vec2(0.0f), size, color, texId);
 }
 
-void CGUI::RenderFSQuadTex(const glm::vec2& size) {
-  glBegin(GL_QUADS);
-  glTexCoord2i(0, 1);
-  glVertex2f(0.0f, 0.0f);
-  glTexCoord2i(1, 1);
-  glVertex2f(size.x, 0.0f);
-  glTexCoord2i(1, 0);
-  glVertex2f(size.x, size.y);
-  glTexCoord2i(0, 0);
-  glVertex2f(0.0f, size.y);
-  glEnd();
+void CGUI::RenderProgressBar(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const float progress) {
+  RenderQuadLines(pos, size, color);
+
+  float sizeX = size.x * (progress / 100.0f);
+
+  RenderQuad(pos, glm::vec2(sizeX, size.y), color);
 }
 
 const CGUI::CFontChar & CGUI::GetChar(const char charCode) const {
@@ -248,350 +283,390 @@ const std::string CGUI::FormatText(const std::string & format, va_list va) const
 
 //==========================================================
 
-CGUIMenuItem::CGUIMenuItem(Uint32 uID, std::string strName, glm::vec2 vPos, Uint32 uUserDefID) :
-  m_uID(uID),
-  m_strName(strName),
-  m_vPos(vPos),
-  m_vCurrPos(vPos.x, -20.0f),
-  m_uUserDefID(uUserDefID),
-  m_uFlag(MIF_ENABLED | MIF_HIDDEN),
-  m_fFocusLight(0.0f) {
+CGUIMenuItem::CGUIMenuItem(CGUIMenu* pMenu, const Uint32 id, const std::string& text, const glm::vec2& pos, const Uint32 userDefID) :
+  m_pMenu(pMenu),
+  m_ShowPos(pos),
+  m_HidePos(pos.x, -20.0f),
+  m_Id(id),
+  m_UserDefId(userDefID),
+  m_Flags(MIF_ENABLED | MIF_HIDDEN),
+  m_FocusLight(0.0f),
+  m_AnimSpeed(3.0f),
+  m_FocusUpSpeed(5.0f),
+  m_FocusDownSpeed(2.0f)
+{
+  glm::vec2 screenSize = pMenu->GetScreen()->GetSize();
 
+  m_pTextItem = new CScreenItem(pMenu->GetScreen(), CScreenItem::IT_TEXT, m_HidePos, glm::vec2(0.0));
+  m_pTextItem->SetText(text);
+  m_pTextItem->SetColor(glm::vec4(1.0f));
+
+  m_pRectItem = new CScreenItem(pMenu->GetScreen(), 
+                                CScreenItem::IT_RECTFILL, 
+                                glm::vec2(0.0f, m_ShowPos.y), 
+                                glm::vec2(screenSize.x, m_pTextItem->GetSize().y));
+  m_pRectItem->SetColor(glm::vec4(glm::vec3(1.0f), 0.0f));
+
+  m_pMenu->GetScreen()->AddItem(m_pRectItem);
+  m_pMenu->GetScreen()->AddItem(m_pTextItem);
 }
 
 CGUIMenuItem::~CGUIMenuItem() {
-
+  this->m_pMenu->GetScreen()->RemoveItem(m_pTextItem, true);
+  this->m_pMenu->GetScreen()->RemoveItem(m_pRectItem, true);
 }
 
-bool CGUIMenuItem::Update(CGame* pGame, float fDT) {
+const bool CGUIMenuItem::Update(CGame* pGame, const float fDT) {
+  if(!IsEnabled()) {
+    this->m_pRectItem->SetVisible(false);
+    this->m_pTextItem->SetVisible(false);
+    return false;
+  }
+
   if (IsShowing()) {
-    m_vCurrPos += (m_vPos - glm::vec2(m_vPos.x, -20.0f)) * 3.0f * fDT;
-    if (m_vPos.y - m_vCurrPos.y < 0.1f) {
-      this->m_uFlag &= ~MIF_SHOWANIM;
-      m_vCurrPos = m_vPos;
+    glm::vec2 pos = this->m_pTextItem->GetPos();
+    pos += (m_ShowPos - m_HidePos) * m_AnimSpeed * fDT;
+    if(m_ShowPos.y - pos.y < 0.1f) {
+      this->m_Flags &= ~MIF_SHOWANIM;
+      this->m_pTextItem->SetPos(m_ShowPos);
     }
-    else return false;
+    else {
+      this->m_pTextItem->SetPos(pos);
+    }
+    return false;
   }
   if (IsHiding()) {
-    m_vCurrPos += (glm::vec2(m_vPos.x, -20.0f) - m_vPos) * 3.0f * fDT;
-    if (m_vCurrPos.y + 20.0f < 0.1f) {
-      this->m_uFlag &= ~MIF_HIDEANIM;
-      this->m_uFlag |= MIF_HIDDEN;
-      m_vCurrPos = glm::vec2(m_vPos.x, -20.0f);
+    glm::vec2 pos = this->m_pTextItem->GetPos();
+    pos += (m_HidePos - m_ShowPos) * m_AnimSpeed * fDT;
+    if(pos.y - m_HidePos.y < 0.1f) {
+      this->m_Flags &= ~MIF_HIDEANIM;
+      this->m_Flags |= MIF_HIDDEN;
+      this->m_pTextItem->SetPos(m_HidePos);
+      this->m_pTextItem->SetVisible(false);
     }
-    else return false;
-  }
-
-  if (!IsEnabled())
+    else {
+      this->m_pTextItem->SetPos(pos);
+    }
     return false;
-
-  if (HasFocus() && m_fFocusLight != 1.0f) {
-    m_fFocusLight += 5.0f * fDT;
-    if (m_fFocusLight > 1.0f)
-      m_fFocusLight = 1.0f;
-  }
-  else if (m_fFocusLight != 0.0f) {
-    m_fFocusLight -= 2.0f * fDT;
-    if (m_fFocusLight < 0.0f)
-      m_fFocusLight = 0.0f;
   }
 
-  float width = 16.0f * float(m_strName.length());
+
+  if (HasFocus() && m_FocusLight < 1.0f) {
+    m_FocusLight = glm::clamp(m_FocusLight + m_FocusUpSpeed * fDT, 0.0f, 1.0f);
+  }
+  else if (!HasFocus() && m_FocusLight > 0.0f) {
+    m_FocusLight = glm::clamp(m_FocusLight - m_FocusDownSpeed * fDT, 0.0f, 1.0f);
+  }
+
+  this->m_pRectItem->SetColor(glm::vec4(glm::vec3(1.0f), this->m_FocusLight));
+  this->m_pTextItem->SetColor(glm::vec4(glm::vec3(1.0f - this->m_FocusLight), 1.0f));
 
   glm::vec2 vMousePos = glm::vec2(pGame->GetMousePos());
-
-  if (vMousePos.x > m_vPos.x && vMousePos.x < m_vPos.x + width &&
-      vMousePos.y > m_vPos.y && vMousePos.y < m_vPos.y + 16.0f) {
-    SetFocus(true);
-    if (pGame->IsMouseButtonPressed(SDL_BUTTON_LEFT))
+  if(this->m_pTextItem->Contains(vMousePos)) {
+    this->SetFocus(true);
+    if(pGame->IsMouseButtonPressed(SDL_BUTTON_LEFT)) {
       return true;
+    }
   }
-  else SetFocus(false);
+  else
+    this->SetFocus(false);
+
   return false;
 }
 
-void CGUIMenuItem::Render(CGUI *GUI) {
-  if (!IsEnabled() || IsHidden())
-    return;
-
-  if (!IsAnimating()) {
-    glDisable(GL_TEXTURE_2D);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBegin(GL_QUADS);
-    glColor4f(1.0f, 1.0f, 1.0f, m_fFocusLight);
-    glVertex2f(0.0f, m_vPos.y);
-    glVertex2f(0.0f, m_vPos.y + 16.0f);
-    glColor4f(1.0f, 1.0f, 1.0f, m_fFocusLight * 0.2f);
-    glVertex2f(640.0f, m_vPos.y + 16.0f);
-    glVertex2f(640.0f, m_vPos.y);
-    glEnd();
-    glEnable(GL_TEXTURE_2D);
-  }
-
-  glColor3f(1.0f, 1.0f, 1.0f);
-  GUI->Print(m_vCurrPos, m_strName);
+const bool CGUIMenuItem::HasFocus() const {
+  return (m_Flags & MIF_FOCUS) > 0;
 }
 
-bool CGUIMenuItem::HasFocus() {
-  return (m_uFlag & MIF_FOCUS) ? true : false;
+const bool CGUIMenuItem::IsVisible() const {
+  return (m_Flags & MIF_HIDDEN) == 0;
 }
 
-bool CGUIMenuItem::IsEnabled() {
-  return (m_uFlag & MIF_ENABLED) ? true : false;
+const bool CGUIMenuItem::IsEnabled() const {
+  return (m_Flags & MIF_ENABLED) > 0;
 }
 
-bool CGUIMenuItem::IsAnimating() {
+const bool CGUIMenuItem::IsAnimating() const {
   return (IsShowing() || IsHiding());
 }
 
-bool CGUIMenuItem::IsHiding() {
-  return (m_uFlag & MIF_HIDEANIM) ? true : false;
+const bool CGUIMenuItem::IsHiding() const {
+  return (m_Flags & MIF_HIDEANIM) > 0;
 }
 
-bool CGUIMenuItem::IsHidden() {
-  return (m_uFlag & MIF_HIDDEN) ? true : false;
+const bool CGUIMenuItem::IsHidden() const {
+  return (m_Flags & MIF_HIDDEN) > 0;
 }
 
-bool CGUIMenuItem::IsShowing() {
-  return (m_uFlag & MIF_SHOWANIM) ? true : false;
+const bool CGUIMenuItem::IsShowing() const {
+  return (m_Flags & MIF_SHOWANIM) > 0;
 }
 
-Uint32 CGUIMenuItem::GetID() {
-  return m_uID;
+const Uint32 CGUIMenuItem::GetID() const {
+  return m_Id;
 }
 
-std::string CGUIMenuItem::GetName() {
-  return m_strName;
+const std::string CGUIMenuItem::GetName() const {
+  return m_pTextItem->GetText();
 }
 
-glm::vec2 CGUIMenuItem::GetPos() {
-  return m_vPos;
+const glm::vec2 CGUIMenuItem::GetPos() const {
+  return m_pTextItem->GetPos();
 }
 
-const glm::vec2 CGUIMenuItem::GetRenderPos(const glm::vec2 & size) const {
-  return glm::vec2();
+const Uint32 CGUIMenuItem::GetUserDefID() const {
+  return m_UserDefId;
 }
 
-Uint32 CGUIMenuItem::GetUserDefID() {
-  return m_uUserDefID;
-}
-
-void CGUIMenuItem::SetEnable(bool bSet) {
-  if (bSet)
-    m_uFlag |= MIF_ENABLED;
-  else m_uFlag &= ~MIF_ENABLED;
+void CGUIMenuItem::SetEnable(bool enable) {
+  if (enable)
+    m_Flags |= MIF_ENABLED;
+  else 
+    m_Flags &= ~MIF_ENABLED;
+  this->m_pTextItem->SetVisible(enable);
+  this->m_pRectItem->SetVisible(enable);
 }
 
 void CGUIMenuItem::SetFocus(bool bSet) {
   if (bSet)
-    m_uFlag |= MIF_FOCUS;
-  else m_uFlag &= ~MIF_FOCUS;
+    m_Flags |= MIF_FOCUS;
+  else 
+    m_Flags &= ~MIF_FOCUS;
 }
 
-void CGUIMenuItem::SetName(std::string strName) {
-  m_strName = strName;
+void CGUIMenuItem::SetName(const std::string& name) {
+  this->m_pTextItem->SetText(name);
 }
 
 void CGUIMenuItem::SetUserDefID(Uint32 uSet) {
-  m_uUserDefID = uSet;
+  m_UserDefId = uSet;
 }
 
 void CGUIMenuItem::Show() {
-  m_uFlag |= MIF_SHOWANIM;
-  m_uFlag &= ~MIF_HIDDEN;
+  m_Flags |= MIF_SHOWANIM;
+  m_Flags &= ~MIF_HIDDEN;
+  this->m_pTextItem->SetVisible(true);
+
 }
 
 void CGUIMenuItem::Hide() {
-  m_uFlag |= MIF_HIDEANIM;
+  m_Flags |= MIF_HIDEANIM;
+  this->m_pTextItem->SetVisible(true);
 }
 
 void CGUIMenuItem::ForceShow() {
-  m_uFlag &= ~MIF_HIDDEN;
-  m_vCurrPos = m_vPos;
+  m_Flags &= ~MIF_HIDDEN;
+  m_pTextItem->SetPos(m_ShowPos);
 }
 
 void CGUIMenuItem::ForceHide() {
-  m_uFlag |= MIF_HIDDEN;
-  m_vCurrPos = glm::vec2(m_vPos.x, -20.0f);
+  m_Flags |= MIF_HIDDEN;
+  m_pTextItem->SetPos(m_HidePos);
 }
 
 //========================================================
 
-CGUIMenu::CGUIMenu(Uint32 uID, std::string strName) :
-  m_strName(strName),
-  m_uID(uID),
-  m_uFlag(MF_HIDDEN),
-  m_fTime(0.0f),
-  m_uIndex(0),
-  m_uClickedID(0) {
-
+CGUIMenu::CGUIMenu(CGUIMenuManager* pMenuMng, const Uint32 id, const std::string& title, const glm::vec2& size) :
+  m_pMenuMng(pMenuMng),
+  m_Id(id),
+  m_Flags(MF_HIDDEN),
+  m_Time(0.0f),
+  m_Index(0),
+  m_ClickedID(0) 
+{
+  m_pScreen = new CScreen(m_pMenuMng->GetGUI(), size);
+  m_pTitleItem = new CScreenItem(m_pScreen, CScreenItem::IT_TEXT, glm::vec2(9.0f, 9.0f), glm::vec2(0.0));
+  m_pTitleItem->SetText(title);
+  m_pScreen->AddItem(m_pTitleItem);
 }
 
 CGUIMenu::~CGUIMenu() {
-  Clear();
+  Clear(true);
+  delete m_pScreen;
 }
 
-bool CGUIMenu::Update(CGame* pGame, float fDT) {
-  size_t i, j;
+const bool CGUIMenu::Update(CGame* pGame, float timeDelta) {
   if (IsShowing()) {
-    m_fTime += fDT;
-    if (m_fTime > 0.2f) {
-      if (m_uIndex == 0) {
-        for (j = 0, i = 0; i < m_aItem.size(); i++)
-          if (!m_aItem[i]->IsShowing())
-            j++;
-        if (j == m_aItem.size())
-          m_uFlag &= ~MF_SHOWANIM;
+    m_Time += timeDelta;
+    if (m_Time > 0.2f) {
+      m_Time = 0.0f;
+
+      if (m_Index == 0 && AllItemsVisible()) {
+          m_Flags &= ~MF_SHOWANIM;
       }
-      else {
-        m_uIndex--;
-        m_aItem[m_uIndex]->Show();
+      else if(m_Index > 0) {
+        m_Index--;
+        m_Items[m_Index]->Show();
       }
-      m_fTime = 0.0f;
     }
   }
-  if (IsHideing()) {
-    m_fTime += fDT;
-    if (m_fTime > 0.2f) {
-      if (m_uIndex >= Uint32(m_aItem.size())) {
-        for (j = 0, i = 0; i < m_aItem.size(); i++)
-          if (m_aItem[i]->IsHidden())
-            j++;
-        if (j == m_aItem.size()) {
-          m_uFlag &= ~MF_HIDEANIM;
-          m_uFlag |= MF_HIDDEN;
-        }
+  if (IsHiding()) {
+    m_Time += timeDelta;
+    if (m_Time > 0.2f) {
+      m_Time = 0.0f;
+
+      if(m_Index >= m_Items.size() && AllItemsHidden()) {
+        m_Flags &= ~MF_HIDEANIM;
+        m_Flags |= MF_HIDDEN;
       }
-      else {
-        m_aItem[m_uIndex]->Hide();
-        m_uIndex++;
+      else if(m_Index < m_Items.size()) {
+        m_Items[m_Index]->Hide();
+        m_Index++;
       }
     }
   }
 
-  for (i = 0; i < m_aItem.size(); i++) {
-    if (m_aItem[i]->Update(pGame, fDT)) {
-      m_uClickedID = m_aItem[i]->GetID();
+  for(std::vector<CGUIMenuItem*>::iterator it = m_Items.begin(); it != m_Items.end(); it++) {
+    if((*it)->Update(pGame, timeDelta)) {
+      m_ClickedID = (*it)->GetID();
       return true;
     }
   }
   return false;
 }
 
-void CGUIMenu::Render(CGUI *GUI) {
-  if (IsHiden())
+void CGUIMenu::Render() {
+  if (this->IsHidden())
     return;
 
-  glPushMatrix();
-  glScalef(3.0f, 3.0f, 1.0f);
-  glColor3f(1.0f, 1.0f, 1.0f);
-  GUI->Print(glm::vec2(3.0f, 3.0f), m_strName);
-  glPopMatrix();
-
-  size_t i;
-  for (i = 0; i < m_aItem.size(); i++)
-    m_aItem[i]->Render(GUI);
+  this->m_pScreen->Render();
 }
 
-CGUIMenuItem* CGUIMenu::AddMenuItem(Uint32 uID, std::string strName, glm::vec2 vPos, Uint32 uUserDefID) {
-  size_t i;
-  for (i = 0; i < m_aItem.size(); i++)
-    if (m_aItem[i]->GetID() == uID)
-      return NULL;
+CGUIMenuItem* CGUIMenu::AddMenuItem(const Uint32 id, const std::string& name, const glm::vec2& pos, const Uint32 userDefID) {
+  if(GetMenuItem(id) != nullptr)
+    return nullptr;
 
-  CGUIMenuItem* m = new CGUIMenuItem(uID, strName, vPos, uUserDefID);
-  m_aItem.push_back(m);
-  return m;
+  CGUIMenuItem* pItem = new CGUIMenuItem(this, id, name, pos, userDefID);
+  m_Items.push_back(pItem);
+  return pItem;
 }
 
-void CGUIMenu::DelMenuItem(Uint32 uID) {
-  size_t i;
-  for (i = 0; i < m_aItem.size(); i++) {
-    if (m_aItem[i]->GetID() == uID) {
-      delete m_aItem[i];
-      m_aItem.erase(m_aItem.begin() + i);
+CGUIMenuItem* CGUIMenu::RemoveMenuItem(const Uint32 id, const bool deleteItem) {
+  std::vector<CGUIMenuItem*>::iterator it;
+  for(it = m_Items.begin(); it != m_Items.end(); it++) {
+    if((*it)->GetID() == id)
+      break;
+  }
+  if(it == m_Items.end())
+    return nullptr;
+
+  CGUIMenuItem* pItem = (*it);
+  m_Items.erase(it);
+
+  if(deleteItem) {
+    delete pItem;
+    return nullptr;
+  }
+  
+  return pItem;
+}
+
+CGUIMenuItem* CGUIMenu::GetMenuItem(const Uint32 id) const {
+  for(std::vector<CGUIMenuItem*>::const_iterator it = m_Items.begin(); it != m_Items.end(); it++) {
+    if((*it)->GetID() == id)
+      return *it;
+  }
+  return nullptr;
+}
+
+void CGUIMenu::Clear(const bool deleteItems) {
+  if(deleteItems) {
+    for(std::vector<CGUIMenuItem*>::iterator it = m_Items.begin(); it != m_Items.end(); it++) {
+      delete *it;
     }
   }
+  m_Items.clear();
 }
 
-CGUIMenuItem* CGUIMenu::GetMenuItem(Uint32 uID) {
-  size_t i;
-  for (i = 0; i < m_aItem.size(); i++)
-    if (m_aItem[i]->GetID() == uID)
-      return m_aItem[i];
-  return NULL;
-}
-
-void CGUIMenu::Clear() {
-  int i;
-  for (i = int(m_aItem.size()) - 1; i >= 0; i--) {
-    delete m_aItem[i];
-    m_aItem.pop_back();
-  }
+void CGUIMenu::SetTitle(const std::string & title) {
+  this->m_pTitleItem->SetText(title);
 }
 
 void CGUIMenu::Hide() {
-  m_uFlag &= ~MF_SHOWANIM;
-  m_uFlag |= MF_HIDEANIM;
-  m_uIndex = 0;
+  m_Flags &= ~MF_SHOWANIM;
+  m_Flags |= MF_HIDEANIM;
+  m_Index = 0;
 }
 
 void CGUIMenu::Show() {
-  m_uFlag &= ~MF_HIDDEN;
-  m_uFlag &= ~MF_HIDEANIM;
-  m_uFlag |= MF_SHOWANIM;
-  m_uIndex = Uint32(m_aItem.size());
+  m_Flags &= ~MF_HIDDEN;
+  m_Flags &= ~MF_HIDEANIM;
+  m_Flags |= MF_SHOWANIM;
+  m_Index = m_Items.size();
 }
 
-bool CGUIMenu::IsAnimating() {
-  return (IsShowing() || IsHideing());
+const bool CGUIMenu::IsAnimating() const {
+  return (IsShowing() || IsHiding());
 }
 
-bool CGUIMenu::IsHideing() {
-  return (m_uFlag & MF_HIDEANIM) ? true : false;
+const bool CGUIMenu::IsHiding() const {
+  return (m_Flags & MF_HIDEANIM) > 0;
 }
 
-bool CGUIMenu::IsHiden() {
-  return (m_uFlag & MF_HIDDEN) ? true : false;
+const bool CGUIMenu::IsHidden() const {
+  return (m_Flags & MF_HIDDEN) > 0;
 }
 
-bool CGUIMenu::IsShowing() {
-  return (m_uFlag & MF_SHOWANIM) ? true : false;
+const bool CGUIMenu::IsVisible() const {
+  return (m_Flags & MF_HIDDEN) == 0;
 }
 
-Uint32 CGUIMenu::GetClickedID() {
-  return m_uClickedID;
+const bool CGUIMenu::IsShowing() const {
+  return (m_Flags & MF_SHOWANIM) > 0;
 }
 
-std::string CGUIMenu::GetName() {
-  return m_strName;
+const Uint32 CGUIMenu::GetClickedID() const {
+  return m_ClickedID;
 }
 
-void CGUIMenu::SetName(std::string strName) {
-  m_strName = strName;
+const std::string CGUIMenu::GetTitle() const {
+  return m_pTitleItem->GetText();
 }
 
-Uint32 CGUIMenu::GetID() {
-  return m_uID;
+const Uint32 CGUIMenu::GetID() const {
+  return m_Id;
+}
+
+const bool CGUIMenu::AllItemsVisible() const {
+  size_t itemsVisible = 0;
+  for(std::vector<CGUIMenuItem*>::const_iterator it = m_Items.begin(); it != m_Items.end(); it++) {
+    if(((*it)->IsVisible() && !(*it)->IsShowing()) || !(*it)->IsEnabled())
+      itemsVisible++;
+  }
+  return m_Items.size() == itemsVisible;
+}
+
+const bool CGUIMenu::AllItemsHidden() const {
+  size_t itemsHidden = 0;
+  for(std::vector<CGUIMenuItem*>::const_iterator it = m_Items.begin(); it != m_Items.end(); it++) {
+    if(((*it)->IsHidden() && !(*it)->IsHiding()) || !(*it)->IsEnabled())
+      itemsHidden++;
+  }
+  return itemsHidden == m_Items.size();
 }
 
 void CGUIMenu::ForceShow() {
-  m_uFlag &= ~MF_HIDDEN;
-  size_t i;
-  for (i = 0; i < m_aItem.size(); i++)
-    m_aItem[i]->ForceShow();
+  m_Flags &= ~MF_HIDDEN;
+  for(std::vector<CGUIMenuItem*>::iterator it = m_Items.begin(); it != m_Items.end(); it++) {
+    (*it)->ForceShow();
+  }
 }
 
 void CGUIMenu::ForceHide() {
-  m_uFlag |= MF_HIDDEN;
-  size_t i;
-  for (i = 0; i < m_aItem.size(); i++)
-    m_aItem[i]->ForceHide();
+  m_Flags |= MF_HIDDEN;
+  for(std::vector<CGUIMenuItem*>::iterator it = m_Items.begin(); it != m_Items.end(); it++) {
+    (*it)->ForceHide();
+  }
+}
+
+CScreen * CGUIMenu::GetScreen() const {
+  return m_pScreen;
 }
 
 //===========================================================
 
-CGUIMenuManager::CGUIMenuManager(const glm::vec2& size) :
+CGUIMenuManager::CGUIMenuManager(CGUI* pGUI, const glm::vec2& size) :
+  m_pGUI(pGUI),
   m_Size(size),
   m_MousePos(0.0f),
   m_uCurrMenu(0),
@@ -630,9 +705,9 @@ bool CGUIMenuManager::Update(CGame* pGame, float timeDelta) {
   if (this->m_uCurrMenu != this->m_uGoToMenu) {
     Menu = this->GetCurrentMenu();
     if (Menu != NULL) {
-      if (!Menu->IsHideing())
+      if (!Menu->IsHiding())
         Menu->Hide();
-      if (Menu->IsHiden()) {
+      if (Menu->IsHidden()) {
         Menu->ForceHide();
         this->m_uCurrMenu = this->m_uGoToMenu;
       }
@@ -640,7 +715,7 @@ bool CGUIMenuManager::Update(CGame* pGame, float timeDelta) {
   }
   else {
     Menu = GetCurrentMenu();
-    if (Menu != NULL && Menu->IsHiden() && !Menu->IsShowing())
+    if (Menu != NULL && Menu->IsHidden() && !Menu->IsShowing())
       Menu->Show();
   }
 
@@ -653,13 +728,14 @@ bool CGUIMenuManager::Update(CGame* pGame, float timeDelta) {
   return false;
 }
 
-void CGUIMenuManager::Render(CGUI *GUI) {
+void CGUIMenuManager::Render() {
   CGUIMenu* Menu = this->GetCurrentMenu();
   if (Menu == NULL)
     return;
 
-  Menu->Render(GUI);
+  Menu->Render();
 
+  m_pGUI->Begin(this->m_Size);
   glDisable(GL_TEXTURE_2D);
   glColor3f(0.0f, 1.0f, 0.0f);
   glBegin(GL_TRIANGLES);
@@ -668,6 +744,11 @@ void CGUIMenuManager::Render(CGUI *GUI) {
   glVertex2f(m_MousePos.x + 10.0f, m_MousePos.y + 20.0f);
   glEnd();
   glEnable(GL_TEXTURE_2D);
+  m_pGUI->End();
+}
+
+CGUI * CGUIMenuManager::GetGUI() const {
+  return m_pGUI;
 }
 
 CGUIMenu* CGUIMenuManager::AddMenu(Uint32 uID, std::string strName) {
@@ -675,7 +756,8 @@ CGUIMenu* CGUIMenuManager::AddMenu(Uint32 uID, std::string strName) {
   for (i = 0; i < m_aMenu.size(); i++)
     if (m_aMenu[i]->GetID() == uID)
       return NULL;
-  CGUIMenu* m = new CGUIMenu(uID, strName);
+
+  CGUIMenu* m = new CGUIMenu(this, uID, strName, m_Size);
   m_aMenu.push_back(m);
   return m;
 }
@@ -732,4 +814,162 @@ bool CGUIMenuManager::ForceSwitchToMenu(Uint32 uID) {
     }
   }
   return false;
+}
+
+CScreenItem::CScreenItem(CScreen * pScreen, const ITEMTYPE type, const glm::vec2 & pos, const glm::vec2 & size) :
+  m_pScreen(pScreen), m_Type(type), m_Pos(pos), m_Size(size), m_Color(1.0f), m_Align(IA_DEFAULT), m_Visible(true) {}
+
+CScreenItem::~CScreenItem() {}
+
+void CScreenItem::Render() {
+  if(!this->m_Visible)
+    return;
+
+  CGUI* pGUI = this->m_pScreen->GetGUI();
+  glm::vec2 pos = this->GetRenderPos();
+
+  switch(this->m_Type) {
+  case IT_TEXT: pGUI->Print(pos, this->m_Text); break;
+  case IT_RECTFILL: pGUI->RenderQuad(pos, this->m_Size, this->m_Color); break;
+  case IT_RECTLINE: pGUI->RenderQuadLines(pos, this->m_Size, this->m_Color);  break;
+
+  default:
+    break;
+  }
+}
+
+const bool CScreenItem::Contains(const glm::vec2 & point) const {
+  glm::vec2 pos = this->GetRenderPos();
+  return
+    math::inrange(point.x, pos.x, pos.x + m_Size.x) &&
+    math::inrange(point.y, pos.y, pos.y + m_Size.y);
+}
+
+void CScreenItem::SetPos(const glm::vec2 & pos) {
+  this->m_Pos = pos;
+}
+
+void CScreenItem::SetSize(const glm::vec2 & size) {
+  this->m_Size = size;
+}
+
+void CScreenItem::SetColor(const glm::vec4 & color) {
+  this->m_Color = color;
+}
+
+void CScreenItem::SetAlign(const Uint32 flags) {
+  this->m_Align = flags;
+}
+
+void CScreenItem::SetText(const std::string & text, bool changeSize) {
+  this->m_Text = text;
+  if(changeSize) {
+    this->m_Size = this->m_pScreen->GetGUI()->GetPrintSize(this->m_Text);
+  }
+}
+
+void CScreenItem::SetVisible(const bool visible) {
+  this->m_Visible = visible;
+}
+
+const glm::vec2 & CScreenItem::GetPos() const {
+  return this->m_Pos;
+}
+
+const glm::vec2 & CScreenItem::GetSize() const {
+  return this->m_Size;
+}
+
+const glm::vec4 & CScreenItem::GetColor() const {
+  return this->m_Color;
+}
+
+const Uint32 CScreenItem::GetAlign() const {
+  return this->m_Align;
+}
+
+const std::string & CScreenItem::GetText() const {
+  return this->m_Text;
+}
+
+const bool CScreenItem::IsVisible() const {
+  return this->m_Visible;
+}
+
+const glm::vec2 CScreenItem::GetRenderPos() const {
+  glm::vec2 result;
+  glm::vec2 screenSize = this->m_pScreen->GetSize();
+  
+  if((this->m_Align & IA_LEFT) > 0 && (this->m_Align & IA_RIGHT) > 0) {
+    result.x = ((screenSize.x - this->m_Size.x) / 2.0f) + this->m_Pos.x;
+  }
+  else if((this->m_Align & IA_RIGHT) > 0) {
+    result.x = screenSize.x - this->m_Size.x - this->m_Pos.x;
+  }
+  else {
+    result.x = this->m_Pos.x;
+  }
+
+  if((this->m_Align & IA_TOP) > 0 && (this->m_Align & IA_BOTTOM) > 0) {
+    result.y = ((screenSize.y - this->m_Size.y) / 2.0f) + this->m_Pos.y;
+  }
+  else if((this->m_Align & IA_BOTTOM) > 0) {
+    result.y = screenSize.y - this->m_Size.y - this->m_Pos.y;
+  }
+  else {
+    result.y = this->m_Pos.y;
+  }
+
+  return result;
+}
+
+CScreen::CScreen(CGUI * pGUI, const glm::vec2 & size) :
+  m_pGUI(pGUI), m_Size(size) {}
+
+CScreen::~CScreen() {
+  this->ClearItems(true);
+}
+
+void CScreen::AddItem(CScreenItem * pItem) {
+  if(std::find(this->m_Items.begin(), this->m_Items.end(), pItem) != this->m_Items.end())
+    return;
+
+  this->m_Items.push_back(pItem);
+}
+
+void CScreen::RemoveItem(CScreenItem * pItem, bool deleteItem) {
+  std::vector<CScreenItem*>::iterator it = std::find(m_Items.begin(), m_Items.end(), pItem);
+  if(it == m_Items.end())
+    return;
+
+  m_Items.erase(it);
+  if(deleteItem)
+    delete pItem;
+}
+
+void CScreen::ClearItems(bool deleteItems) {
+  if(deleteItems) {
+    for(std::vector<CScreenItem*>::iterator it = m_Items.begin(); it != m_Items.end(); it++) {
+      delete *it;
+    }
+  }
+  m_Items.clear();
+}
+
+void CScreen::Render() {
+  this->m_pGUI->Begin(this->m_Size);
+
+  for(std::vector<CScreenItem*>::iterator it = m_Items.begin(); it != m_Items.end(); it++) {
+    (*it)->Render();
+  }
+
+  this->m_pGUI->End();
+}
+
+CGUI * CScreen::GetGUI() const {
+  return this->m_pGUI;
+}
+
+const glm::vec2 CScreen::GetSize() const {
+  return m_Size;
 }

@@ -27,6 +27,9 @@
     <ClInclude Include="IniFiles.h">
       <Filter>File</Filter>
     </ClInclude>
+    <ClInclude Include="MathHelper.h">
+      <Filter>Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Log.cpp">

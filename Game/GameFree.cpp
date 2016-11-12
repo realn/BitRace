@@ -43,7 +43,7 @@ void CGame::FreeGame() {
   m_RaceTrack.Free();
   m_Racer.Free();
   m_MenuMng.Clear();
-  m_cGUI.Free();
+  m_GUI.Free();
   m_Intro.Free();
   CModel::FreeModels();
 }
