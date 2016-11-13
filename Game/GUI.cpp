@@ -177,12 +177,16 @@ const glm::vec2 CGUI::GetPrintSize(const std::string format, ...) const {
     const CFontChar& fontChar = this->GetChar(text[i]);
 
     result.y = glm::max(fontChar.m_Size.y, result.y);
-    result.x += fontChar.m_Size.x;
+    result.x += fontChar.m_Adv;
   }
+  result.x += 4.0f;
+
   return result;
 }
 
-void CGUI::RenderQuad(const glm::vec2 & pos, const glm::vec2 & size, const glm::vec4 & color, const Uint32 texId) {
+void CGUI::RenderQuad(const glm::vec2 & pos, const glm::vec2 & size, 
+                      const glm::vec4 & color, const Uint32 texId,
+                      const glm::vec2 & texPos, const glm::vec2& texSize) {
   glm::vec2 vert[4];
   vert[0] = pos;
   vert[1] = pos + glm::vec2(size.x, 0.0f);
@@ -190,10 +194,10 @@ void CGUI::RenderQuad(const glm::vec2 & pos, const glm::vec2 & size, const glm::
   vert[3] = pos + glm::vec2(0.0f, size.y);
 
   glm::vec2 texc[4];
-  texc[0] = glm::vec2(0.0f, 0.0f);
-  texc[1] = glm::vec2(1.0f, 0.0f);
-  texc[2] = glm::vec2(1.0f, 1.0f);
-  texc[3] = glm::vec2(0.0f, 1.0f);
+  texc[0] = texPos + glm::vec2(0.0f, texSize.y);
+  texc[1] = texPos + texSize;
+  texc[2] = texPos + glm::vec2(texSize.x, 0.0f);
+  texc[3] = texPos;
 
   Uint16 ind[6];
   ind[0] = 0;
@@ -255,8 +259,9 @@ void CGUI::RenderQuadLines(const glm::vec2 & pos, const glm::vec2 & size, const 
   glEnable(GL_TEXTURE_2D);
 }
 
-void CGUI::RenderQuadFullScreen(const glm::vec2& size, const glm::vec4& color, const Uint32 texId) {
-  this->RenderQuad(glm::vec2(0.0f), size, color, texId);
+void CGUI::RenderQuadFullScreen(const glm::vec2& size, const glm::vec4& color, 
+                                const Uint32 texId, const glm::vec2& texPos, const glm::vec2& texSize) {
+  this->RenderQuad(glm::vec2(0.0f), size, color, texId, texPos, texSize);
 }
 
 void CGUI::RenderProgressBar(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const float progress) {

@@ -42,9 +42,9 @@ public:
 
   const glm::vec2 GetPrintSize(const std::string format, ...) const;
 
-  void RenderQuad(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const Uint32 texId = 0);
+  void RenderQuad(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const Uint32 texId = 0, const glm::vec2& texPos = glm::vec2(0.0f), const glm::vec2& texSize = glm::vec2(1.0f));
   void RenderQuadLines(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color);
-  void RenderQuadFullScreen(const glm::vec2& size, const glm::vec4& color, const Uint32 texId = 0);
+  void RenderQuadFullScreen(const glm::vec2& size, const glm::vec4& color, const Uint32 texId = 0, const glm::vec2& texPos = glm::vec2(0.0f), const glm::vec2& texSize = glm::vec2(1.0f));
   void RenderProgressBar(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const float progress);
 
 private:

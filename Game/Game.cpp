@@ -20,6 +20,7 @@ CGame::CGame() :
   m_pGLContext(NULL),
   m_GUI(),
   m_MenuMng(&m_GUI),
+  m_Intro(&m_GUI, glm::vec2(800.0f, 600.0f)),
   m_bShutdown(false),
   m_bGamePause(false),
   m_bTakeScreen(false),

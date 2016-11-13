@@ -76,7 +76,7 @@ void CGame::RenderGUI() {
   m_GUI.Begin(ScrParam.GetSize());
   switch (m_uGameState) {
   case GS_INTRO:
-    m_Intro.RenderGUI(&m_GUI);
+    m_Intro.RenderGUI();
     break;
 
   case GS_MENU:

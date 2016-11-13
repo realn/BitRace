@@ -25,7 +25,7 @@ void CGame::UpdateLogic(const float timeDelta) {
 	static bool down2 = false;
 	switch (m_uGameState) {
 	case GS_INTRO:
-		m_Intro.Engine(timeDelta);
+		m_Intro.Update(timeDelta);
 		if (m_Intro.IsIntroEnded() || this->IsKeyboardKeyDown(SDL_SCANCODE_ESCAPE)) {
 			m_Intro.Free();
 			m_uGameState = GS_MENU;

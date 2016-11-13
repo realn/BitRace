@@ -233,7 +233,7 @@ bool CGame::InitGame() {
 
   UpdateHS();
 
-  m_Intro.Init("logos.fgx");
+  m_Intro.Init("logos.fgx", ScrParam.GetSize());
 
   return true;
 }

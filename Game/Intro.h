@@ -1,47 +1,55 @@
 #pragma once
 
-#include "GUI.h"
-#include "../Common/FGXFile.h"
+#include <SDL_types.h>
+#include <glm/glm.hpp>
+#include <string>
+
+class CGUI;
+class CGUIScreen;
+class CGUIScreenTextItem;
+class CGUIScreenRectItem;
+class CGUITextAnimation;
+class CGUIFadeAnimation;
+class CGUITimer;
 
 class CIntro {
 private:
-  enum INTRO_STATE {
-    IS_STATE1 = 0,
-    IS_STATE2,
-    IS_STATE3,
-    IS_STATE4,
-    IS_STATE5,
-    IS_STATE6,
-    IS_STATE7,
-    IS_STATE8,
-    IS_STATE9,
-    IS_STATE10,
-    IS_STATE11,
-    IS_STATE12,
-    IS_STATE13
-  };
-  unsigned	m_IntroState;
-  unsigned	m_uLogosTex;
-  unsigned	m_uCharCount;
-  float	m_fTime;
-  bool	m_bIntroEnd;
-  std::string m_strText1;
-  std::string m_strText2;
-  std::string m_strText3;
+  enum INTRO_STATE;
+  CGUI*   m_pGUI;
+  CGUIScreen* m_pScreen;
+  CGUIScreenTextItem* m_pPresentTextItem;
+  CGUIScreenTextItem* m_pTechText1Item;
+  CGUIScreenTextItem* m_pTechText2Item;
+  CGUIScreenRectItem* m_pLogoItem;
+
+  CGUITextAnimation*  m_pPresentAnim;
+  CGUITextAnimation*  m_pTechText1Anim;
+  CGUITextAnimation*  m_pTechText2Anim;
+  CGUIFadeAnimation*  m_pLogoAnim;
+
+  CGUITimer*  m_pWaitTimer;
+
+  glm::vec2 m_Size;
+  Uint32	m_IntroState;
+  Uint32	m_LogoTexId;
+  Uint32	m_uCharCount;
+  bool	  m_IntroEnd;
+  std::string m_TextPresent;
+  std::string m_TextTech1;
+  std::string m_TextTech2;
 
   bool LoadTexture(std::string file);
-  void RenderLogo(unsigned index);
 
 public:
-  CIntro();
+  CIntro(CGUI* pGUI, const glm::vec2& size);
   ~CIntro();
 
-  bool Init(std::string strLogosFile);
+  bool Init(const std::string& logoFilename, const glm::vec2& size);
   void Free();
 
-  void Engine(float fDT);
+  void Update(float timeDelta);
   void Render();
-  void RenderGUI(CGUI* GUI);
+  void RenderGUI();
 
   bool IsIntroEnded();
 };

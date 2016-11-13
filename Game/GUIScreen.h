@@ -70,11 +70,19 @@ public:
 
 class CGUIScreenRectItem :
   public CGUIScreenItem {
+protected:
+  Uint32    m_TexId;
+  glm::vec2 m_TexPos;
+  glm::vec2 m_TexSize;
+
 public:
   CGUIScreenRectItem(CGUIScreen* pScreen, const glm::vec2& pos, const glm::vec2& size);
   virtual ~CGUIScreenRectItem();
 
   virtual void Render() override;
+
+  void  SetTexture(const Uint32 texId);
+  void  SetTextureCoords(const glm::vec2& texPos, const glm::vec2& texSize);
 };
 
 class CGUIScreen {
@@ -95,4 +103,66 @@ public:
 
   CGUI* GetGUI() const;
   const glm::vec2 GetSize() const;
+  const float GetAspectRatio() const;
+};
+
+
+class CGUITextAnimation {
+private:
+  CGUIScreenTextItem* m_pItem;
+  std::string m_Text;
+  float   m_AnimTime;
+  float   m_Time;
+  float   m_CharTime;
+  Uint32  m_CharLen;
+  bool    m_Visible;
+  bool    m_Animating;
+
+public:
+  CGUITextAnimation(CGUIScreenTextItem* pItem, const std::string text, const float animTime);
+
+  void  Update(const float timeDelta);
+
+  void  Show();
+  void  Hide();
+
+  const bool IsAnimating() const;
+  const bool IsVisible() const;
+};
+
+class CGUIFadeAnimation {
+private:
+  CGUIScreenItem* m_pItem;
+  float m_AnimTime;
+  float m_Time;
+  bool  m_Visible;
+  bool  m_Animating;
+
+public:
+  CGUIFadeAnimation(CGUIScreenItem* pItem, const float animTime);
+
+  void Update(const float timeDelta);
+
+  void Show();
+  void Hide();
+
+  const bool IsAnimating() const;
+  const bool IsVisible() const;
+};
+
+class CGUITimer {
+private:
+  float m_WaitTime;
+  float m_Time;
+
+public:
+  CGUITimer(const float waitTime);
+
+  void Update(const float timeDelta);
+
+  void Start();
+  void Stop();
+
+  const bool IsTicking() const;
+  const bool IsDone() const;
 };

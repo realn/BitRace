@@ -123,7 +123,7 @@ const std::string & CGUIScreenTextItem::GetText() const {
 
 
 CGUIScreenRectItem::CGUIScreenRectItem(CGUIScreen * pScreen, const glm::vec2 & pos, const glm::vec2 & size) :
-  CGUIScreenItem(pScreen, pos, size) {}
+  CGUIScreenItem(pScreen, pos, size), m_TexId(0), m_TexPos(0.0f), m_TexSize(1.0f) {}
 
 CGUIScreenRectItem::~CGUIScreenRectItem() {}
 
@@ -134,7 +134,16 @@ void CGUIScreenRectItem::Render() {
   CGUI* pGUI = this->m_pScreen->GetGUI();
   glm::vec2 pos = this->GetRenderPos();
 
-  pGUI->RenderQuad(pos, this->m_Size, this->m_Color);
+  pGUI->RenderQuad(pos, this->m_Size, this->m_Color, this->m_TexId, this->m_TexPos, this->m_TexSize);
+}
+
+void CGUIScreenRectItem::SetTexture(const Uint32 texId) {
+  this->m_TexId = texId;
+}
+
+void CGUIScreenRectItem::SetTextureCoords(const glm::vec2 & texPos, const glm::vec2 & texSize) {
+  this->m_TexPos = texPos;
+  this->m_TexSize = texSize;
 }
 
 
@@ -190,4 +199,159 @@ CGUI * CGUIScreen::GetGUI() const {
 
 const glm::vec2 CGUIScreen::GetSize() const {
   return m_Size;
+}
+
+const float CGUIScreen::GetAspectRatio() const {
+  return m_Size.x / m_Size.y;
+}
+
+CGUITextAnimation::CGUITextAnimation(CGUIScreenTextItem * pItem, const std::string text, const float animTime) :
+  m_pItem(pItem), m_Text(text), m_AnimTime(animTime), m_Time(0.0f), m_CharTime(0.0f), m_CharLen(0), m_Animating(false), m_Visible(true) 
+{
+  m_CharTime = m_AnimTime / m_Text.length();
+}
+
+void CGUITextAnimation::Update(float timeDelta) {
+  if(!m_Animating)
+    return;
+
+  m_Time += timeDelta;
+  if(m_Time < m_CharTime)
+    return;
+
+  m_Time -= m_CharTime;
+  if(m_Visible) {
+    m_CharLen++;
+    if(m_CharLen >= m_Text.length()) {
+      m_pItem->SetVisible(true);
+      m_pItem->SetText(m_Text, false);
+      m_Animating = false;
+      return;
+    }
+  }
+  else {
+    m_CharLen--;
+    if(m_CharLen == 0) {
+      m_pItem->SetVisible(false);
+      m_pItem->SetText(m_Text, false);
+      m_Animating = false;
+      return;
+    }
+  }
+
+  m_pItem->SetText(m_Text.substr(0, m_CharLen) + "_", false);
+}
+
+void CGUITextAnimation::Show() {
+  m_Time = 0.0f;
+  m_CharLen = 0;
+  m_Visible = true;
+  m_Animating = true;
+  m_pItem->SetText("_", false);
+  m_pItem->SetVisible(true);
+}
+
+void CGUITextAnimation::Hide() {
+  m_Time = 0.0f;
+  m_CharLen = m_Text.length();
+  m_Visible = false;
+  m_Animating = true;
+  m_pItem->SetText(m_Text, false);
+  m_pItem->SetVisible(true);
+}
+
+const bool CGUITextAnimation::IsAnimating() const {
+  return m_Animating;
+}
+
+const bool CGUITextAnimation::IsVisible() const {
+  return m_Visible;
+}
+
+CGUIFadeAnimation::CGUIFadeAnimation(CGUIScreenItem * pItem, const float animTime) :
+  m_pItem(pItem), m_AnimTime(animTime), m_Time(0.0f), m_Animating(false), m_Visible(true) 
+{}
+
+void CGUIFadeAnimation::Update(float timeDelta) {
+  if(!m_Animating)
+    return;
+
+  m_Time = glm::clamp(m_Time + timeDelta, 0.0f, m_AnimTime);
+  glm::vec4 color = m_pItem->GetColor();
+  if(m_Time >= m_AnimTime) {
+    if(m_Visible) {
+      color.a = 1.0f;
+      m_pItem->SetVisible(true);
+    }
+    else {
+      color.a = 0.0f;
+      m_pItem->SetVisible(false);
+    }
+    m_pItem->SetColor(color);
+    m_Animating = false;
+    return;
+  }
+  
+  if(m_Visible)
+    color.a = m_Time / m_AnimTime;
+  else
+    color.a = 1.0f - (m_Time / m_AnimTime);
+
+  m_pItem->SetColor(color);
+}
+
+void CGUIFadeAnimation::Show() {
+  m_Time = 0.0f;
+  m_Animating = true;
+  m_Visible = true;
+
+  glm::vec4 color = m_pItem->GetColor();
+  color.a = 0.0f;
+  m_pItem->SetVisible(true);
+  m_pItem->SetColor(color);
+}
+
+void CGUIFadeAnimation::Hide() {
+  m_Time = 0.0f;
+  m_Animating = true;
+  m_Visible = false;
+
+  glm::vec4 color = m_pItem->GetColor();
+  color.a = 1.0f;
+  m_pItem->SetVisible(true);
+  m_pItem->SetColor(color);
+}
+
+const bool CGUIFadeAnimation::IsAnimating() const {
+  return m_Animating;
+}
+
+const bool CGUIFadeAnimation::IsVisible() const {
+  return m_Visible;
+}
+
+CGUITimer::CGUITimer(const float waitTime) :
+  m_WaitTime(waitTime), m_Time(0.0f) {}
+
+void CGUITimer::Update(const float timeDelta) {
+  if(m_Time >= m_WaitTime)
+    return;
+
+  m_Time = glm::clamp(m_Time + timeDelta, 0.0f, m_WaitTime);
+}
+
+void CGUITimer::Start() {
+  m_Time = 0.0f;
+}
+
+void CGUITimer::Stop() {
+  m_Time = m_WaitTime;
+}
+
+const bool CGUITimer::IsTicking() const {
+  return m_Time < m_WaitTime;
+}
+
+const bool CGUITimer::IsDone() const {
+  return m_Time >= m_WaitTime;
 }
