@@ -8,8 +8,33 @@
 class CGUI;
 class CGUIScreen;
 
+class CGUITextControl;
+class CGUIProgressBarControl;
+
 class CRaceTrack {
 public:
+  enum DIF_LEVEL {
+    DL_VERY_EASY = 0,
+    DL_EASY = 1,
+    DL_MEDIUM = 2,
+    DL_HARD = 3,
+    DL_VERY_HARD = 4,
+    DL_HOLY_SHIT = 5
+  };
+  enum TRACK_STATE {
+    TS_NONE = 0,
+    TS_INTRO = 1,
+    TS_GAME = 3,
+    TS_GAMEOVER = 2
+  };
+  enum INTRO_STATE {
+    IS_STATE1 = 0,
+    IS_STATE2 = 1,
+    IS_STATE3 = 2,
+    IS_STATE4 = 3,
+    IS_ENDSTATE = 4,
+    IS_SKIP = 5
+  };
 
   class CShot {
   private:
@@ -59,7 +84,12 @@ public:
     bool GetCanDelete();
   };
 private:
-  CGUIScreen* m_pScreen;
+  CGUIScreen* m_pGUIScreen;
+
+  CGUITextControl*  m_pGUIPoints;
+  CGUITextControl*  m_pGUIPointsNeeded;
+  CGUITextControl*  m_pGUILevelText;
+  CGUIProgressBarControl* m_pGUIHealthBar;
 
   CSpace	m_SpaceSky;
   CSpace	m_SpaceGround;
@@ -87,11 +117,37 @@ private:
   unsigned	m_uDifLevel;
   unsigned	m_uFireCount;
   unsigned	m_uTrackState;
-  unsigned	m_unsignedroState;
+  unsigned	m_IntroState;
   unsigned	m_uGameOverCharCount;
   bool	m_bGameOver;
   bool	m_bGameRuning;
   std::string m_strGameOver;
+
+public:
+  CRaceTrack();
+  ~CRaceTrack();
+
+  const bool Init(CGUI* pGUI, const glm::vec2& screenSize);
+  void Free();
+  void SetRacer(CRacer* pRacer);
+  void ResetGame();
+
+  void Render();
+  void RenderGUI(CGUI* GUI);
+
+  void Update(const float timeDelta);
+
+  void FireWeapon();
+  unsigned GetDifLevel();
+  void SetDifLevel(unsigned uDifLevel);
+  unsigned GetPoints();
+  void SetPoints(unsigned uPoints);
+  void SkipIntro();
+  bool IsGameOver();
+  bool IsGameRuning();
+
+private:
+  void  UpdateGUI(const float timeDelta);
 
   const glm::vec2 CreateEntityPosition();
 
@@ -120,47 +176,4 @@ private:
   void Clear();
   std::string GetDifLevelString();
   unsigned GetLevelModelType();
-public:
-  enum DIF_LEVEL {
-    DL_VERY_EASY = 0,
-    DL_EASY = 1,
-    DL_MEDIUM = 2,
-    DL_HARD = 3,
-    DL_VERY_HARD = 4,
-    DL_HOLY_SHIT = 5
-  };
-  enum TRACK_STATE {
-    TS_NONE = 0,
-    TS_INTRO = 1,
-    TS_GAME = 3,
-    TS_GAMEOVER = 2
-  };
-  enum INTRO_STATE {
-    IS_STATE1 = 0,
-    IS_STATE2 = 1,
-    IS_STATE3 = 2,
-    IS_STATE4 = 3,
-    IS_ENDSTATE = 4,
-    IS_SKIP = 5
-  };
-  CRaceTrack();
-  ~CRaceTrack();
-
-  const bool Init(CGUI* pGUI, const glm::vec2& screenSize);
-  void Free();
-  void SetRacer(CRacer* pRacer);
-  void ResetGame();
-
-  void Render();
-  void RenderGUI(CGUI* GUI);
-  void Engine(float fDT);
-
-  void FireWeapon();
-  unsigned GetDifLevel();
-  void SetDifLevel(unsigned uDifLevel);
-  unsigned GetPoints();
-  void SetPoints(unsigned uPoints);
-  void SkipIntro();
-  bool IsGameOver();
-  bool IsGameRuning();
 };

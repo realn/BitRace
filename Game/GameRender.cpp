@@ -84,9 +84,7 @@ void CGame::RenderGUI() {
     break;
 
   case GS_GAME:
-    if (m_MenuMng.GetCurrentMenu()->IsVisible())
-      RenderMenu();
-    else m_RaceTrack.RenderGUI(&m_GUI);
+    m_RaceTrack.RenderGUI(&m_GUI);
     break;
 
   case GS_HIGH:

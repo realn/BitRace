@@ -204,7 +204,12 @@ void CRaceTrack::CEntity::SetCanDelete(bool bSet) {
 
 //===========================================
 CRaceTrack::CRaceTrack() :
-  m_pRacer(NULL),
+  m_pGUIScreen(nullptr),
+  m_pGUIPoints(nullptr),
+  m_pGUIPointsNeeded(nullptr),
+  m_pGUILevelText(nullptr),
+  m_pGUIHealthBar(nullptr),
+  m_pRacer(nullptr),
   m_fMoveX(0.0f),
   m_fTime(0.0f),
   m_fDamage(15.0f),
@@ -216,7 +221,7 @@ CRaceTrack::CRaceTrack() :
   m_uDifLevel(DL_VERY_EASY),
   m_uNeedPoints(5000),
   m_uTrackState(TS_INTRO),
-  m_unsignedroState(IS_STATE1),
+  m_IntroState(IS_STATE1),
   m_uGameOverCharCount(0),
   m_bGameOver(false),
   m_bGameRuning(false),
@@ -236,17 +241,35 @@ const bool CRaceTrack::Init(CGUI* pGUI, const glm::vec2& screenSize) {
     return false;
   }
 
-  m_pScreen = new CGUIScreen(pGUI, screenSize);
+  m_pGUIScreen = new CGUIScreen(pGUI, screenSize);
 
   {
-    CGUIRectControl* pControl = new CGUIRectControl(m_pScreen, glm::vec2(400.0f, 40.0f), glm::vec4(0.4f, 0.4f, 1.0f, 0.6f));
-    m_pScreen->AddControl(pControl, glm::vec2(8.0f, 3.0f));
+    glm::vec4 textColor(1.0f, 0.5f, 0.5f, 1.0f);
+
+    m_pGUIPoints = new CGUITextControl(m_pGUIScreen, "POINTS: 0", textColor);
+    m_pGUIScreen->AddControl(m_pGUIPoints, glm::vec2(10.0f, 10.0f));
+
+    m_pGUIPointsNeeded = new CGUITextControl(m_pGUIScreen, "NEED POINTS: 0", textColor);
+    m_pGUIScreen->AddControl(m_pGUIPointsNeeded, glm::vec2(10.0f, 30.0f));
+
+    m_pGUILevelText = new CGUITextControl(m_pGUIScreen, "LEVEL: UNKNOWN", glm::vec4(1.0f));
+    m_pGUIScreen->AddControl(m_pGUILevelText, glm::vec2(10.0f, 10.0f), CGUIScreen::IA_RIGHT | CGUIScreen::IA_TOP);
+
+    m_pGUIHealthBar = new CGUIProgressBarControl(m_pGUIScreen, glm::vec2(200.0f, 20.0f), 0.0f, 100.0f, glm::vec4(1.0f, 0.0f, 0.0f, 0.6f));
+    m_pGUIScreen->AddControl(m_pGUIHealthBar, glm::vec2(10.0f, 10.0f), CGUIScreen::IA_LEFT | CGUIScreen::IA_BOTTOM);
   }
 
   return true;
 }
 
 void CRaceTrack::Free() {
+  delete m_pGUIScreen;
+  m_pGUIScreen = nullptr;
+  m_pGUIPoints = nullptr;
+  m_pGUIPointsNeeded = nullptr;
+  m_pGUILevelText = nullptr;
+  m_pGUIHealthBar = nullptr;
+
   this->m_SpaceSky.Free();
   this->m_SpaceGround.Free();
   this->m_vMove = glm::vec2(0.0f);
@@ -258,7 +281,7 @@ void CRaceTrack::Free() {
   m_fDamage = 15.0f;
   m_uNeedPoints = 5000;
   m_uTrackState = TS_INTRO;
-  m_unsignedroState = IS_STATE1;
+  m_IntroState = IS_STATE1;
   m_fIntroTime = 0.0f;
   m_fGameOverTime = 0.0f;
   m_fGameOverTime2 = 0.0f;
@@ -281,33 +304,53 @@ void CRaceTrack::Render() {
   };
 }
 
-void CRaceTrack::Engine(float fDT) {
+void CRaceTrack::Update(const float timeDelta) {
   m_bGameRuning = false;
   switch (m_uTrackState) {
   case TS_NONE:
-    return;
+    break;
+
   case TS_INTRO:
-    Engine_Intro(fDT); return;
+    Engine_Intro(timeDelta); 
+    break;
+
   case TS_GAME:
     m_bGameRuning = true;
-    Engine_Track(fDT); return;
+    Engine_Track(timeDelta); 
+    UpdateGUI(timeDelta);
+    break;
+
   case TS_GAMEOVER:
-    Engine_GameOver(fDT); return;
+    Engine_GameOver(timeDelta); 
+    break;
   }
+}
+
+void CRaceTrack::UpdateGUI(const float timeDelta) {
+  m_pGUIPoints->SetText(CGUI::Format("POINTS: %u", m_uPoints));
+  if (m_uDifLevel < DL_VERY_HARD) {
+    m_pGUIPointsNeeded->SetVisible(true);
+    m_pGUIPointsNeeded->SetText(CGUI::Format("NEED POINTS: %u", m_uNeedPoints));
+  }
+  else {
+    m_pGUIPointsNeeded->SetVisible(false);
+  }
+  m_pGUILevelText->SetText("LEVEL: " + this->GetDifLevelString());
+  m_pGUIHealthBar->SetValue(m_pRacer->GetBitRate());
 }
 
 void CRaceTrack::Engine_Intro(float fDT) {
   this->m_fIntroTime += fDT;
-  switch (m_unsignedroState) {
+  switch (m_IntroState) {
   case IS_STATE1:
     if (m_fIntroTime > 0.3f) {
-      m_unsignedroState = IS_STATE2;
+      m_IntroState = IS_STATE2;
       m_fIntroTime = 0.0f;
     }
     break;
   case IS_STATE2:
     if (m_fIntroTime > 0.7f) {
-      m_unsignedroState = IS_STATE3;
+      m_IntroState = IS_STATE3;
       m_fIntroTime = 0.0f;
       m_vMove.y = -600.0f;
     }
@@ -317,7 +360,7 @@ void CRaceTrack::Engine_Intro(float fDT) {
     if (this->m_vMove.y > 20.0f)
       this->m_vMove.y -= 20.0f;
     if (m_fIntroTime > 2.0f) {
-      m_unsignedroState = IS_STATE4;
+      m_IntroState = IS_STATE4;
       m_fIntroTime = 0.0f;
     }
     break;
@@ -326,7 +369,7 @@ void CRaceTrack::Engine_Intro(float fDT) {
     if (this->m_vMove.y > 20.0f)
       this->m_vMove.y -= 20.0f;
     if (m_fIntroTime > 3.0f) {
-      m_unsignedroState = IS_ENDSTATE;
+      m_IntroState = IS_ENDSTATE;
       m_fIntroTime = 0.0f;
     }
     break;
@@ -335,13 +378,13 @@ void CRaceTrack::Engine_Intro(float fDT) {
     if (this->m_vMove.y > 20.0f)
       this->m_vMove.y -= 20.0f;
     if (m_fIntroTime > 2.0f) {
-      m_unsignedroState = IS_STATE1;
+      m_IntroState = IS_STATE1;
       m_uTrackState = TS_GAME;
       m_fIntroTime = 0.0f;
     }
     break;
   case IS_SKIP:
-    m_unsignedroState = IS_STATE1;
+    m_IntroState = IS_STATE1;
     m_uTrackState = TS_GAME;
     m_fIntroTime = 0.0f;
     break;
@@ -349,7 +392,7 @@ void CRaceTrack::Engine_Intro(float fDT) {
 }
 
 void CRaceTrack::Render_Intro() {
-  switch (m_unsignedroState) {
+  switch (m_IntroState) {
   case IS_STATE1:
     glColor3f(0.0f, 1.0f, 0.0f);
     glBegin(GL_POINTS);
@@ -596,13 +639,8 @@ void CRaceTrack::RenderGUI(CGUI *GUI) {
   if (m_uTrackState != TS_GAME)
     return;
 
-  this->m_pScreen->Render();
+  this->m_pGUIScreen->Render();
 
-  GUI->Print(glm::vec2(10.0f, 5.0f), glm::vec4(1.0f, 0.5f, 0.5f, 1.0f), "POINTS: %u", m_uPoints);
-  if (m_uDifLevel < DL_VERY_HARD)
-    GUI->Print(glm::vec2(200.0f, 5.0f), glm::vec4(1.0f, 0.5f, 0.5f, 1.0f), "NEED POINTS: %u", m_uNeedPoints);
-  GUI->Print(glm::vec2(10.0f, 22.0f), glm::vec4(1.0f), "LEVEL: %s", this->GetDifLevelString().c_str());
-  GUI->RenderProgressBar(glm::vec2(20.0f, 450.0f), glm::vec2(200.0f, 20.0f), glm::vec4(1.0f, 0.0f, 0.0f, 0.6f), this->m_pRacer->GetBitRate());
   if (this->m_fUpgTime < this->m_fUpgTimeOut) {
     glPushMatrix();
     glm::vec4 color(1.0f, 1.0f, 1.0f, (m_fUpgTimeOut - m_fUpgTime) / m_fUpgTimeOut);
@@ -886,7 +924,7 @@ void CRaceTrack::SetUpgScreen(float fTimeOut) {
 }
 
 void CRaceTrack::SkipIntro() {
-  m_unsignedroState = IS_SKIP;
+  m_IntroState = IS_SKIP;
 }
 
 bool CRaceTrack::IsGameOver() {

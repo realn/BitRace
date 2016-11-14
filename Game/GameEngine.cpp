@@ -4,7 +4,6 @@
 
 float CGame::s_fMaxDT = 0.02f;
 
-#define KEYDOWN( A ) ( m_cKeyState[A] & 0x80 )
 void CGame::Update() {
 	UpdateTimer();
 
@@ -22,7 +21,6 @@ void CGame::Update() {
 }
 
 void CGame::UpdateLogic(const float timeDelta) {
-	static bool down2 = false;
 	switch (m_uGameState) {
 	case GS_INTRO:
 		m_Intro.Update(timeDelta);
@@ -37,12 +35,7 @@ void CGame::UpdateLogic(const float timeDelta) {
 		break;
 
 	case GS_GAME:
-		if (m_MenuMng.GetCurrentMenu()->IsVisible()) {
-      m_MenuMng.GetCurrentMenu()->SetVisible(false);
-			m_MenuMng.Update(this, timeDelta);
-		}
-		else 
-			this->UpdateGame(timeDelta);
+  	this->UpdateGame(timeDelta);
 		break;
 
 	case GS_HIGH:
@@ -127,7 +120,7 @@ void CGame::UpdateGame(const float timeDelta) {
 		return;
 	}
 
-	m_RaceTrack.Engine(timeDelta);
+	m_RaceTrack.Update(timeDelta);
 }
 
 void CGame::UpdateMenu(const float timeDelta) {

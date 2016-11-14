@@ -156,9 +156,10 @@ void CGUI::Print(const glm::vec2& pos, const glm::vec4& color, std::string forma
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-  //glm::vec4 color(1.0f);
+  glBlendFunc(GL_ONE, GL_ONE);
   glColor4fv(glm::value_ptr(color));
   glDrawArrays(GL_QUADS, 0, vertList.size());
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -272,13 +273,21 @@ void CGUI::RenderProgressBar(const glm::vec2& pos, const glm::vec2& size, const 
   RenderQuad(pos, glm::vec2(sizeX, size.y), color);
 }
 
+std::string CGUI::Format(const std::string format, ...) {
+  va_list ap;
+  va_start(ap, format);
+  std::string text = FormatText(format, ap);
+  va_end(ap);
+  return text;
+}
+
 const CGUI::CFontChar & CGUI::GetChar(const char charCode) const {
   Uint8 code = (Uint8)charCode - 32;
 
   return this->m_CharList.at(code);
 }
 
-const std::string CGUI::FormatText(const std::string & format, va_list va) const {
+const std::string CGUI::FormatText(const std::string & format, va_list va) {
   std::string text;
   int len = _vscprintf(format.c_str(), va);
   text.resize(len);

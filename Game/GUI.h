@@ -47,9 +47,11 @@ public:
   void RenderQuadFullScreen(const glm::vec2& size, const glm::vec4& color, const Uint32 texId = 0, const glm::vec2& texPos = glm::vec2(0.0f), const glm::vec2& texSize = glm::vec2(1.0f));
   void RenderProgressBar(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const float progress);
 
+  static std::string Format(const std::string format, ...);
+
 private:
   const CFontChar&  GetChar(const char charCode) const;
-  const std::string FormatText(const std::string& format, va_list va) const;
+  static const std::string FormatText(const std::string& format, va_list va);
 };
 
 
