@@ -1,4 +1,6 @@
 #include "RaceTrack.h"
+#include "GUIScreen.h"
+#include "GUI.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/vector_angle.hpp>
@@ -226,12 +228,19 @@ CRaceTrack::~CRaceTrack() {
   Free();
 }
 
-bool CRaceTrack::Init() {
+const bool CRaceTrack::Init(CGUI* pGUI, const glm::vec2& screenSize) {
   if (!this->m_SpaceSky.Generate(800.0f, 800.0f, 40, 40, 0.0f))
     return false;
   if (!this->m_SpaceGround.Generate(800.0f, 800.0f, 40, 40, 0.0f)) {
     Free();
     return false;
+  }
+
+  m_pScreen = new CGUIScreen(pGUI, screenSize);
+
+  {
+    CGUIRectControl* pControl = new CGUIRectControl(m_pScreen, glm::vec2(400.0f, 40.0f), glm::vec4(0.4f, 0.4f, 1.0f, 0.6f));
+    m_pScreen->AddControl(pControl, glm::vec2(8.0f, 3.0f));
   }
 
   return true;
@@ -586,7 +595,9 @@ void CRaceTrack::RenderGUI(CGUI *GUI) {
   }
   if (m_uTrackState != TS_GAME)
     return;
-  GUI->RenderQuad(glm::vec2(8.0f, 3.0f), glm::vec2(400.0f, 40.0f), glm::vec4(0.4f, 0.4f, 1.0f, 0.6f));
+
+  this->m_pScreen->Render();
+
   GUI->Print(glm::vec2(10.0f, 5.0f), glm::vec4(1.0f, 0.5f, 0.5f, 1.0f), "POINTS: %u", m_uPoints);
   if (m_uDifLevel < DL_VERY_HARD)
     GUI->Print(glm::vec2(200.0f, 5.0f), glm::vec4(1.0f, 0.5f, 0.5f, 1.0f), "NEED POINTS: %u", m_uNeedPoints);

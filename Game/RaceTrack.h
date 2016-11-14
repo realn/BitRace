@@ -4,7 +4,9 @@
 
 #include "Space.h"
 #include "Racer.h"
-#include "GUI.h"
+
+class CGUI;
+class CGUIScreen;
 
 class CRaceTrack {
 public:
@@ -57,6 +59,8 @@ public:
     bool GetCanDelete();
   };
 private:
+  CGUIScreen* m_pScreen;
+
   CSpace	m_SpaceSky;
   CSpace	m_SpaceGround;
   CRacer* m_pRacer;
@@ -142,8 +146,8 @@ public:
   CRaceTrack();
   ~CRaceTrack();
 
+  const bool Init(CGUI* pGUI, const glm::vec2& screenSize);
   void Free();
-  bool Init();
   void SetRacer(CRacer* pRacer);
   void ResetGame();
 

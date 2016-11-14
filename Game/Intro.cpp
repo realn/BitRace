@@ -26,10 +26,10 @@ enum CIntro::INTRO_STATE {
 CIntro::CIntro(CGUI* pGUI, const glm::vec2& size) :
   m_pGUI(pGUI),
   m_pScreen(nullptr),
-  m_pPresentTextItem(nullptr),
-  m_pTechText1Item(nullptr),
-  m_pTechText2Item(nullptr),
-  m_pLogoItem(nullptr),
+  m_pPresentTextControl(nullptr),
+  m_pTechText1Control(nullptr),
+  m_pTechText2Control(nullptr),
+  m_pLogoControl(nullptr),
   m_pPresentAnim(nullptr),
   m_pTechText1Anim(nullptr),
   m_pTechText2Anim(nullptr),
@@ -56,36 +56,30 @@ bool CIntro::Init(const std::string& logoFilename, const glm::vec2& size) {
 
   this->m_Size = size;
   this->m_pScreen = new CGUIScreen(m_pGUI, m_Size);
+  glm::vec4 textColor(0.0f, 1.0f, 0.0f, 1.0f);
 
-  this->m_pLogoItem = new CGUIScreenRectItem(m_pScreen, glm::vec2(0.0f), glm::vec2(240.0f));
-  this->m_pLogoItem->SetAlign(CGUIScreenItem::IA_CENTER | CGUIScreenItem::IA_MIDDLE);
-  this->m_pLogoItem->SetVisible(false);
-  this->m_pLogoItem->SetTexture(this->m_LogoTexId);
-  this->m_pLogoItem->SetTextureCoords(glm::vec2(0.0f), glm::vec2(0.5f));
-  this->m_pLogoAnim = new CGUIFadeAnimation(m_pLogoItem, 1.0f);
-  
-  this->m_pPresentTextItem = new CGUIScreenTextItem(m_pScreen, glm::vec2(0.0f, 100.0f), m_TextPresent);
-  this->m_pPresentTextItem->SetAlign(CGUIScreenItem::IA_CENTER | CGUIScreenItem::IA_MIDDLE);
-  this->m_pPresentTextItem->SetVisible(false);
-  this->m_pPresentTextItem->SetColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-  this->m_pPresentAnim = new CGUITextAnimation(m_pPresentTextItem, m_TextPresent, 0.6f);
+  this->m_pLogoControl = new CGUIRectControl(m_pScreen, glm::vec2(240.0f));
+  this->m_pLogoControl->SetVisible(false);
+  this->m_pLogoControl->SetTexture(this->m_LogoTexId);
+  this->m_pLogoControl->SetTextureCoords(glm::vec2(0.0f), glm::vec2(0.5f));
+  this->m_pLogoAnim = new CGUIFadeAnimation(m_pLogoControl, 1.0f);
 
-  this->m_pTechText1Item = new CGUIScreenTextItem(m_pScreen, glm::vec2(0.0f, -100.0f), this->m_TextTech1);
-  this->m_pTechText1Item->SetAlign(CGUIScreenItem::IA_CENTER | CGUIScreenItem::IA_MIDDLE);
-  this->m_pTechText1Item->SetVisible(false);
-  this->m_pTechText1Item->SetColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-  this->m_pTechText1Anim = new CGUITextAnimation(m_pTechText1Item, m_TextTech1, 0.6f);
+  this->m_pPresentTextControl = new CGUITextControl(m_pScreen, m_TextPresent, textColor);
+  this->m_pPresentTextControl->SetVisible(false);
+  this->m_pPresentAnim = new CGUITextAnimation(m_pPresentTextControl, m_TextPresent, 0.6f);
 
-  this->m_pTechText2Item = new CGUIScreenTextItem(m_pScreen, glm::vec2(0.0f, 100.0f), this->m_TextTech2);
-  this->m_pTechText2Item->SetAlign(CGUIScreenItem::IA_CENTER | CGUIScreenItem::IA_MIDDLE);
-  this->m_pTechText2Item->SetVisible(false);
-  this->m_pTechText2Item->SetColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-  this->m_pTechText2Anim = new CGUITextAnimation(m_pTechText2Item, m_TextTech2, 0.6f);
+  this->m_pTechText1Control = new CGUITextControl(m_pScreen, m_TextTech1, textColor);
+  this->m_pTechText1Control->SetVisible(false);
+  this->m_pTechText1Anim = new CGUITextAnimation(m_pTechText1Control, m_TextTech1, 0.6f);
 
-  this->m_pScreen->AddItem(this->m_pLogoItem);
-  this->m_pScreen->AddItem(this->m_pPresentTextItem);
-  this->m_pScreen->AddItem(this->m_pTechText1Item);
-  this->m_pScreen->AddItem(this->m_pTechText2Item);
+  this->m_pTechText2Control = new CGUITextControl(m_pScreen, this->m_TextTech2, textColor);
+  this->m_pTechText2Control->SetVisible(false);
+  this->m_pTechText2Anim = new CGUITextAnimation(m_pTechText2Control, m_TextTech2, 0.6f);
+
+  this->m_pScreen->AddControl(m_pLogoControl, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+  this->m_pScreen->AddControl(m_pPresentTextControl, glm::vec2(0.0f, 100.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+  this->m_pScreen->AddControl(m_pTechText1Control, glm::vec2(0.0f, -100.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+  this->m_pScreen->AddControl(m_pTechText2Control, glm::vec2(0.0f, 100.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
 
   this->m_pLogoAnim->Show();
 
@@ -156,7 +150,7 @@ void CIntro::Update(float timeDelta) {
   case IS_STATE5:
     if(!m_pTechText1Anim->IsAnimating() && !m_pTechText2Anim->IsAnimating()) {
       m_IntroState++;
-      m_pLogoItem->SetTextureCoords(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f));
+      m_pLogoControl->SetTextureCoords(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f));
       m_pLogoAnim->Show();
     }
     break;
@@ -171,7 +165,7 @@ void CIntro::Update(float timeDelta) {
   case IS_STATE7:
     if(!m_pLogoAnim->IsAnimating()) {
       m_IntroState++;
-      m_pLogoItem->SetTextureCoords(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f));
+      m_pLogoControl->SetTextureCoords(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f));
       m_pLogoAnim->Show();
     }
     break;
@@ -188,7 +182,7 @@ void CIntro::Update(float timeDelta) {
   case IS_STATE9:
     if(!m_pLogoAnim->IsAnimating() && !m_pTechText1Anim->IsAnimating() && !m_pTechText2Anim->IsAnimating()) {
       m_IntroState++;
-      m_pLogoItem->SetTextureCoords(glm::vec2(0.5f, 0.0f), glm::vec2(0.5f));
+      m_pLogoControl->SetTextureCoords(glm::vec2(0.5f, 0.0f), glm::vec2(0.5f));
       m_pLogoAnim->Show();
     }
     break;

@@ -6,8 +6,10 @@
 
 class CGUI;
 class CGUIScreen;
-class CGUIScreenTextItem;
-class CGUIScreenRectItem;
+
+class CGUITextControl;
+class CGUIRectControl;
+
 class CGUITextAnimation;
 class CGUIFadeAnimation;
 class CGUITimer;
@@ -17,10 +19,10 @@ private:
   enum INTRO_STATE;
   CGUI*   m_pGUI;
   CGUIScreen* m_pScreen;
-  CGUIScreenTextItem* m_pPresentTextItem;
-  CGUIScreenTextItem* m_pTechText1Item;
-  CGUIScreenTextItem* m_pTechText2Item;
-  CGUIScreenRectItem* m_pLogoItem;
+  CGUITextControl* m_pPresentTextControl;
+  CGUITextControl* m_pTechText1Control;
+  CGUITextControl* m_pTechText2Control;
+  CGUIRectControl* m_pLogoControl;
 
   CGUITextAnimation*  m_pPresentAnim;
   CGUITextAnimation*  m_pTechText1Anim;
