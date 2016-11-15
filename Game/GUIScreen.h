@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include <set>
 
 class CGUI;
 class CGUIScreen;
@@ -147,7 +148,38 @@ private:
 };
 
 
-class CGUITextAnimation {
+class IGUIController {
+protected:
+  bool m_Enabled;
+
+public:
+  virtual ~IGUIController() {}
+  
+  virtual void Update(const float timeDelta) = 0;
+
+  void SetEnabled(const bool enabled) { m_Enabled = enabled; }
+  const bool IsEnabled() const { return m_Enabled; }
+
+protected:
+  IGUIController(const bool enabled = true) : m_Enabled(enabled) {}
+};
+
+class CGUIControllerList {
+private:
+  std::set<IGUIController*> m_List;
+
+public:
+  CGUIControllerList();
+  ~CGUIControllerList();
+
+  void Update(const float timeDelta);
+
+  void AddController(IGUIController* pController);
+  void Clear();
+};
+
+class CGUITextAnimation :
+  public IGUIController {
 private:
   CGUITextControl* m_pControl;
   std::string m_Text;
@@ -160,8 +192,9 @@ private:
 
 public:
   CGUITextAnimation(CGUITextControl* pControl, const std::string text, const float animTime);
+  virtual ~CGUITextAnimation();
 
-  void  Update(const float timeDelta);
+  virtual void  Update(const float timeDelta) override;
 
   void  Show();
   void  Hide();
@@ -170,7 +203,8 @@ public:
   const bool IsVisible() const;
 };
 
-class CGUIFadeAnimation {
+class CGUIFadeAnimation :
+  public IGUIController {
 private:
   CGUIControl* m_pControl;
   float m_AnimTime;
@@ -180,8 +214,9 @@ private:
 
 public:
   CGUIFadeAnimation(CGUIControl* pControl, const float animTime);
+  virtual ~CGUIFadeAnimation();
 
-  void Update(const float timeDelta);
+  virtual void Update(const float timeDelta) override;
 
   void Show();
   void Hide();
@@ -190,15 +225,17 @@ public:
   const bool IsVisible() const;
 };
 
-class CGUITimer {
+class CGUITimer :
+  public IGUIController {
 private:
   float m_WaitTime;
   float m_Time;
 
 public:
   CGUITimer(const float waitTime);
+  virtual ~CGUITimer();
 
-  void Update(const float timeDelta);
+  virtual void Update(const float timeDelta) override;
 
   void Start();
   void Stop();

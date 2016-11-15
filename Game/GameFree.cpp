@@ -30,6 +30,7 @@ void CGame::FreeRender() {
 }
 
 void CGame::FreeInput() {
+  SDL_SetRelativeMouseMode(SDL_FALSE);
   SDL_QuitSubSystem(SDL_INIT_EVENTS);
 }
 

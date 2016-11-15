@@ -110,6 +110,8 @@ bool  CGame::InitInput() {
   this->m_MousePos = glm::ivec2(0);
   this->m_MousePosPrev = glm::ivec2(0);
 
+  SDL_SetRelativeMouseMode(SDL_TRUE);
+
   return true;
 }
 

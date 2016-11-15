@@ -35,6 +35,7 @@ CIntro::CIntro(CGUI* pGUI, const glm::vec2& size) :
   m_pTechText2Anim(nullptr),
   m_pLogoAnim(nullptr),
   m_pWaitTimer(nullptr),
+  m_pControllerList(nullptr),
   m_Size(size),
   m_IntroState(IS_STATE1),
   m_LogoTexId(0),
@@ -86,6 +87,13 @@ bool CIntro::Init(const std::string& logoFilename, const glm::vec2& size) {
   this->m_pWaitTimer = new CGUITimer(1.0f);
   this->m_pWaitTimer->Stop();
 
+  this->m_pControllerList = new CGUIControllerList();
+  this->m_pControllerList->AddController(m_pLogoAnim);
+  this->m_pControllerList->AddController(m_pPresentAnim);
+  this->m_pControllerList->AddController(m_pTechText1Anim);
+  this->m_pControllerList->AddController(m_pTechText2Anim);
+  this->m_pControllerList->AddController(m_pWaitTimer);
+
   return true;
 }
 
@@ -93,12 +101,10 @@ void CIntro::Free() {
   if (glIsTexture(m_LogoTexId))
     glDeleteTextures(1, &m_LogoTexId);
 
+  delete m_pControllerList;
   delete m_pScreen;
-  delete m_pPresentAnim;
-  delete m_pLogoAnim;
-  delete m_pTechText1Anim;
-  delete m_pTechText2Anim;
 
+  m_pControllerList = nullptr;
   m_pScreen = nullptr;
   m_pPresentAnim = nullptr;
   m_pLogoAnim = nullptr;
@@ -110,11 +116,7 @@ void CIntro::Free() {
 }
 
 void CIntro::Update(float timeDelta) {
-  this->m_pPresentAnim->Update(timeDelta);
-  this->m_pTechText1Anim->Update(timeDelta);
-  this->m_pTechText2Anim->Update(timeDelta);
-  this->m_pLogoAnim->Update(timeDelta);
-  this->m_pWaitTimer->Update(timeDelta);
+  this->m_pControllerList->Update(timeDelta);
 
   switch (m_IntroState) {
   case IS_STATE1:

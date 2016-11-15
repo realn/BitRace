@@ -296,6 +296,8 @@ CGUITextAnimation::CGUITextAnimation(CGUITextControl* pControl, const std::strin
   m_CharTime = m_AnimTime / m_Text.length();
 }
 
+CGUITextAnimation::~CGUITextAnimation() {}
+
 void CGUITextAnimation::Update(float timeDelta) {
   if(!m_Animating)
     return;
@@ -360,6 +362,8 @@ const bool CGUITextAnimation::IsVisible() const {
 CGUIFadeAnimation::CGUIFadeAnimation(CGUIControl* pControl, const float animTime) :
   m_pControl(pControl), m_AnimTime(animTime), m_Time(0.0f), m_Animating(false), m_Visible(true) 
 {}
+
+CGUIFadeAnimation::~CGUIFadeAnimation() {}
 
 void CGUIFadeAnimation::Update(float timeDelta) {
   if(!m_Animating)
@@ -426,6 +430,8 @@ const bool CGUIFadeAnimation::IsVisible() const {
 CGUITimer::CGUITimer(const float waitTime) :
   m_WaitTime(waitTime), m_Time(0.0f) {}
 
+CGUITimer::~CGUITimer() {}
+
 void CGUITimer::Update(const float timeDelta) {
   if(m_Time >= m_WaitTime)
     return;
@@ -449,3 +455,31 @@ const bool CGUITimer::IsDone() const {
   return m_Time >= m_WaitTime;
 }
 
+
+//================================================================================
+
+
+CGUIControllerList::CGUIControllerList() {}
+
+CGUIControllerList::~CGUIControllerList() {
+  this->Clear();
+}
+
+void CGUIControllerList::Update(const float timeDelta) {
+  for (std::set<IGUIController*>::iterator it = m_List.begin(); it != m_List.end(); it++) {
+    if ((*it)->IsEnabled()) {
+      (*it)->Update(timeDelta);
+    }
+  }
+}
+
+void CGUIControllerList::AddController(IGUIController * pController) {
+  m_List.insert(pController);
+}
+
+void CGUIControllerList::Clear() {
+  for (std::set<IGUIController*>::iterator it = m_List.begin(); it != m_List.end(); it++) {
+    delete *it;
+  }
+  m_List.clear();
+}

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <map>
 
 #include "Space.h"
 #include "Racer.h"
@@ -13,14 +14,6 @@ class CGUIProgressBarControl;
 
 class CRaceTrack {
 public:
-  enum DIF_LEVEL {
-    DL_VERY_EASY = 0,
-    DL_EASY = 1,
-    DL_MEDIUM = 2,
-    DL_HARD = 3,
-    DL_VERY_HARD = 4,
-    DL_HOLY_SHIT = 5
-  };
   enum TRACK_STATE {
     TS_NONE = 0,
     TS_INTRO = 1,
@@ -35,6 +28,11 @@ public:
     IS_ENDSTATE = 4,
     IS_SKIP = 5
   };
+  enum EntityId;
+  enum DifficultyId;
+
+  class CEntityType;
+  class CDifficulty;
 
   class CShot {
   private:
@@ -59,7 +57,7 @@ public:
     CModel*	m_Model;
     glm::vec2	m_vPos;
     glm::vec2	m_vVec;
-    glm::vec3	m_vColor;
+    glm::vec4	m_vColor;
     float	m_fValue;
     float	m_fHealth;
     float	m_fTemp;
@@ -72,7 +70,7 @@ public:
       ET_BONUS = 1,
       ET_ENEMY = 2
     };
-    CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec3 vColor, unsigned uModelType);
+    CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec4 vColor, unsigned uModelType);
     bool	Engine(float fDT, float fRacerPosX, CShot** aShotList, const unsigned uShotCount);
     void	Render();
     float	GetValue();
@@ -94,6 +92,9 @@ private:
   CSpace	m_SpaceSky;
   CSpace	m_SpaceGround;
   CRacer* m_pRacer;
+
+  std::map<Uint32, CEntityType*>  m_EntityTypes;
+  std::map<Uint32, CDifficulty*>  m_DifficultyLevels;
 
   std::vector<CShot*> m_aShotList;
   std::vector<glm::vec3>	m_avShotRenderList;
@@ -147,10 +148,12 @@ public:
   bool IsGameRuning();
 
 private:
-  void  UpdateGUI(const float timeDelta);
+  void UpdateTrack(const float timeDelta);
+  void UpdateGUI(const float timeDelta);
 
   const glm::vec2 CreateEntityPosition();
 
+  void AddEntity(const EntityId entityId);
   void AddEntity(const glm::vec2& vec, const glm::vec3& color, const CModel::MODEL_TYPE type);
   void AddEntity_DL();
   void AddEntity_DL2();
@@ -161,7 +164,6 @@ private:
   void Engine_Entity(float fDT);
   void Engine_Shot(float fDT);
   void Engine_Intro(float fDT);
-  void Engine_Track(float fDT);
   void Engine_GameOver(float fDT);
 
   void Render_Intro();

@@ -14,6 +14,8 @@ class CGUITextAnimation;
 class CGUIFadeAnimation;
 class CGUITimer;
 
+class CGUIControllerList;
+
 class CIntro {
 private:
   enum INTRO_STATE;
@@ -28,8 +30,9 @@ private:
   CGUITextAnimation*  m_pTechText1Anim;
   CGUITextAnimation*  m_pTechText2Anim;
   CGUIFadeAnimation*  m_pLogoAnim;
-
   CGUITimer*  m_pWaitTimer;
+
+  CGUIControllerList* m_pControllerList;
 
   glm::vec2 m_Size;
   Uint32	m_IntroState;

@@ -8,6 +8,115 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+enum CRaceTrack::EntityId {
+  EID_UNKNOWN = 0,
+  EID_DL,
+  EID_DL2,
+  EID_BOMB,
+  EID_HACK,
+  EID_HACK2
+};
+
+enum CRaceTrack::DifficultyId {
+  DID_VERY_EASY = 0,
+  DID_EASY = 1,
+  DID_MEDIUM = 2,
+  DID_HARD = 3,
+  DID_VERY_HARD = 4,
+  DID_HOLY_SHIT = 5
+};
+
+//===================================================================================================
+
+
+class CRaceTrack::CEntityType {
+private:
+  std::string m_Name;
+  glm::vec2 m_Vec;
+  glm::vec4 m_Color;
+  Uint32  m_ModelId;
+
+public:
+  CEntityType(const std::string name, const glm::vec2& vec, const glm::vec4& color, const Uint32 modelId);
+
+  const std::string GetName() const;
+  const glm::vec2 GetVec() const;
+  const glm::vec4 GetColor() const;
+  const Uint32 GetModelId() const;
+};
+
+CRaceTrack::CEntityType::CEntityType(const std::string name, const glm::vec2 & vec, const glm::vec4 & color, const Uint32 modelId) :
+  m_Name(name), m_Vec(vec), m_Color(color), m_ModelId(modelId) {}
+
+const std::string CRaceTrack::CEntityType::GetName() const {
+  return m_Name;
+}
+
+const glm::vec2 CRaceTrack::CEntityType::GetVec() const {
+  return m_Vec;
+}
+
+const glm::vec4 CRaceTrack::CEntityType::GetColor() const {
+  return m_Color;
+}
+
+const Uint32 CRaceTrack::CEntityType::GetModelId() const {
+  return m_ModelId;
+}
+
+
+//===================================================================================================
+
+
+class CRaceTrack::CDifficulty {
+private:
+  std::string m_Name;
+  Uint32  m_PointsNeeded;
+  float   m_SpawnTime;
+  std::map<Uint32, Uint32> m_EntityChance;
+
+public:
+  CDifficulty(const std::string& name, const Uint32 pointsNeeded, const float spawnTime);
+  ~CDifficulty();
+
+  const std::string GetName() const;
+  const Uint32 GetPointsNeeded() const;
+  const float GetSpawnTime() const;
+
+  void AddChance(const Uint32 entityId, const Uint32 chance);
+
+  const std::map<Uint32, Uint32>& GetEntityChanceMap() const;
+};
+
+CRaceTrack::CDifficulty::CDifficulty(const std::string & name, const Uint32 pointsNeeded, const float spawnTime) :
+  m_Name(name), m_PointsNeeded(pointsNeeded), m_SpawnTime(spawnTime) {}
+
+CRaceTrack::CDifficulty::~CDifficulty() {}
+
+const std::string CRaceTrack::CDifficulty::GetName() const {
+  return m_Name;
+}
+
+const Uint32 CRaceTrack::CDifficulty::GetPointsNeeded() const {
+  return m_PointsNeeded;
+}
+
+const float CRaceTrack::CDifficulty::GetSpawnTime() const {
+  return m_SpawnTime;
+}
+
+void CRaceTrack::CDifficulty::AddChance(const Uint32 entityId, const Uint32 chance) {
+  m_EntityChance[entityId] = chance;
+}
+
+const std::map<Uint32, Uint32>& CRaceTrack::CDifficulty::GetEntityChanceMap() const {
+  return m_EntityChance;
+}
+
+
+//===================================================================================================
+
+
 CRaceTrack::CShot::CShot(glm::vec2 vVec, glm::vec2 vStartPos, glm::vec3 vColor, float fDamage) :
   m_vVec(vVec), m_vPos(vStartPos), m_vColor(vColor), m_fDamage(fDamage), m_bCanDelete(false) {
 
@@ -52,8 +161,11 @@ bool CRaceTrack::CShot::GetCanDelete() {
   return m_bCanDelete;
 }
 
-//===========================================
-CRaceTrack::CEntity::CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec3 vColor, unsigned uModelType) :
+
+//===================================================================================================
+
+
+CRaceTrack::CEntity::CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec4 vColor, unsigned uModelType) :
   m_vPos(vPos), m_vVec(vVec), m_vColor(vColor), m_fTemp(0.0f), m_uModelType(uModelType), m_bCanDelete(false), m_Model(NULL) {
   if (uModelType < 9) {
     this->m_uType = ET_NONE;
@@ -218,19 +330,80 @@ CRaceTrack::CRaceTrack() :
   m_fGameOverTime2(0.0f),
   m_uPoints(0),
   m_uFireCount(1),
-  m_uDifLevel(DL_VERY_EASY),
+  m_uDifLevel(DID_VERY_EASY),
   m_uNeedPoints(5000),
   m_uTrackState(TS_INTRO),
   m_IntroState(IS_STATE1),
   m_uGameOverCharCount(0),
   m_bGameOver(false),
   m_bGameRuning(false),
-  m_strGameOver("GAME OVER") {
+  m_strGameOver("GAME OVER") 
+{
+    m_EntityTypes[EID_DL] = new CEntityType("DownLoad", glm::vec2(0.0f, 50.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), CModel::MT_DL_PART);
+    m_EntityTypes[EID_DL2] = new CEntityType("BigDownLoad", glm::vec2(0.0f, 40.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), CModel::MT_DL_PART2);
+    m_EntityTypes[EID_BOMB] = new CEntityType("CRC Error", glm::vec2(0.0f, 50.0f), glm::vec4(1.0f, 0.0f, 1.0f, 1.0f), CModel::MT_BOMB);
+    m_EntityTypes[EID_HACK] = new CEntityType("H4X0R", glm::vec2(0.0f, 30.0f), glm::vec4(0.5f, 0.2f, 0.8f, 1.0f), CModel::MT_HACK);
+    m_EntityTypes[EID_HACK2] = new CEntityType("L33T H4X0R", glm::vec2(0.0f, 50.0f), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), CModel::MT_HACK2);
 
+    CDifficulty* pDiff = nullptr;
+    {
+      pDiff = new CDifficulty("VERY EASY", 3000, 0.6f);
+      pDiff->AddChance(EID_BOMB, 60);
+      pDiff->AddChance(EID_DL, 30);
+      pDiff->AddChance(EID_HACK, 10);
+      this->m_DifficultyLevels[DID_VERY_EASY] = pDiff;
+    }
+    {
+      pDiff = new CDifficulty("EASY", 8000, 0.3f);
+      pDiff->AddChance(EID_BOMB, 50);
+      pDiff->AddChance(EID_DL, 20);
+      pDiff->AddChance(EID_HACK, 30);
+      this->m_DifficultyLevels[DID_EASY] = pDiff;
+    }
+    {
+      pDiff = new CDifficulty("MEDIUM", 15000, 0.3f);
+      pDiff->AddChance(EID_BOMB, 40);
+      pDiff->AddChance(EID_HACK, 40);
+      pDiff->AddChance(EID_DL, 10);
+      pDiff->AddChance(EID_DL2, 10);
+      this->m_DifficultyLevels[DID_MEDIUM] = pDiff;
+    }
+    {
+      pDiff = new CDifficulty("HARD", 25000, 0.22f);
+      pDiff->AddChance(EID_BOMB, 70);
+      pDiff->AddChance(EID_HACK, 10);
+      pDiff->AddChance(EID_HACK2, 10);
+      pDiff->AddChance(EID_DL, 5);
+      pDiff->AddChance(EID_DL2, 5);
+      this->m_DifficultyLevels[DID_HARD] = pDiff;
+    }
+    {
+      pDiff = new CDifficulty("VERY HARD", 1000000, 0.13f);
+      pDiff->AddChance(EID_BOMB, 70);
+      pDiff->AddChance(EID_HACK2, 25);
+      pDiff->AddChance(EID_DL2, 5);
+      this->m_DifficultyLevels[DID_VERY_HARD] = pDiff;
+    }
+    {
+      pDiff = new CDifficulty("HOLY SHIT!", 0, 0.08f);
+      pDiff->AddChance(EID_BOMB, 70);
+      pDiff->AddChance(EID_HACK2, 30);
+      this->m_DifficultyLevels[DID_HOLY_SHIT] = pDiff;
+    }
 }
 
 CRaceTrack::~CRaceTrack() {
   Free();
+
+  for (std::map<Uint32, CEntityType*>::iterator it = m_EntityTypes.begin(); it != m_EntityTypes.end(); it++) {
+    delete it->second;
+  }
+  m_EntityTypes.clear();
+
+  for (std::map<Uint32, CDifficulty*>::iterator it = m_DifficultyLevels.begin(); it != m_DifficultyLevels.end(); it++) {
+    delete it->second;
+  }
+  m_DifficultyLevels.clear();
 }
 
 const bool CRaceTrack::Init(CGUI* pGUI, const glm::vec2& screenSize) {
@@ -240,6 +413,8 @@ const bool CRaceTrack::Init(CGUI* pGUI, const glm::vec2& screenSize) {
     Free();
     return false;
   }
+
+
 
   m_pGUIScreen = new CGUIScreen(pGUI, screenSize);
 
@@ -276,7 +451,7 @@ void CRaceTrack::Free() {
   this->m_fMoveX = 0.0f;
   m_fTime = 0.0f;
   m_uPoints = 0;
-  m_uDifLevel = DL_VERY_EASY;
+  m_uDifLevel = DID_VERY_EASY;
   m_uFireCount = 1;
   m_fDamage = 15.0f;
   m_uNeedPoints = 5000;
@@ -316,7 +491,7 @@ void CRaceTrack::Update(const float timeDelta) {
 
   case TS_GAME:
     m_bGameRuning = true;
-    Engine_Track(timeDelta); 
+    UpdateTrack(timeDelta); 
     UpdateGUI(timeDelta);
     break;
 
@@ -326,9 +501,34 @@ void CRaceTrack::Update(const float timeDelta) {
   }
 }
 
+void CRaceTrack::UpdateTrack(const float timeDelta) {
+  if (m_pRacer == NULL)
+    return;
+
+  m_fTime += timeDelta;
+  m_fFSQTime += timeDelta;
+  m_fUpgTime += timeDelta;
+  this->GenRandomObject();
+
+  m_pRacer->Engine(timeDelta);
+
+  this->m_vMove.x -= m_pRacer->GetVec().x;
+  this->m_vMove.y += 120.0f * timeDelta;
+  this->m_fMoveX += m_pRacer->GetVec().x;
+
+  this->m_vMove = glm::mod(m_vMove, 20.0f);
+
+  this->Engine_Entity(timeDelta);
+  this->Engine_Shot(timeDelta);
+  this->CheckDifLevel();
+
+  if (m_pRacer->GetBitRate() <= 0.0f)
+    m_uTrackState = TS_GAMEOVER;
+}
+
 void CRaceTrack::UpdateGUI(const float timeDelta) {
   m_pGUIPoints->SetText(CGUI::Format("POINTS: %u", m_uPoints));
-  if (m_uDifLevel < DL_VERY_HARD) {
+  if (m_uDifLevel < DID_VERY_HARD) {
     m_pGUIPointsNeeded->SetVisible(true);
     m_pGUIPointsNeeded->SetText(CGUI::Format("NEED POINTS: %u", m_uNeedPoints));
   }
@@ -476,36 +676,6 @@ void CRaceTrack::Render_Intro() {
   };
 }
 
-void CRaceTrack::Engine_Track(float fDT) {
-  if (m_pRacer == NULL)
-    return;
-
-  m_fTime += fDT;
-  m_fFSQTime += fDT;
-  m_fUpgTime += fDT;
-  this->GenRandomObject();
-
-  m_pRacer->Engine(fDT);
-
-  this->m_vMove.x -= m_pRacer->GetVec().x;
-  this->m_vMove.y += 120.0f * fDT;
-  this->m_fMoveX += m_pRacer->GetVec().x;
-
-  if (this->m_vMove.y > 20.0f)
-    this->m_vMove.y -= 20.0f;
-
-  if (this->m_vMove.x > 20.0f)
-    this->m_vMove.x -= 20.0f;
-  if (this->m_vMove.x < -20.0f)
-    this->m_vMove.x += 20.0f;
-
-  this->Engine_Entity(fDT);
-  this->Engine_Shot(fDT);
-  this->CheckDifLevel();
-
-  if (m_pRacer->GetBitRate() <= 0.0f)
-    m_uTrackState = TS_GAMEOVER;
-}
 
 void CRaceTrack::Render_Track() {
   glPushMatrix();
@@ -660,8 +830,8 @@ unsigned CRaceTrack::GetDifLevel() {
 
 void CRaceTrack::SetDifLevel(unsigned uDifLevel) {
   m_uDifLevel = uDifLevel;
-  if (m_uDifLevel > DL_HOLY_SHIT)
-    m_uDifLevel = DL_VERY_HARD;
+  if (m_uDifLevel > DID_HOLY_SHIT)
+    m_uDifLevel = DID_VERY_HARD;
 }
 
 const glm::vec2 CRaceTrack::CreateEntityPosition() {
@@ -669,8 +839,17 @@ const glm::vec2 CRaceTrack::CreateEntityPosition() {
   return glm::vec2(randF / 100.0f * 30.0f + m_fMoveX + (100.0f * this->m_pRacer->GetVec().x), -80.0f);
 }
 
+void CRaceTrack::AddEntity(const EntityId entityId) {
+  if (entityId == EID_UNKNOWN)
+    return;
+
+  CEntityType* pEntity = this->m_EntityTypes[entityId];
+
+  this->AddEntity(pEntity->GetVec(), pEntity->GetColor(), (CModel::MODEL_TYPE)pEntity->GetModelId());
+}
+
 void CRaceTrack::AddEntity(const glm::vec2& vec, const glm::vec3& color, const CModel::MODEL_TYPE type) {
-  CEntity* pEntity = new CEntity(this->CreateEntityPosition(), vec, color, type);
+  CEntity* pEntity = new CEntity(this->CreateEntityPosition(), vec, glm::vec4(color, 1.0f), type);
   this->m_aEntityList.push_back(pEntity);
 }
 
@@ -695,72 +874,24 @@ void CRaceTrack::AddEntity_HACK2() {
 }
 
 void CRaceTrack::GenRandomObject() {
-  if (m_fTime < 0.6f && m_uDifLevel == DL_VERY_EASY)
-    return;
-  if (m_fTime < 0.3f && (m_uDifLevel == DL_EASY || m_uDifLevel == DL_MEDIUM))
-    return;
-  if (m_fTime < 0.22f && m_uDifLevel == DL_HARD)
-    return;
-  if (m_fTime < 0.13f && m_uDifLevel == DL_VERY_HARD)
-    return;
-  if (m_fTime < 0.08f && m_uDifLevel == DL_HOLY_SHIT)
+  CDifficulty* pDiff = this->m_DifficultyLevels[m_uDifLevel];
+
+  if (m_fTime < pDiff->GetSpawnTime())
     return;
   m_fTime = 0.0f;
 
-  int r = rand() % 100;
-  switch (m_uDifLevel) {
-  case DL_VERY_EASY:
-    if (r < 60)
-      this->AddEntity_BOMB();
-    if (r >= 60 && r < 90)
-      this->AddEntity_DL();
-    if (r >= 90)
-      this->AddEntity_HACK();
-    break;
-  case DL_EASY:
-    if (r < 50)
-      this->AddEntity_BOMB();
-    if (r >= 50 && r < 70)
-      this->AddEntity_DL();
-    if (r >= 70)
-      this->AddEntity_HACK();
-    break;
-  case DL_MEDIUM:
-    if (r < 40)
-      this->AddEntity_BOMB();
-    if (r >= 40 && r < 80)
-      this->AddEntity_HACK();
-    if (r >= 80 && r < 90)
-      this->AddEntity_DL();
-    if (r >= 90)
-      this->AddEntity_DL2();
-    break;
-  case DL_HARD:
-    if (r < 70)
-      this->AddEntity_BOMB();
-    if (r >= 70 && r < 80)
-      this->AddEntity_HACK();
-    if (r >= 80 && r < 90)
-      this->AddEntity_HACK2();
-    if (r >= 90 && r < 95)
-      this->AddEntity_DL();
-    if (r >= 90)
-      this->AddEntity_DL2();
-    break;
-  case DL_VERY_HARD:
-    if (r < 70)
-      this->AddEntity_BOMB();
-    if (r >= 70 && r < 95)
-      this->AddEntity_HACK2();
-    if (r >= 95)
-      this->AddEntity_DL2();
-    break;
-  case DL_HOLY_SHIT:
-    if (r < 70)
-      this->AddEntity_BOMB();
-    else this->AddEntity_HACK2();
-    break;
-  };
+  Uint32 chance = rand() % 100;
+  Uint32 lower = 0;
+  for (std::map<Uint32, Uint32>::const_iterator it = pDiff->GetEntityChanceMap().begin(); it != pDiff->GetEntityChanceMap().end(); it++) {
+    Uint32 upper = lower + it->second;
+
+    if (lower < chance && upper >= chance) {
+      this->AddEntity((EntityId)it->first);
+      break;
+    }
+
+    lower = upper;
+  }
 }
 
 void CRaceTrack::Engine_Entity(float fDT) {
@@ -774,7 +905,7 @@ void CRaceTrack::Engine_Entity(float fDT) {
           break;
         case CModel::MT_HACK2:
           m_uPoints += 2000;
-          if (m_uDifLevel == DL_HOLY_SHIT)
+          if (m_uDifLevel == DID_HOLY_SHIT)
             this->m_pRacer->ModBitRate(1.0f);
           break;
         }
@@ -829,8 +960,8 @@ void CRaceTrack::Engine_Shot(float fDT) {
 
 void CRaceTrack::ResetGame() {
   m_uPoints = 0;
-  m_uNeedPoints = 5000;
-  m_uDifLevel = DL_VERY_EASY;
+  m_uDifLevel = DID_VERY_EASY;
+  m_uNeedPoints = m_DifficultyLevels[m_uDifLevel]->GetPointsNeeded();
   m_uFireCount = 1;
   m_uGameOverCharCount = 0;
   m_fDamage = 15.0f;
@@ -849,41 +980,28 @@ void CRaceTrack::ResetGame() {
 }
 
 void CRaceTrack::CheckDifLevel() {
-  if (m_uDifLevel == DL_HOLY_SHIT)
+  if (m_uNeedPoints == 0)
     return;
 
   if (m_uPoints < m_uNeedPoints)
     return;
 
   m_uDifLevel++;
-  if (m_uDifLevel == DL_VERY_HARD)
-    m_uNeedPoints = 1000000;
-  else m_uNeedPoints = m_uNeedPoints + m_uNeedPoints * 2;
+  m_uNeedPoints = m_DifficultyLevels[m_uDifLevel]->GetPointsNeeded();
   m_uFireCount += 1;
   m_fDamage += 1.5f;
+
   if (m_pRacer->GetModel()->GetModelType() != this->GetLevelModelType()) {
     m_pRacer->Free();
     m_pRacer->Init(this->GetLevelModelType());
   }
+
   this->SetUpgScreen(10.0f);
 }
 
 std::string CRaceTrack::GetDifLevelString() {
-  switch (m_uDifLevel) {
-  case DL_VERY_EASY:
-    return "VERY EASY";
-  case DL_EASY:
-    return "EASY";
-  case DL_MEDIUM:
-    return "MEDIUM";
-  case DL_HARD:
-    return "HARD";
-  case DL_VERY_HARD:
-    return "VERY HARD";
-  case DL_HOLY_SHIT:
-    return "HOLY SHIT!!!";
-  }
-  return "";
+  CDifficulty* pDiff = m_DifficultyLevels[m_uDifLevel];
+  return pDiff->GetName();
 }
 
 unsigned CRaceTrack::GetPoints() {
@@ -896,16 +1014,16 @@ void CRaceTrack::SetPoints(unsigned uPoints) {
 
 unsigned CRaceTrack::GetLevelModelType() {
   switch (m_uDifLevel) {
-  case DL_VERY_EASY:
+  case DID_VERY_EASY:
     return CModel::MT_HTTP20;
-  case DL_EASY:
+  case DID_EASY:
     return CModel::MT_P2PGNU2;
-  case DL_MEDIUM:
+  case DID_MEDIUM:
     return CModel::MT_P2PFT20;
-  case DL_HARD:
+  case DID_HARD:
     return CModel::MT_P2PEDK2K;
-  case DL_VERY_HARD:
-  case DL_HOLY_SHIT:
+  case DID_VERY_HARD:
+  case DID_HOLY_SHIT:
     return CModel::MT_P2PBT;
   };
   return CModel::MT_HTTP20;
@@ -934,3 +1052,4 @@ bool CRaceTrack::IsGameOver() {
 bool CRaceTrack::IsGameRuning() {
   return m_bGameRuning;
 }
+
