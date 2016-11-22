@@ -1,5 +1,7 @@
 #include "Game.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 void CGame::Render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
@@ -53,6 +55,8 @@ void CGame::Render() {
 }
 
 void CGame::RenderGame() {
+  glm::mat4 proj = glm::perspective(glm::radians(50.0f), ScrParam.GetAspectRatio(), 1.0f, 50000.0f);
+
   switch(m_uGameState) {
   case GS_INTRO:
     m_Intro.Render();
@@ -60,11 +64,11 @@ void CGame::RenderGame() {
 
   case GS_MENU:
     if(m_bGamePause)
-      m_RaceTrack.Render();
+      m_RaceTrack.Render(proj);
     break;
 
   case GS_GAME:
-    m_RaceTrack.Render();
+    m_RaceTrack.Render(proj);
     break;
 
   default:

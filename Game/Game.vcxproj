@@ -91,6 +91,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameEngine.cpp" />
     <ClCompile Include="GameFree.cpp" />
@@ -104,10 +105,11 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Racer.cpp" />
-    <ClCompile Include="RaceTrack.cpp" />
+    <ClCompile Include="Level.cpp" />
     <ClCompile Include="Space.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Entity.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GUI.h" />
     <ClInclude Include="GUIMenu.h" />
@@ -116,7 +118,7 @@
     <ClInclude Include="Intro.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Racer.h" />
-    <CustomBuild Include="RaceTrack.h" />
+    <CustomBuild Include="Level.h" />
     <ClInclude Include="Space.h" />
   </ItemGroup>
   <ItemGroup>

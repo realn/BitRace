@@ -1,37 +1,37 @@
 #pragma once
 
+#include <SDL_types.h>
 #include <glm/glm.hpp>
 
-#include "Model.h"
+class CModel;
+class CModelRepository;
 
 class CRacer {
 private:
-  CModel*				m_cModel;
-  float				m_fRotation;
-  float				  m_fBitRate;
-  glm::vec3     m_Speed;
-  glm::vec3				  m_vVec;
-  unsigned				m_dwColor;
+  CModel*		m_pModel;
+  Uint32    m_ModelId;
+  float			m_Rotation;
+  float			m_BitRate;
+  glm::vec3 m_Speed;
+  glm::vec3	m_Vec;
+  glm::vec4	m_Color;
 
 public:
-  static float		s_fConstHeight;
-  static float		s_fMaxRotation;
-  static float		s_fMaxBitRate;
+  static float	s_ConstHeight;
+  static float	s_MaxRotation;
+  static float	s_MaxBitRate;
 
-  CRacer();
+  CRacer(const Uint32 modelId, CModelRepository* pModelRepo);
   ~CRacer();
 
-  void Free();
-  bool Init(unsigned uModelType);
-
-  void ModRotation(float fRotation);
-  void SetRotation(float fRotation);
-  void SetColor(unsigned dwColor);
-  glm::vec3 GetVec() const;
-  float GetBitRate() const;
-  void ModBitRate(float fBitRate);
-  CModel* GetModel();
-
-  void Engine(float fDT);
+  void Update(const float timeDelta);
   void Render();
+
+  void ModRotation(float rotation);
+  void SetRotation(float rotation);
+  void SetColor(const glm::vec4& color);
+  const glm::vec3 GetVec() const;
+  const float GetBitRate() const;
+  void ModBitRate(const float bitRate);
+  CModel* GetModel() const;
 };

@@ -98,9 +98,10 @@ void CGame::UpdateTimer() {
 }
 
 void CGame::UpdateGame(const float timeDelta) {
-	static bool down = false;
+  
+
 	if (m_RaceTrack.IsGameRuning()) {
-		this->m_Racer.ModRotation(float(this->GetMousePosDelta().x));
+		m_RaceTrack.PlayerModRotation(-float(this->GetMousePosDelta().x));
 		if (this->IsMouseButtonPressed(SDL_BUTTON_LEFT)) {
 			this->m_RaceTrack.FireWeapon();
 		}

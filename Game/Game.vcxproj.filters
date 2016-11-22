@@ -21,9 +21,6 @@
     <ClCompile Include="Racer.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="RaceTrack.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="Space.cpp">
       <Filter>Game</Filter>
     </ClCompile>
@@ -41,6 +38,12 @@
     </ClCompile>
     <ClCompile Include="GUIScreen.cpp">
       <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Level.cpp">
+      <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -69,9 +72,12 @@
     <ClInclude Include="GUIMenu.h">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="RaceTrack.h">
+    <CustomBuild Include="Level.h">
       <Filter>Game</Filter>
     </CustomBuild>
   </ItemGroup>

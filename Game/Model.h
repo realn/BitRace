@@ -1,50 +1,62 @@
 #pragma once
 
+#include <SDL_types.h>
+#include <glm/glm.hpp>
 #include <vector>
+#include <map>
 
 #define	MODELTYPE_COUNT	14
 
 class CModel {
-private:
-  unsigned				m_uVBOVertex;
-
-  std::vector<float>	m_afVertex;
-  std::vector<unsigned>	m_auIndexTriangles;
-  std::vector<unsigned>	m_auIndexLines;
-  std::string			m_strModelName;
-  unsigned				m_uModelType;
-
-  void AddVertex(float x, float y, float z);
-  void AddTriangle(unsigned v1, unsigned v2, unsigned v3);
-  void CreateIndexLines();
-
 public:
-  enum MODEL_TYPE {
+  enum ModelId {
     MT_NONE = 0,
-    MT_HTTP10 = 1,
-    MT_HTTP20 = 2,
-    MT_P2PGNU = 3,
-    MT_P2PGNU2 = 4,
-    MT_P2PFT = 5,
-    MT_P2PFT20 = 6,
-    MT_P2PEDK2K = 7,
-    MT_P2PBT = 8,
-    MT_DL_PART = 9,
-    MT_DL_PART2 = 10,
-    MT_BOMB = 11,
-    MT_HACK = 12,
-    MT_HACK2 = 13
+    MT_HTTP10,
+    MT_HTTP20,
+    MT_P2PGNU,
+    MT_P2PGNU2,
+    MT_P2PFT,
+    MT_P2PFT20,
+    MT_P2PEDK2K,
+    MT_P2PBT,
+    MT_DL_PART,
+    MT_DL_PART2,
+    MT_BOMB,
+    MT_HACK,
+    MT_HACK2
   };
 
-  CModel();
+private:
+  class CMesh;
+
+  ModelId m_ModelId;
+  std::string m_Name;
+
+  Uint32  m_VertexBufferId;
+  Uint32  m_IndexBufferId;
+  Uint32  m_IndexBufferLinesId;
+  
+  Uint32  m_NumberOfTriangles;
+  Uint32  m_NumberOfLines;
+
+public:
+  CModel(const ModelId modelId);
   ~CModel();
 
-  void Free();
-  bool Generate(unsigned uModelType);
-  void Render();
-  unsigned GetModelType();
+  void Render(const glm::mat4& transform, const glm::vec4& lineColor, const glm::vec4& polyColor = glm::vec4(glm::vec3(0.0f), 1.0f));
 
-  static	bool	InitModels();
-  static	void	FreeModels();
-  static	CModel*	GetModel(unsigned uModelType);
+  const ModelId GetId() const;
+  const std::string GetName() const;
+};
+
+class CModelRepository {
+private:
+  std::map<Uint32, CModel*> m_Models;
+
+public:
+  CModelRepository();
+  ~CModelRepository();
+
+  CModel* Get(const CModel::ModelId modelId);
+  void Clear();
 };

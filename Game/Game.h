@@ -17,7 +17,7 @@
 
 #include "../Common/Files.h"
 #include "../Common/IniFiles.h"
-#include "RaceTrack.h"
+#include "Level.h"
 #include "GUI.h"
 #include "GUIMenu.h"
 #include "Intro.h"
@@ -30,9 +30,8 @@ private:
 
 	CGUI		        m_GUI;
 	CGUIMenuManager	m_MenuMng;
-	CRaceTrack		m_RaceTrack;
-	CSpace			m_Space;
-	CRacer			m_Racer;
+	CLevel		m_RaceTrack;
+	//CSpace			m_Space;
 	CIntro			m_Intro;
 	CHighScore		m_HS;
 

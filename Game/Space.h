@@ -13,10 +13,8 @@ private:
   unsigned	m_auQuadIndex[6];
 
 public:
-  CSpace();
+  CSpace(const glm::vec2& size, const glm::uvec2& lineNum, const float y);
   ~CSpace();
 
-  void Free();
-  bool Generate(float fWidth, float fHeight, unsigned int uCountX, unsigned int uCountY, float fY);
-  void Render(glm::vec3 vColor);
+  void Render(const glm::mat4& transform, const glm::vec3& vColor);
 };

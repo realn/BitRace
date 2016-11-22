@@ -1,10 +1,9 @@
 #pragma once
 
+#include <SDL_types.h>
 #include <glm/glm.hpp>
 #include <map>
-
-#include "Space.h"
-#include "Racer.h"
+#include <vector>
 
 class CGUI;
 class CGUIScreen;
@@ -12,7 +11,15 @@ class CGUIScreen;
 class CGUITextControl;
 class CGUIProgressBarControl;
 
-class CRaceTrack {
+class CSpace;
+
+class CModel;
+class CModelRepository;
+
+class CEntityType;
+class CEntity;
+
+class CLevel {
 public:
   enum TRACK_STATE {
     TS_NONE = 0,
@@ -28,78 +35,48 @@ public:
     IS_ENDSTATE = 4,
     IS_SKIP = 5
   };
-  enum EntityId;
   enum DifficultyId;
 
-  class CEntityType;
   class CDifficulty;
+  class CProjectile;
 
-  class CShot {
+  class CLineParticle {
   private:
-    glm::vec2	m_vVec;
-    glm::vec2	m_vPos;
-    glm::vec3	m_vColor;
-    float	m_fDamage;
-    bool	m_bCanDelete;
+    glm::vec3 m_StartPos;
+    glm::vec4 m_StartColor;
+    glm::vec3 m_EndPos;
+    glm::vec4 m_EndColor;
+
   public:
-    CShot(glm::vec2 vVec, glm::vec2 vStartPos, glm::vec3 vColor, float fDamage);
-    void Engine(float fDT);
-    void SetRender(glm::vec3* vpLine, glm::vec3* vpColor);
-    glm::vec2 GetPos() const;
-    glm::vec2 GetVec() const;
-    float GetDamage() const;
-    void SetCanDelete(bool bSet);
-    bool GetCanDelete();
+    CLineParticle();
+    CLineParticle(const CLineParticle& other);
+    ~CLineParticle();
+
+    void Set(const glm::vec3& start, const glm::vec3& end, const glm::vec4& color);
   };
 
-  class CEntity {
-  private:
-    CModel*	m_Model;
-    glm::vec2	m_vPos;
-    glm::vec2	m_vVec;
-    glm::vec4	m_vColor;
-    float	m_fValue;
-    float	m_fHealth;
-    float	m_fTemp;
-    unsigned	m_uType;
-    unsigned	m_uModelType;
-    bool	m_bCanDelete;
-  public:
-    enum ENTITY_TYPE {
-      ET_NONE = 0,
-      ET_BONUS = 1,
-      ET_ENEMY = 2
-    };
-    CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec4 vColor, unsigned uModelType);
-    bool	Engine(float fDT, float fRacerPosX, CShot** aShotList, const unsigned uShotCount);
-    void	Render();
-    float	GetValue();
-    float	GetHealth();
-    unsigned	GetType();
-    unsigned	GetModelType();
-    glm::vec2	GetPos();
-    void SetCanDelete(bool bSet);
-    bool GetCanDelete();
-  };
 private:
-  CGUIScreen* m_pGUIScreen;
+  CModelRepository* m_pModelRepo;
 
+  CGUIScreen* m_pGUIScreen;
   CGUITextControl*  m_pGUIPoints;
   CGUITextControl*  m_pGUIPointsNeeded;
   CGUITextControl*  m_pGUILevelText;
   CGUIProgressBarControl* m_pGUIHealthBar;
 
-  CSpace	m_SpaceSky;
-  CSpace	m_SpaceGround;
-  CRacer* m_pRacer;
+  CSpace*  m_pSpaceTop;
+  CSpace*  m_pSpaceBottom;
+  CEntity* m_pPlayer;
 
   std::map<Uint32, CEntityType*>  m_EntityTypes;
   std::map<Uint32, CDifficulty*>  m_DifficultyLevels;
 
-  std::vector<CShot*> m_aShotList;
-  std::vector<glm::vec3>	m_avShotRenderList;
-  std::vector<glm::vec3>	m_avShotRenderColorList;
-  std::vector<CEntity*>	m_aEntityList;
+  std::vector<CProjectile*> m_Projectiles;
+  std::vector<CLineParticle>  m_LineParticles;
+
+  std::vector<CEntity*>	m_Entities;
+
+  Uint32  m_LineParticleBufferId;
 
   glm::vec2	m_vMove;
   float	m_fMoveX;
@@ -125,18 +102,21 @@ private:
   std::string m_strGameOver;
 
 public:
-  CRaceTrack();
-  ~CRaceTrack();
+  CLevel();
+  ~CLevel();
 
   const bool Init(CGUI* pGUI, const glm::vec2& screenSize);
   void Free();
-  void SetRacer(CRacer* pRacer);
   void ResetGame();
 
-  void Render();
+  void Render(const glm::mat4& transform);
   void RenderGUI(CGUI* GUI);
 
   void Update(const float timeDelta);
+
+  const CEntity*  GetPlayer() const;
+  
+  void PlayerModRotation(const float value);
 
   void FireWeapon();
   unsigned GetDifLevel();
@@ -148,33 +128,31 @@ public:
   bool IsGameRuning();
 
 private:
-  void UpdateTrack(const float timeDelta);
+  void UpdateGame(const float timeDelta);
+  void UpdateProjectiles(const float timeDelta);
   void UpdateGUI(const float timeDelta);
+
+  void RenderGame(const glm::mat4& transform);
+  void RenderSkybox(const glm::mat4& transform);
+
+  void CheckCollisions();
+  void CheckProjectileCollisions(CEntity& entity, std::vector<CProjectile*>& projectiles);
 
   const glm::vec2 CreateEntityPosition();
 
-  void AddEntity(const EntityId entityId);
-  void AddEntity(const glm::vec2& vec, const glm::vec3& color, const CModel::MODEL_TYPE type);
-  void AddEntity_DL();
-  void AddEntity_DL2();
-  void AddEntity_BOMB();
-  void AddEntity_HACK();
-  void AddEntity_HACK2();
+  CEntity* CreateEntity(const Uint32 entityId, const bool randomStartPos = true);
 
   void Engine_Entity(float fDT);
-  void Engine_Shot(float fDT);
   void Engine_Intro(float fDT);
   void Engine_GameOver(float fDT);
 
   void Render_Intro();
-  void Render_Track();
   void Render_GameOver();
 
   void CheckDifLevel();
   void SetUpgScreen(float fTimeOut);
   void SetFSQ(float fTimeOut, glm::vec3 vColor);
   void GenRandomObject();
-  void DeleteShot(size_t i);
   void Clear();
   std::string GetDifLevelString();
   unsigned GetLevelModelType();

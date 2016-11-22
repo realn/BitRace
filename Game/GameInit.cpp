@@ -151,7 +151,7 @@ bool CGame::InitOpenGL() {
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(50.0, double(ScrParam.uWidth) / double(ScrParam.uHeight), 1.0, 50000.0);
+  //gluPerspective(50.0, double(ScrParam.uWidth) / double(ScrParam.uHeight), 1.0, 50000.0);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
@@ -184,12 +184,7 @@ bool CGame::InitGame() {
 
   this->ScanDispModes();
 
-  CModel::InitModels();
-
-  this->m_Racer.Init(CModel::MT_HTTP20);
-  this->m_Racer.SetColor(0x90FF0000);
   this->m_RaceTrack.Init(&m_GUI, glm::vec2(640.0f, 480.0f));
-  this->m_RaceTrack.SetRacer(&m_Racer);
   this->m_HS.LoadScores("score.hsf");
 
   if (WGLEW_EXT_swap_control) {
