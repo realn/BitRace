@@ -81,5 +81,5 @@ const glm::ivec2 & CGame::GetMousePos() const {
 }
 
 const glm::ivec2 CGame::GetMousePosDelta() const {
-  return this->m_MousePos - this->m_MousePosPrev;
+  return this->m_MousePosDelta;
 }

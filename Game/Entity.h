@@ -88,7 +88,10 @@ private:
   float	m_Health;
   bool	m_Deleted;
 public:
-  CEntity(CLevel* pLevel, glm::vec2 pos, const EntityId entityId, CEntityType* pType, CModelRepository* pModelRepo);
+  CEntity(CLevel* pLevel, 
+          const glm::vec2& pos, 
+          const EntityId entityId, 
+          CEntityType* pType, CModelRepository* pModelRepo);
   ~CEntity();
 
   void Update(const float timeDelta);

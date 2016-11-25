@@ -79,9 +79,8 @@ private:
   Uint32  m_LineParticleBufferId;
 
   glm::vec2	m_vMove;
-  float	m_fMoveX;
+  float m_WeaponDamage;
   float	m_fTime;
-  float	m_fDamage;
   float	m_fUpgTimeOut;
   float	m_fUpgTime;
   float	m_fFSQTimeOut;
@@ -90,10 +89,10 @@ private:
   float	m_fGameOverTime;
   float	m_fGameOverTime2;
   glm::vec3	m_vFSQColor;
+  Uint32  m_WeaponNumberOfProjectiles;
   unsigned	m_uPoints;
   unsigned	m_uNeedPoints;
   unsigned	m_uDifLevel;
-  unsigned	m_uFireCount;
   unsigned	m_uTrackState;
   unsigned	m_IntroState;
   unsigned	m_uGameOverCharCount;
@@ -117,8 +116,8 @@ public:
   const CEntity*  GetPlayer() const;
   
   void PlayerModRotation(const float value);
+  void PlayerFireWeapon();
 
-  void FireWeapon();
   unsigned GetDifLevel();
   void SetDifLevel(unsigned uDifLevel);
   unsigned GetPoints();
@@ -129,20 +128,23 @@ public:
 
 private:
   void UpdateGame(const float timeDelta);
+  void UpdateEntities(const float timeDelta);
   void UpdateProjectiles(const float timeDelta);
   void UpdateGUI(const float timeDelta);
 
   void RenderGame(const glm::mat4& transform);
   void RenderSkybox(const glm::mat4& transform);
+  void RenderProjectiles(const glm::mat4& transform);
 
   void CheckCollisions();
-  void CheckProjectileCollisions(CEntity& entity, std::vector<CProjectile*>& projectiles);
+  void CheckEntityCollisions(CEntity* pEntity);
+  void CheckProjectileCollisions(CEntity* pEntity);
+  const bool  ExecuteCollision(CEntity* pEntityA, CEntity* pEntityB);
 
   const glm::vec2 CreateEntityPosition();
 
   CEntity* CreateEntity(const Uint32 entityId, const bool randomStartPos = true);
 
-  void Engine_Entity(float fDT);
   void Engine_Intro(float fDT);
   void Engine_GameOver(float fDT);
 
@@ -156,4 +158,6 @@ private:
   void Clear();
   std::string GetDifLevelString();
   unsigned GetLevelModelType();
+
+  const glm::vec2 GetLevelPos(CEntity* pEntity) const;
 };

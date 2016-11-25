@@ -41,17 +41,17 @@ private:
 	Uint32  m_MouseButtonState;
 	Uint32  m_MouseButtonStatePrev;
 	glm::ivec2  m_MousePos;
-	glm::ivec2  m_MousePosPrev;
+	glm::ivec2  m_MousePosDelta;
 
 	bool			m_bShutdown;
 	bool			m_bGamePause;
 	bool			m_bTakeScreen;
-	__int64			m_iLastTick;
-	__int64			m_iFreq;
+	Uint64			m_iLastTick;
+	Uint64			m_iFreq;
 	float			m_fDT;
 	float			m_fBlurTexAlpha;
-	unsigned int	m_uBlurTexture;
-	unsigned int	m_uBlurTexSize;
+	Uint32	m_uBlurTexture;
+	Uint32	m_uBlurTexSize;
 	std::string		m_strConfigFile;
 
 

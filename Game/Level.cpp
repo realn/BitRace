@@ -126,7 +126,8 @@ void CLevel::CProjectile::Delete() {
 }
 
 const bool CLevel::CProjectile::CheckCollision(const glm::vec2 & point, const float radius, float & outCollisionDist) {
-  glm::vec2 closest = glm::closestPointOnLine(point, m_Position, m_Position + m_Vector * m_Size);
+  glm::vec2 posNext = m_Position + m_Vector * m_Size;
+  glm::vec2 closest = glm::closestPointOnLine(point, m_Position, posNext);
 
   outCollisionDist = glm::distance(closest, point);
 
@@ -158,14 +159,13 @@ CLevel::CLevel() :
   m_pSpaceTop(nullptr),
   m_pSpaceBottom(nullptr),
   m_pPlayer(nullptr),
-  m_fMoveX(0.0f),
+  m_WeaponDamage(15.0f),
   m_fTime(0.0f),
-  m_fDamage(15.0f),
   m_fIntroTime(0.0f),
   m_fGameOverTime(0.0f),
   m_fGameOverTime2(0.0f),
+  m_WeaponNumberOfProjectiles(1),
   m_uPoints(0),
-  m_uFireCount(1),
   m_uDifLevel(DID_VERY_EASY),
   m_uNeedPoints(5000),
   m_uTrackState(TS_GAME),
@@ -192,8 +192,8 @@ CLevel::CLevel() :
   m_EntityTypes[EID_HACK] = new CEntityType("H4X0R", EG_ENEMY, glm::vec2(30.0f), glm::vec4(0.5f, 0.2f, 0.8f, 1.0f), CModel::MT_HACK, 200, 30.0f, 30.0f, 30.0f);
   m_EntityTypes[EID_HACK2] = new CEntityType("L33T H4X0R", EG_ENEMY, glm::vec2(50.0f), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), CModel::MT_HACK2, 500, 70.0f, 50.0f, 50.0f);
 
-  m_EntityTypes[EID_DL] = new CEntityType("DownLoad", EG_OTHER, glm::vec2(0.0f, 50.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), CModel::MT_DL_PART, 100, 0.0f, 1.0f, -20.0f);
-  m_EntityTypes[EID_DL2] = new CEntityType("BigDownLoad", EG_OTHER, glm::vec2(0.0f, 40.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), CModel::MT_DL_PART2, 1000, 0.0f, 1.0f, -20.0f);
+  m_EntityTypes[EID_DL] = new CEntityType("DownLoad", EG_OTHER, glm::vec2(0.0f, 50.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), CModel::MT_DL_PART, 100, 0.0f, 1.0f, 10.0f);
+  m_EntityTypes[EID_DL2] = new CEntityType("BigDownLoad", EG_OTHER, glm::vec2(0.0f, 40.0f), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), CModel::MT_DL_PART2, 1000, 0.0f, 1.0f, 30.0f);
 
   CDifficulty* pDiff = nullptr;
   {
@@ -303,13 +303,14 @@ void CLevel::Free() {
   m_pSpaceTop = nullptr;
   m_pSpaceBottom = nullptr;
 
-  this->m_vMove = glm::vec2(0.0f);
-  this->m_fMoveX = 0.0f;
+  m_vMove = glm::vec2(0.0f);
+
+  m_WeaponNumberOfProjectiles = 1;
+  m_WeaponDamage = 15.0f;
+
   m_fTime = 0.0f;
   m_uPoints = 0;
   m_uDifLevel = DID_VERY_EASY;
-  m_uFireCount = 1;
-  m_fDamage = 15.0f;
   m_uNeedPoints = 5000;
   m_uTrackState = TS_INTRO;
   m_IntroState = IS_STATE1;
@@ -370,17 +371,37 @@ void CLevel::UpdateGame(const float timeDelta) {
   m_fTime += timeDelta;
   m_fFSQTime += timeDelta;
   m_fUpgTime += timeDelta;
+
   this->GenRandomObject();
 
   this->m_vMove = m_pPlayer->GetPos();
   this->m_vMove = glm::mod(m_vMove, 20.0f);
 
-  this->Engine_Entity(timeDelta);
+  this->UpdateEntities(timeDelta);
   this->UpdateProjectiles(timeDelta);
+  this->CheckCollisions();
   this->CheckDifLevel();
 
   //if(m_pPlayer->GetHealth() < 0.0f)
   //  m_uTrackState = TS_GAMEOVER;
+}
+
+void CLevel::UpdateEntities(const float timeDelta) {
+  std::vector<CEntity*>::iterator it = m_Entities.begin();
+  while(it != m_Entities.end()) {
+    if((*it)->IsDeleted()) {
+      it = m_Entities.erase(it);
+      continue;
+    }
+
+    (*it)->Update(timeDelta);
+
+    if((*it)->GetPos().y > 4.0f && (*it)->GetType()->GetGroup() != EG_PLAYER) {
+      (*it)->Delete();
+    }
+
+    it++;
+  }
 }
 
 void CLevel::UpdateProjectiles(const float timeDelta) {
@@ -389,7 +410,6 @@ void CLevel::UpdateProjectiles(const float timeDelta) {
   while(it != m_Projectiles.end()) {
     CProjectile* pProjectile = *it;
 
-    pProjectile->Update(timeDelta);
 
     if(pProjectile->GetPosition().y < -100.0f) {
       pProjectile->Delete();
@@ -399,6 +419,9 @@ void CLevel::UpdateProjectiles(const float timeDelta) {
       it = m_Projectiles.erase(it);
       continue;
     }
+
+    pProjectile->Update(timeDelta);
+
     it++;
   }
 
@@ -428,13 +451,11 @@ void CLevel::UpdateGUI(const float timeDelta) {
 }
 
 void CLevel::RenderGame(const glm::mat4& transform) {
-  //glPushMatrix();
-
   glm::mat4 newTransform = transform * 
     glm::translate(glm::vec3(0.0f, 12.0f, -12.0f)) * 
     glm::rotate(glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-  this->RenderSkybox(newTransform);
+  RenderSkybox(newTransform);
 
   glm::mat4 entityTransform =
     newTransform * glm::translate(glm::vec3(0.0f, -17.0f, 0.0f));
@@ -443,34 +464,7 @@ void CLevel::RenderGame(const glm::mat4& transform) {
     (*it)->Render(entityTransform);
   }
 
-  //glTranslatef(-m_pPlayer->GetPos().x, 3.0f, 0.0);
-  //if (!this->m_LineParticles.empty()) {
-  //  Uint32 vertSize = sizeof(glm::vec3) + sizeof(glm::vec4);
-  //  Uint32 vertOffset = 0;
-  //  Uint32 colorSize = sizeof(glm::vec3) + sizeof(glm::vec4);
-  //  Uint32 colorOffset = sizeof(glm::vec3);
-
-  //  glBindBuffer(GL_ARRAY_BUFFER, m_LineParticleBufferId);
-
-  //  glEnableClientState(GL_VERTEX_ARRAY);
-  //  glEnableClientState(GL_COLOR_ARRAY);
-
-  //  glVertexPointer(3, GL_FLOAT, vertSize, reinterpret_cast<void*>(vertOffset));
-  //  glColorPointer(4, GL_FLOAT, colorSize, reinterpret_cast<void*>(colorOffset));
-
-  //  glDrawArrays(GL_LINES, 0, m_LineParticles.size() * 2);
-
-  //  glDisableClientState(GL_VERTEX_ARRAY);
-  //  glDisableClientState(GL_COLOR_ARRAY);
-
-  //  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  //}
-
-  //size_t i;
-  //for (i = 0; i < this->m_EntityList.size(); ++i)
-  //  this->m_EntityList[i]->Render();
-
-  //glPopMatrix();
+  RenderProjectiles(entityTransform);
 }
 
 void CLevel::RenderSkybox(const glm::mat4 & transform) {
@@ -482,28 +476,107 @@ void CLevel::RenderSkybox(const glm::mat4 & transform) {
   m_pSpaceBottom->Render(moveMatrix * glm::translate(glm::vec3(0.0f, -20.0f, 0.0f)), color);
 }
 
+void CLevel::RenderProjectiles(const glm::mat4 & transform) {
+  if(m_LineParticles.empty())
+    return;
+
+  glm::mat4 newTransform = transform * glm::translate(-glm::vec3(m_pPlayer->GetPos().x, 0.0f, 0.0f));
+  glLoadMatrixf(glm::value_ptr(newTransform));
+
+  Uint32 vertSize = sizeof(glm::vec3) + sizeof(glm::vec4);
+  Uint32 vertOffset = 0;
+  Uint32 colorSize = sizeof(glm::vec3) + sizeof(glm::vec4);
+  Uint32 colorOffset = sizeof(glm::vec3);
+
+  glBindBuffer(GL_ARRAY_BUFFER, this->m_LineParticleBufferId);
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_COLOR_ARRAY);
+
+  glVertexPointer(3, GL_FLOAT, vertSize, reinterpret_cast<void*>(vertOffset));
+  glColorPointer(4, GL_FLOAT, colorSize, reinterpret_cast<void*>(colorOffset));
+
+  glDrawArrays(GL_LINES, 0, m_LineParticles.size() * 2);
+
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_COLOR_ARRAY);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
 
 void CLevel::CheckCollisions() {
   for(std::vector<CEntity*>::iterator it = m_Entities.begin(); it != m_Entities.end(); it++) {
-
+    CheckEntityCollisions(*it);
+    CheckProjectileCollisions(*it);
   }
 }
 
-void CLevel::CheckProjectileCollisions(CEntity & entity, std::vector<CProjectile*>& projectiles) {
-  if (entity.IsDeleted())
+void CLevel::CheckEntityCollisions(CEntity * pEntity) {
+  if(pEntity->IsDeleted())
     return;
 
-  for (std::vector<CProjectile*>::iterator it = projectiles.begin(); it != projectiles.end(); it++) {
+  std::map<float, CEntity*> collisions;
+
+  glm::vec2 entAPos = GetLevelPos(pEntity);
+  for(std::vector<CEntity*>::iterator it = m_Entities.begin(); it != m_Entities.end(); it++) {
+    if(pEntity == *it || (*it)->IsDeleted())
+      continue;
+
+    glm::vec2 entBPos = GetLevelPos(*it);
+
+    float dist = glm::distance(entAPos, entBPos);
+    if(dist < 3.0f) {
+      collisions[dist] = *it;
+    }
+  }
+
+  for(std::map<float, CEntity*>::iterator it = collisions.begin(); it != collisions.end(); it++) {
+    ExecuteCollision(pEntity, it->second);
+    if(pEntity->IsDeleted())
+      return;
+  }
+}
+
+void CLevel::CheckProjectileCollisions(CEntity *pEntity) {
+  if (pEntity->IsDeleted())
+    return;
+
+  std::map<float, CProjectile*> collisions;
+
+  glm::vec2 entPos = GetLevelPos(pEntity);
+  for (std::vector<CProjectile*>::iterator it = m_Projectiles.begin(); it != m_Projectiles.end(); it++) {
     if ((*it)->IsDeleted())
       continue;
 
     float dist;
-    if (entity.GetId() != EID_BOMB && (*it)->CheckCollision(entity.GetPos(), 1.4f, dist)) {
-      entity.ModHealth(-(*it)->GetDamage());
-      (*it)->Delete();
-      continue;
+    if ((*it)->CheckCollision(entPos, 1.4f, dist)) {
+      collisions[dist] = *it;
     }
   }
+
+  for(std::map<float, CProjectile*>::iterator it = collisions.begin(); it != collisions.end(); it++) {
+    if(pEntity->GetType()->GetGroup() == EG_ENEMY) {
+      pEntity->ModHealth(-it->second->GetDamage());
+      it->second->Delete();
+    }
+  }
+}
+
+const bool CLevel::ExecuteCollision(CEntity * pEntityA, CEntity * pEntityB) {
+  if(pEntityA->GetType()->GetGroup() == EG_PLAYER) {
+    if(pEntityB->GetType()->GetGroup() == EG_ENEMY) {
+      pEntityA->ModHealth(-pEntityB->GetType()->GetDamage());
+      pEntityB->Delete();
+      return true;
+    }
+    else if(pEntityB->GetType()->GetGroup() == EG_OTHER) {
+      pEntityA->ModHealth(pEntityB->GetType()->GetDamage());
+      pEntityB->Delete();
+      return true;
+    }
+  }
+
+  return false;
 }
 
 void CLevel::Engine_Intro(float fDT) {
@@ -668,22 +741,27 @@ void CLevel::Render_GameOver() {
 }
 
 void CLevel::PlayerModRotation(const float value) {
-  if (m_pPlayer)
+  if (m_pPlayer) {
     m_pPlayer->ModRotation(value);
+  }
 }
 
-void CLevel::FireWeapon() {
+void CLevel::PlayerFireWeapon() {
   float fSpeed = 50.0f;
-  unsigned i;
-  glm::vec2 vStPos = glm::vec2(m_fMoveX, -2.0f);
-  glm::vec2 vVec;
-  for(i = 0; i < m_uFireCount; ++i) {
-    if(m_uFireCount == 1)
-      vVec = glm::vec2(0.0f, -1.0f);
-    else
-      vVec = glm::rotate(glm::vec2(0.0f, -1.0f), glm::radians(-6.0f * float(m_uFireCount - 1) / 2.0f + float(i) * 6.0f));
+  glm::vec4 projectileColor = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+  glm::vec2 startPos = glm::vec2(this->m_pPlayer->GetPos().x, -2.0f);
 
-    this->m_Projectiles.push_back(new CProjectile(vStPos, vVec, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), 2.0f, fSpeed, m_fDamage));
+  if(m_WeaponNumberOfProjectiles == 1) {
+    CProjectile* pProj = new CProjectile(startPos, glm::vec2(0.0f, -1.0f), projectileColor, 1.0f, fSpeed, m_WeaponDamage);
+    m_Projectiles.push_back(pProj);
+  }
+  else {
+    for(Uint32 i = 0; i < m_WeaponNumberOfProjectiles; i++) {
+      glm::vec2 vec = glm::rotate(glm::vec2(0.0f, -1.0f), glm::radians(-6.0f * float(m_WeaponNumberOfProjectiles - 1) / 2.0f + float(i) * 6.0f));
+
+      CProjectile* pProj = new CProjectile(startPos, vec, projectileColor, 1.0f, fSpeed, m_WeaponDamage);
+      m_Projectiles.push_back(pProj);
+    }
   }
 }
 
@@ -695,6 +773,7 @@ void CLevel::Clear() {
     delete *it;
   }
 
+  m_pPlayer = nullptr;
   m_Projectiles.clear();
   m_LineParticles.clear();
   m_Entities.clear();
@@ -751,7 +830,6 @@ void CLevel::SetDifLevel(unsigned uDifLevel) {
 
 const glm::vec2 CLevel::CreateEntityPosition() {
   float randF = float(rand() % 200 + 1 - 100);
-  //return glm::vec2(randF / 100.0f * 30.0f + m_fMoveX + (100.0f * this->m_pPlayer->GetVec().x), -80.0f);
   return glm::vec2(randF / 100.0f * 30.0f, -80.0f);
 }
 
@@ -790,67 +868,6 @@ void CLevel::GenRandomObject() {
   }
 }
 
-void CLevel::Engine_Entity(float timeDelta) {
-  std::vector<CEntity*>::iterator it = m_Entities.begin();
-  while(it != m_Entities.end()) {
-    if((*it)->IsDeleted()) {
-      it = m_Entities.erase(it);
-      continue;
-    }
-
-    (*it)->Update(timeDelta);
-
-    if((*it)->GetPos().y > 4.0f && (*it)->GetType()->GetGroup() != EG_PLAYER) {
-      (*it)->Delete();
-    }
-
-    it++;
-  }
-
-
-    //this->CheckProjectileCollisions(*m_EntityList[i], m_Projectiles);
-
-    //if(m_EntityList[i]->GetHealth() <= 0.0f) {
-    //  switch(this->m_EntityList[i]->GetId()) {
-    //  case EID_HACK:
-    //  case EID_HACK2:
-    //    m_uPoints += m_EntityList[i]->GetType()->GetPoints();
-    //    if(m_uDifLevel == DID_HOLY_SHIT)
-    //      this->m_pPlayer->ModHealth(1.0f);
-    //    break;
-    //  }
-    //}
-
-    //if(this->m_EntityList[i]->IsDeleted()) {
-    //  delete this->m_EntityList[i];
-    //  this->m_EntityList.erase(this->m_EntityList.begin() + i);
-    //  continue;
-    //}
-
-    //glm::vec3 vPos = glm::vec3(this->m_EntityList[i]->GetPos().x, 0.0f, this->m_EntityList[i]->GetPos().y);
-
-    //if(glm::distance(glm::vec3(m_fMoveX, 0.0f, 0.0f), vPos) < 2.0f) {
-    //  this->m_EntityList[i]->Delete();
-    //  switch(this->m_EntityList[i]->GetId()) {
-    //  case EID_BOMB:
-    //  case EID_HACK:
-    //  case EID_HACK2:
-    //    this->m_pPlayer->ModHealth(-this->m_EntityList[i]->GetType()->GetDamage());
-    //    this->SetFSQ(0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-    //    break;
-
-    //  case CModel::MT_DL_PART:
-    //  case CModel::MT_DL_PART2:
-    //    this->m_uPoints += this->m_EntityList[i]->GetType()->GetPoints();
-    //    this->m_pPlayer->ModHealth(this->m_EntityList[i]->GetType()->GetDamage());
-    //    this->SetFSQ(0.8f, glm::vec3(0.0f, 1.0f, 0.0));
-    //  }
-    //}
-
-    //if(this->m_EntityList[i]->GetPos().y > 4.0f) {
-    //  this->m_EntityList[i]->Delete();
-    //}
-}
 
 void CLevel::ResetGame() {
   Clear();
@@ -858,9 +875,9 @@ void CLevel::ResetGame() {
   m_uPoints = 0;
   m_uDifLevel = DID_VERY_EASY;
   m_uNeedPoints = m_DifficultyLevels[m_uDifLevel]->GetPointsNeeded();
-  m_uFireCount = 1;
+  m_WeaponDamage = 15.0f;
+  m_WeaponNumberOfProjectiles = 1;
   m_uGameOverCharCount = 0;
-  m_fDamage = 15.0f;
   m_fGameOverTime = 0.0f;
   m_fGameOverTime2 = 0.0f;
   m_bGameOver = false;
@@ -883,8 +900,8 @@ void CLevel::CheckDifLevel() {
 
   m_uDifLevel++;
   m_uNeedPoints = m_DifficultyLevels[m_uDifLevel]->GetPointsNeeded();
-  m_uFireCount += 1;
-  m_fDamage += 1.5f;
+  //m_uFireCount += 1;
+  //m_fDamage += 1.5f;
 
   //if(m_pRacer->GetModel()->GetId() != this->GetLevelModelType()) {
   //  delete m_pRacer;
@@ -922,6 +939,12 @@ unsigned CLevel::GetLevelModelType() {
     return CModel::MT_P2PBT;
   };
   return CModel::MT_HTTP20;
+}
+
+const glm::vec2 CLevel::GetLevelPos(CEntity * pEntity) const {
+  if(pEntity->GetType()->GetGroup() == EG_PLAYER)
+    return glm::vec2(pEntity->GetPos().x, 0.0f);
+  return pEntity->GetPos();
 }
 
 void CLevel::SetFSQ(float fTimeOut, glm::vec3 vColor) {

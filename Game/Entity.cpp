@@ -11,14 +11,14 @@
 
 
 CEntityType::CEntityType(const std::string name,
-                                     const EntityGroup group,
-                                     const glm::vec2 & speed,
-                                     const glm::vec4 & color,
-                                     const Uint32 modelId,
-                                     const Uint32 points,
-                                     const float rotSpeed,
-                                     const float maxHealth,
-                                     const float damage) :
+                         const EntityGroup group,
+                         const glm::vec2 & speed,
+                         const glm::vec4 & color,
+                         const Uint32 modelId,
+                         const Uint32 points,
+                         const float rotSpeed,
+                         const float maxHealth,
+                         const float damage) :
   m_Name(name),
   m_Group(group),
   m_Speed(speed),
@@ -71,7 +71,11 @@ const float CEntityType::GetDamage() const {
 //===================================================================================================
 
 
-CEntity::CEntity(CLevel* pLevel, glm::vec2 pos, const EntityId entityId, CEntityType* pType, CModelRepository* pModelRepo) :
+CEntity::CEntity(CLevel* pLevel, 
+                 const glm::vec2& pos, 
+                 const EntityId entityId, 
+                 CEntityType* pType, 
+                 CModelRepository* pModelRepo) :
   m_pLevel(pLevel),
   m_EntityId(entityId),
   m_pType(pType),

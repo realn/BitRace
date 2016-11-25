@@ -76,15 +76,11 @@ void CGame::UpdateKeyboard() {
 }
 
 void CGame::UpdateMouse() {
-	
-	glm::ivec2 mousePos;
-	Uint32 mouseState = SDL_GetMouseState(&mousePos.x, &mousePos.y);
+	Uint32 mouseState = SDL_GetMouseState(&m_MousePos.x, &m_MousePos.y);
+  SDL_GetRelativeMouseState(&m_MousePosDelta.x, &m_MousePosDelta.y);
 
 	this->m_MouseButtonStatePrev = this->m_MouseButtonState;
 	this->m_MouseButtonState = mouseState;
-
-	this->m_MousePosPrev = this->m_MousePos;
-	this->m_MousePos = mousePos;
 }
 
 void CGame::UpdateTimer() {
@@ -98,12 +94,10 @@ void CGame::UpdateTimer() {
 }
 
 void CGame::UpdateGame(const float timeDelta) {
-  
-
 	if (m_RaceTrack.IsGameRuning()) {
 		m_RaceTrack.PlayerModRotation(-float(this->GetMousePosDelta().x));
 		if (this->IsMouseButtonPressed(SDL_BUTTON_LEFT)) {
-			this->m_RaceTrack.FireWeapon();
+			this->m_RaceTrack.PlayerFireWeapon();
 		}
 	}
 	if (m_RaceTrack.IsGameOver()) {
