@@ -30,11 +30,6 @@ CIntro::CIntro(CGUI* pGUI, const glm::vec2& size) :
   m_pTechText1Control(nullptr),
   m_pTechText2Control(nullptr),
   m_pLogoControl(nullptr),
-  m_pPresentAnim(nullptr),
-  m_pTechText1Anim(nullptr),
-  m_pTechText2Anim(nullptr),
-  m_pLogoAnim(nullptr),
-  m_pWaitTimer(nullptr),
   m_pControllerList(nullptr),
   m_Size(size),
   m_IntroState(IS_STATE1),
@@ -63,36 +58,91 @@ bool CIntro::Init(const std::string& logoFilename, const glm::vec2& size) {
   this->m_pLogoControl->SetVisible(false);
   this->m_pLogoControl->SetTexture(this->m_LogoTexId);
   this->m_pLogoControl->SetTextureCoords(glm::vec2(0.0f), glm::vec2(0.5f));
-  this->m_pLogoAnim = new CGUIFadeAnimation(m_pLogoControl, 1.0f);
 
   this->m_pPresentTextControl = new CGUITextControl(m_pScreen, m_TextPresent, textColor);
   this->m_pPresentTextControl->SetVisible(false);
-  this->m_pPresentAnim = new CGUITextAnimation(m_pPresentTextControl, m_TextPresent, 0.6f);
 
   this->m_pTechText1Control = new CGUITextControl(m_pScreen, m_TextTech1, textColor);
   this->m_pTechText1Control->SetVisible(false);
-  this->m_pTechText1Anim = new CGUITextAnimation(m_pTechText1Control, m_TextTech1, 0.6f);
 
   this->m_pTechText2Control = new CGUITextControl(m_pScreen, this->m_TextTech2, textColor);
   this->m_pTechText2Control->SetVisible(false);
-  this->m_pTechText2Anim = new CGUITextAnimation(m_pTechText2Control, m_TextTech2, 0.6f);
+
+  CGUIRectControl* pTechLogo1Control = new CGUIRectControl(m_pScreen, glm::vec2(240.0f));
+  pTechLogo1Control->SetVisible(false);
+  pTechLogo1Control->SetTexture(this->m_LogoTexId);
+  pTechLogo1Control->SetTextureCoords(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f));
+
+  CGUIRectControl* pTechLogo2Control = new CGUIRectControl(m_pScreen, glm::vec2(240.0f));
+  pTechLogo2Control->SetVisible(false);
+  pTechLogo2Control->SetTexture(this->m_LogoTexId);
+  pTechLogo2Control->SetTextureCoords(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f));
 
   this->m_pScreen->AddControl(m_pLogoControl, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+  this->m_pScreen->AddControl(pTechLogo1Control, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+  this->m_pScreen->AddControl(pTechLogo2Control, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
   this->m_pScreen->AddControl(m_pPresentTextControl, glm::vec2(0.0f, 100.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
   this->m_pScreen->AddControl(m_pTechText1Control, glm::vec2(0.0f, -100.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
   this->m_pScreen->AddControl(m_pTechText2Control, glm::vec2(0.0f, 100.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
 
-  this->m_pLogoAnim->Show();
-
-  this->m_pWaitTimer = new CGUITimer(1.0f);
-  this->m_pWaitTimer->Stop();
-
   this->m_pControllerList = new CGUIControllerList();
-  this->m_pControllerList->AddController(m_pLogoAnim);
-  this->m_pControllerList->AddController(m_pPresentAnim);
-  this->m_pControllerList->AddController(m_pTechText1Anim);
-  this->m_pControllerList->AddController(m_pTechText2Anim);
-  this->m_pControllerList->AddController(m_pWaitTimer);
+  CGUIControllerList* pList = m_pControllerList;
+
+  {
+    m_pIntroStart = new CGUIFadeAnimation(pList, m_pLogoControl, 1.0f);
+    m_pIntroStart->Start();
+
+    IGUIController* pTextShowAnim = new CGUITextAnimation(pList, m_pPresentTextControl, 0.6f);
+    CGUIDoneTrigger* pTrigger = new CGUIDoneTrigger(pList, m_pIntroStart, pTextShowAnim);
+
+    IGUIController* pWaitTimer = new CGUITimer(pList, 1.0f);
+    pTrigger = new CGUIDoneTrigger(pList, pTextShowAnim, pWaitTimer);
+
+    IGUIController* pTextHideAnim = new CGUITextAnimation(pList, m_pPresentTextControl, 0.6f, false);
+    IGUIController* pFadeHideAnim = new CGUIFadeAnimation(pList, m_pLogoControl, 1.0f, false);
+
+    pTrigger = new CGUIDoneTrigger(pList, pWaitTimer);
+    pTrigger->AddTarget(pTextHideAnim);
+    pTrigger->AddTarget(pFadeHideAnim);
+
+    IGUIController* pTextShowAnim1 = new CGUITextAnimation(pList, m_pTechText1Control, 0.6f);
+    IGUIController* pTextShowAnim2 = new CGUITextAnimation(pList, m_pTechText2Control, 0.6f);
+
+    pTrigger = new CGUIDoneTrigger(pList);
+    pTrigger->AddCondition(pTextHideAnim);
+    pTrigger->AddCondition(pFadeHideAnim);
+    pTrigger->AddTarget(pTextShowAnim1);
+    pTrigger->AddTarget(pTextShowAnim2);
+
+    IGUIController* pFadeShowAnim = new CGUIFadeAnimation(pList, pTechLogo1Control, 1.0f);
+
+    pTrigger = new CGUIDoneTrigger(pList);
+    pTrigger->AddCondition(pTextShowAnim1);
+    pTrigger->AddCondition(pTextShowAnim2);
+    pTrigger->AddTarget(pFadeShowAnim);
+
+    pFadeHideAnim = new CGUIFadeAnimation(pList, pTechLogo1Control, 1.0f, false);
+    pTrigger = new CGUIDoneTrigger(pList, pFadeShowAnim, pFadeHideAnim);
+
+    pFadeShowAnim = new CGUIFadeAnimation(pList, pTechLogo2Control, 1.0f);
+    pTrigger = new CGUIDoneTrigger(pList, pFadeHideAnim, pFadeShowAnim);
+
+
+    pFadeHideAnim = new CGUIFadeAnimation(pList, pTechLogo2Control, 1.0f, false);
+    IGUIController* pTextHideAnim1 = new CGUITextAnimation(pList, m_pTechText1Control, 0.6f, false);
+    IGUIController* pTextHideAnim2 = new CGUITextAnimation(pList, m_pTechText2Control, 0.6f, false);
+    pTrigger = new CGUIDoneTrigger(pList, pFadeShowAnim);
+    pTrigger->AddTarget(pFadeHideAnim);
+    pTrigger->AddTarget(pTextHideAnim1);
+    pTrigger->AddTarget(pTextHideAnim2);
+
+    pTrigger = new CGUIDoneTrigger(pList);
+    pTrigger->AddCondition(pFadeHideAnim);
+    pTrigger->AddCondition(pTextHideAnim1);
+    pTrigger->AddCondition(pTextHideAnim2);
+
+    m_pIntroEnd = pTrigger;
+  }
 
   return true;
 }
@@ -106,11 +156,7 @@ void CIntro::Free() {
 
   m_pControllerList = nullptr;
   m_pScreen = nullptr;
-  m_pPresentAnim = nullptr;
-  m_pLogoAnim = nullptr;
-  m_pTechText1Anim = nullptr;
-  m_pTechText2Anim = nullptr;
-
+ 
   m_IntroState = 0;
   m_LogoTexId = 0;
 }
@@ -118,98 +164,9 @@ void CIntro::Free() {
 void CIntro::Update(float timeDelta) {
   this->m_pControllerList->Update(timeDelta);
 
-  switch (m_IntroState) {
-  case IS_STATE1:
-    if(!m_pLogoAnim->IsAnimating()) {
-      m_IntroState++;
-      m_pPresentAnim->Show();
-    }
-    break;
-
-  case IS_STATE2:
-    if(!m_pPresentAnim->IsAnimating()) {
-      m_IntroState++;
-      m_pWaitTimer->Start();
-    }
-    break;
-
-  case IS_STATE3:
-    if(m_pWaitTimer->IsDone()) {
-      m_IntroState++;
-      m_pPresentAnim->Hide();
-      m_pLogoAnim->Hide();
-    }
-    break;
-
-  case IS_STATE4:
-    if(!m_pPresentAnim->IsAnimating() && !m_pLogoAnim->IsAnimating()) {
-      m_IntroState++;
-      m_pTechText1Anim->Show();
-      m_pTechText2Anim->Show();
-    }
-    break;
-
-  case IS_STATE5:
-    if(!m_pTechText1Anim->IsAnimating() && !m_pTechText2Anim->IsAnimating()) {
-      m_IntroState++;
-      m_pLogoControl->SetTextureCoords(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f));
-      m_pLogoAnim->Show();
-    }
-    break;
-
-  case IS_STATE6:
-    if(!m_pLogoAnim->IsAnimating()) {
-      m_IntroState++;
-      m_pLogoAnim->Hide();
-    }
-    break;
-
-  case IS_STATE7:
-    if(!m_pLogoAnim->IsAnimating()) {
-      m_IntroState++;
-      m_pLogoControl->SetTextureCoords(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f));
-      m_pLogoAnim->Show();
-    }
-    break;
-
-  case IS_STATE8:
-    if(!m_pLogoAnim->IsAnimating()) {
-      m_IntroState++;
-      m_pLogoAnim->Hide();
-      m_pTechText1Anim->Hide();
-      m_pTechText2Anim->Hide();
-    }
-    break;
-
-  case IS_STATE9:
-    if(!m_pLogoAnim->IsAnimating() && !m_pTechText1Anim->IsAnimating() && !m_pTechText2Anim->IsAnimating()) {
-      m_IntroState++;
-      m_pLogoControl->SetTextureCoords(glm::vec2(0.5f, 0.0f), glm::vec2(0.5f));
-      m_pLogoAnim->Show();
-    }
-    break;
-
-  case IS_STATE10:
-    if(!m_pLogoAnim->IsAnimating()) {
-      m_IntroState++;
-      m_pWaitTimer->Start();
-    }
-    break;
-
-  case IS_STATE11:
-    if(m_pWaitTimer->IsDone()) {
-      m_IntroState++;
-      m_pLogoAnim->Hide();
-    }
-    break;
-
-  case IS_STATE12:
-    if(!m_pLogoAnim->IsAnimating()) {
-      m_IntroState = 0;
-      m_IntroEnd = true;
-    }
-    break;
-  };
+  if(m_pIntroEnd->IsDone()) {
+    m_IntroEnd = true;
+  }
 }
 
 void CIntro::Render() {

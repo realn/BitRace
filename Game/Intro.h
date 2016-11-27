@@ -10,10 +10,7 @@ class CGUIScreen;
 class CGUITextControl;
 class CGUIRectControl;
 
-class CGUITextAnimation;
-class CGUIFadeAnimation;
-class CGUITimer;
-
+class IGUIController;
 class CGUIControllerList;
 
 class CIntro {
@@ -25,12 +22,10 @@ private:
   CGUITextControl* m_pTechText1Control;
   CGUITextControl* m_pTechText2Control;
   CGUIRectControl* m_pLogoControl;
+  
 
-  CGUITextAnimation*  m_pPresentAnim;
-  CGUITextAnimation*  m_pTechText1Anim;
-  CGUITextAnimation*  m_pTechText2Anim;
-  CGUIFadeAnimation*  m_pLogoAnim;
-  CGUITimer*  m_pWaitTimer;
+  IGUIController* m_pIntroStart;
+  IGUIController* m_pIntroEnd;
 
   CGUIControllerList* m_pControllerList;
 

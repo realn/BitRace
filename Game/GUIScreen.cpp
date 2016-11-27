@@ -290,8 +290,14 @@ std::vector<CGUIScreenItem*>::const_iterator CGUIScreen::FindControl(CGUIControl
 //================================================================================
 
 
-CGUITextAnimation::CGUITextAnimation(CGUITextControl* pControl, const std::string text, const float animTime) :
-  m_pControl(pControl), m_Text(text), m_AnimTime(animTime), m_Time(0.0f), m_CharTime(0.0f), m_CharLen(0), m_Animating(false), m_Visible(true) 
+CGUITextAnimation::CGUITextAnimation(CGUIControllerList* pList, CGUITextControl* pControl, const std::string text, const float animTime, const bool show) :
+  IGUIController(pList), m_pControl(pControl), m_Text(text), m_AnimTime(animTime), m_Time(0.0f), m_CharTime(0.0f), m_CharLen(0), m_Visible(show) 
+{
+  m_CharTime = m_AnimTime / m_Text.length();
+}
+
+CGUITextAnimation::CGUITextAnimation(CGUIControllerList* pList, CGUITextControl* pControl, const float animTime, const bool show) :
+  IGUIController(pList), m_pControl(pControl), m_Text(pControl->GetText()), m_AnimTime(animTime), m_CharTime(0.0f), m_CharLen(0), m_Visible(show) 
 {
   m_CharTime = m_AnimTime / m_Text.length();
 }
@@ -299,7 +305,7 @@ CGUITextAnimation::CGUITextAnimation(CGUITextControl* pControl, const std::strin
 CGUITextAnimation::~CGUITextAnimation() {}
 
 void CGUITextAnimation::Update(float timeDelta) {
-  if(!m_Animating)
+  if(!m_Running)
     return;
 
   m_Time += timeDelta;
@@ -312,7 +318,7 @@ void CGUITextAnimation::Update(float timeDelta) {
     if(m_CharLen >= m_Text.length()) {
       m_pControl->SetVisible(true);
       m_pControl->SetText(m_Text, false);
-      m_Animating = false;
+      Done();
       return;
     }
   }
@@ -321,7 +327,7 @@ void CGUITextAnimation::Update(float timeDelta) {
     if(m_CharLen == 0) {
       m_pControl->SetVisible(false);
       m_pControl->SetText(m_Text, false);
-      m_Animating = false;
+      Done();
       return;
     }
   }
@@ -329,44 +335,52 @@ void CGUITextAnimation::Update(float timeDelta) {
   m_pControl->SetText(m_Text.substr(0, m_CharLen) + "_", false);
 }
 
-void CGUITextAnimation::Show() {
+void CGUITextAnimation::Start() {
+  m_Done = false;
+  m_Running = true;
   m_Time = 0.0f;
-  m_CharLen = 0;
-  m_Visible = true;
-  m_Animating = true;
-  m_pControl->SetText("_", false);
+  if (m_Visible) {
+    m_CharLen = 0;
+    m_pControl->SetText("_", false);
+  }
+  else {
+    m_CharLen = m_Text.length();
+    m_pControl->SetText(m_Text, false);
+  }
   m_pControl->SetVisible(true);
+}
+
+void CGUITextAnimation::Stop() {
+  m_Running = false;
+}
+
+void CGUITextAnimation::SetVisible(const bool visible) {
+  m_Visible = visible;
+}
+
+void CGUITextAnimation::Show() {
+  m_Visible = true;
+  this->Start();
 }
 
 void CGUITextAnimation::Hide() {
-  m_Time = 0.0f;
-  m_CharLen = m_Text.length();
   m_Visible = false;
-  m_Animating = true;
-  m_pControl->SetText(m_Text, false);
-  m_pControl->SetVisible(true);
+  this->Start();
 }
 
-const bool CGUITextAnimation::IsAnimating() const {
-  return m_Animating;
-}
-
-const bool CGUITextAnimation::IsVisible() const {
-  return m_Visible;
-}
 
 
 //================================================================================
 
 
-CGUIFadeAnimation::CGUIFadeAnimation(CGUIControl* pControl, const float animTime) :
-  m_pControl(pControl), m_AnimTime(animTime), m_Time(0.0f), m_Animating(false), m_Visible(true) 
+CGUIFadeAnimation::CGUIFadeAnimation(CGUIControllerList* pList, CGUIControl* pControl, const float animTime, const bool visible) :
+  IGUIController(pList), m_pControl(pControl), m_AnimTime(animTime), m_Time(0.0f), m_Visible(visible) 
 {}
 
 CGUIFadeAnimation::~CGUIFadeAnimation() {}
 
 void CGUIFadeAnimation::Update(float timeDelta) {
-  if(!m_Animating)
+  if(!m_Running)
     return;
 
   m_Time = glm::clamp(m_Time + timeDelta, 0.0f, m_AnimTime);
@@ -381,7 +395,7 @@ void CGUIFadeAnimation::Update(float timeDelta) {
       m_pControl->SetVisible(false);
     }
     m_pControl->SetColor(color);
-    m_Animating = false;
+    Done();
     return;
   }
   
@@ -393,30 +407,38 @@ void CGUIFadeAnimation::Update(float timeDelta) {
   m_pControl->SetColor(color);
 }
 
-void CGUIFadeAnimation::Show() {
+void CGUIFadeAnimation::Start() {
+  m_Done = false;
+  m_Running = true;
   m_Time = 0.0f;
-  m_Animating = true;
-  m_Visible = true;
-
   glm::vec4 color = m_pControl->GetColor();
-  color.a = 0.0f;
+  if (m_Visible) {
+    color.a = 0.0f;
+    m_pControl->SetColor(color);
+  }
+  else {
+    color.a = 1.0f;
+    m_pControl->SetColor(color);
+  }
   m_pControl->SetVisible(true);
-  m_pControl->SetColor(color);
+}
+
+void CGUIFadeAnimation::Stop() {
+  m_Running = false;
+}
+
+void CGUIFadeAnimation::SetVisible(const bool visible) {
+  m_Visible = visible;
+}
+
+void CGUIFadeAnimation::Show() {
+  m_Visible = true;
+  Start();
 }
 
 void CGUIFadeAnimation::Hide() {
-  m_Time = 0.0f;
-  m_Animating = true;
   m_Visible = false;
-
-  glm::vec4 color = m_pControl->GetColor();
-  color.a = 1.0f;
-  m_pControl->SetVisible(true);
-  m_pControl->SetColor(color);
-}
-
-const bool CGUIFadeAnimation::IsAnimating() const {
-  return m_Animating;
+  Start();
 }
 
 const bool CGUIFadeAnimation::IsVisible() const {
@@ -427,32 +449,32 @@ const bool CGUIFadeAnimation::IsVisible() const {
 //================================================================================
 
 
-CGUITimer::CGUITimer(const float waitTime) :
-  m_WaitTime(waitTime), m_Time(0.0f) {}
+CGUITimer::CGUITimer(CGUIControllerList* pList, const float waitTime, IGUIController* pTarget, const bool started) :
+  IGUIController(pList, started), m_pTarget(pTarget), m_WaitTime(waitTime), m_Time(0.0f) {}
 
 CGUITimer::~CGUITimer() {}
 
 void CGUITimer::Update(const float timeDelta) {
-  if(m_Time >= m_WaitTime)
+  if (!m_Running)
     return;
 
   m_Time = glm::clamp(m_Time + timeDelta, 0.0f, m_WaitTime);
+  if(m_Time >= m_WaitTime) {
+    Done();
+    if(m_pTarget) {
+      m_pTarget->Start();
+    }
+  }
 }
 
 void CGUITimer::Start() {
   m_Time = 0.0f;
+  m_Running = true;
+  m_Done = false;
 }
 
 void CGUITimer::Stop() {
-  m_Time = m_WaitTime;
-}
-
-const bool CGUITimer::IsTicking() const {
-  return m_Time < m_WaitTime;
-}
-
-const bool CGUITimer::IsDone() const {
-  return m_Time >= m_WaitTime;
+  m_Running = false;;
 }
 
 
@@ -473,8 +495,9 @@ void CGUIControllerList::Update(const float timeDelta) {
   }
 }
 
-void CGUIControllerList::AddController(IGUIController * pController) {
+IGUIController* CGUIControllerList::Add(IGUIController * pController) {
   m_List.insert(pController);
+  return pController;
 }
 
 void CGUIControllerList::Clear() {
@@ -483,3 +506,74 @@ void CGUIControllerList::Clear() {
   }
   m_List.clear();
 }
+
+
+//================================================================================
+
+
+CGUIDoneTrigger::CGUIDoneTrigger(CGUIControllerList* pList, IGUIController * pCondition, IGUIController * pTarget, const bool started) :
+  IGUIController(pList, started), m_CondOp(CO_AND)
+{
+  this->AddCondition(pCondition);
+  this->AddTarget(pTarget);
+}
+
+CGUIDoneTrigger::~CGUIDoneTrigger() {}
+
+void CGUIDoneTrigger::AddCondition(IGUIController * pCondition) {
+  if(pCondition == nullptr)
+    return;
+  if(std::find(m_Conditions.begin(), m_Conditions.end(), pCondition) != m_Conditions.end())
+    return;
+
+  m_Conditions.push_back(pCondition);
+}
+
+void CGUIDoneTrigger::AddTarget(IGUIController * pTarget) {
+  if(pTarget == nullptr)
+    return;
+  if(std::find(m_Targets.begin(), m_Targets.end(), pTarget) != m_Targets.end())
+    return;
+
+  m_Targets.push_back(pTarget);
+}
+
+void CGUIDoneTrigger::SetCondOp(const CondOp condOp) {
+  m_CondOp = condOp;
+}
+
+void CGUIDoneTrigger::Update(const float timeDelta) {
+  if (!m_Running)
+    return;
+
+  bool cond = m_CondOp == CO_AND;
+
+  for(std::vector<IGUIController*>::iterator it = m_Conditions.begin(); it != m_Conditions.end(); it++) {
+    if(m_CondOp == CO_AND)
+      cond &= (*it)->IsDone();
+    else
+      cond |= (*it)->IsDone();
+  }
+
+  if (cond) {
+    Done();
+
+    for(std::vector<IGUIController*>::iterator it = m_Targets.begin(); it != m_Targets.end(); it++) {
+      (*it)->Start();
+    }
+  }
+}
+
+void CGUIDoneTrigger::Start() {
+  m_Done = false;
+  m_Running = true;
+}
+
+void CGUIDoneTrigger::Stop() {
+  m_Running = false;
+}
+
+
+//================================================================================
+
+

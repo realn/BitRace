@@ -147,23 +147,7 @@ private:
   std::vector<CGUIScreenItem*>::const_iterator FindControl(CGUIControl* pControl, CGUIScreenItem** ppItem = nullptr) const;
 };
 
-
-class IGUIController {
-protected:
-  bool m_Enabled;
-
-public:
-  virtual ~IGUIController() {}
-  
-  virtual void Update(const float timeDelta) = 0;
-
-  void SetEnabled(const bool enabled) { m_Enabled = enabled; }
-  const bool IsEnabled() const { return m_Enabled; }
-
-protected:
-  IGUIController(const bool enabled = true) : m_Enabled(enabled) {}
-};
-
+class IGUIController;
 class CGUIControllerList {
 private:
   std::set<IGUIController*> m_List;
@@ -174,8 +158,63 @@ public:
 
   void Update(const float timeDelta);
 
-  void AddController(IGUIController* pController);
+  IGUIController* Add(IGUIController* pController);
   void Clear();
+};
+
+class IGUIController {
+protected:
+  bool m_Enabled;
+  bool m_Running;
+  bool m_Done;
+
+public:
+  virtual ~IGUIController() {}
+  
+  virtual void Update(const float timeDelta) = 0;
+
+  virtual void Start() = 0;
+  virtual void Stop() = 0;
+  void Done() { m_Running = false; m_Done = true; }
+
+  void SetEnabled(const bool enabled) { m_Enabled = enabled; }
+  const bool IsEnabled() const { return m_Enabled; }
+  const bool IsRunning() const { return m_Running; }
+  const bool IsDone() const { return m_Done; }
+
+protected:
+  IGUIController(CGUIControllerList* pList, const bool running = false, const bool enabled = true) : 
+    m_Enabled(enabled), m_Running(running), m_Done(false) 
+  {
+    pList->Add(this);
+  }
+};
+
+class CGUIDoneTrigger :
+  public IGUIController 
+{
+public:
+  enum CondOp {
+    CO_AND = 0,
+    CO_OR = 1
+  };
+protected:
+  std::vector<IGUIController*> m_Conditions;
+  std::vector<IGUIController*> m_Targets;
+  CondOp  m_CondOp;
+
+public:
+  CGUIDoneTrigger(CGUIControllerList* pList, IGUIController* pCondition = nullptr, IGUIController* pTarget = nullptr, bool started = true);
+  virtual ~CGUIDoneTrigger();
+
+  void AddCondition(IGUIController* pCondition);
+  void AddTarget(IGUIController* pTarget);
+
+  void SetCondOp(const CondOp condOp);
+
+  virtual void Update(const float timeDelta) override;
+  virtual void Start() override;
+  virtual void Stop() override;
 };
 
 class CGUITextAnimation :
@@ -188,19 +227,20 @@ private:
   float   m_CharTime;
   Uint32  m_CharLen;
   bool    m_Visible;
-  bool    m_Animating;
 
 public:
-  CGUITextAnimation(CGUITextControl* pControl, const std::string text, const float animTime);
+  CGUITextAnimation(CGUIControllerList* pList, CGUITextControl* pControl, const std::string text, const float animTime, const bool show = true);
+  CGUITextAnimation(CGUIControllerList* pList, CGUITextControl* pControl, const float animTime, const bool show = true);
   virtual ~CGUITextAnimation();
 
   virtual void  Update(const float timeDelta) override;
 
-  void  Show();
-  void  Hide();
+  virtual void Start() override;
+  virtual void Stop() override;
 
-  const bool IsAnimating() const;
-  const bool IsVisible() const;
+  void SetVisible(const bool visible);
+  void Show();
+  void Hide();
 };
 
 class CGUIFadeAnimation :
@@ -210,36 +250,35 @@ private:
   float m_AnimTime;
   float m_Time;
   bool  m_Visible;
-  bool  m_Animating;
 
 public:
-  CGUIFadeAnimation(CGUIControl* pControl, const float animTime);
+  CGUIFadeAnimation(CGUIControllerList* pList, CGUIControl* pControl, const float animTime, const bool visible = true);
   virtual ~CGUIFadeAnimation();
 
   virtual void Update(const float timeDelta) override;
+  virtual void Start() override;
+  virtual void Stop() override;
 
+  void SetVisible(const bool visible);
   void Show();
   void Hide();
 
-  const bool IsAnimating() const;
   const bool IsVisible() const;
 };
 
 class CGUITimer :
   public IGUIController {
 private:
+  IGUIController* m_pTarget;
   float m_WaitTime;
   float m_Time;
 
 public:
-  CGUITimer(const float waitTime);
+  CGUITimer(CGUIControllerList* pList, const float waitTime, IGUIController* pTarget = nullptr, const bool started = false);
   virtual ~CGUITimer();
 
   virtual void Update(const float timeDelta) override;
 
-  void Start();
-  void Stop();
-
-  const bool IsTicking() const;
-  const bool IsDone() const;
+  virtual void Start() override;
+  virtual void Stop() override;
 };
