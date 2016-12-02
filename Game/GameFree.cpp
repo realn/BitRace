@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "Log.h"
 
 void CGame::Free() {
   this->FreeGame();

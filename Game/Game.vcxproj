@@ -92,6 +92,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="FGXFile.cpp" />
+    <ClCompile Include="Files.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameEngine.cpp" />
     <ClCompile Include="GameFree.cpp" />
@@ -101,7 +103,9 @@
     <ClCompile Include="GUIMenu.cpp" />
     <ClCompile Include="GUIScreen.cpp" />
     <ClCompile Include="HighScore.cpp" />
+    <ClCompile Include="IniFiles.cpp" />
     <ClCompile Include="Intro.cpp" />
+    <ClCompile Include="Log.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Level.cpp" />
@@ -109,20 +113,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entity.h" />
+    <ClInclude Include="FGXFile.h" />
+    <ClInclude Include="Files.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GUI.h" />
     <ClInclude Include="GUIMenu.h" />
     <ClInclude Include="GUIScreen.h" />
     <ClInclude Include="HighScore.h" />
+    <ClInclude Include="IniFiles.h" />
     <ClInclude Include="Intro.h" />
+    <ClInclude Include="Log.h" />
+    <ClInclude Include="mathex.h" />
     <ClInclude Include="Model.h" />
     <CustomBuild Include="Level.h" />
     <ClInclude Include="Space.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Common\Common.vcxproj">
-      <Project>{eb4cd8d3-2ec6-4141-9189-8fe348d0f637}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

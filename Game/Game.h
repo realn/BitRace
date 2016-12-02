@@ -1,22 +1,16 @@
 #pragma once
 
-#define DIRECTINPUT_VERSION 0x0800
 #define GAME_NAME "BitRace"
 #define GAME_FULLNAME "CodeRulers BitRace v1.0a"
-#define GAME_DI_BUFSIZE 32
 #define	GAME_BLEND_TEX_SIZE	64
 
 #define GLEW_STATIC
 #include <GL/glew.h>
 //#include <GL/wglew.h>
 
-#include "../Common/Log.h"
-
 #include <SDL.h>
 #include <glm/glm.hpp>
 
-#include "../Common/Files.h"
-#include "../Common/IniFiles.h"
 #include "Level.h"
 #include "GUI.h"
 #include "GUIMenu.h"
@@ -31,7 +25,6 @@ private:
 	CGUI		        m_GUI;
 	CGUIMenuManager	m_MenuMng;
 	CLevel		m_RaceTrack;
-	//CSpace			m_Space;
 	CIntro			m_Intro;
 	CHighScore		m_HS;
 

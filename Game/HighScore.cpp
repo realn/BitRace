@@ -1,6 +1,9 @@
 #include "HighScore.h"
 #include "Game.h"
-#include "../Common/Log.h"
+#include "Log.h"
+#include "Files.h"
+
+#include <sstream>
 
 struct HSHEADER {
   char	FILEID[3];

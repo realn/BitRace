@@ -1,12 +1,10 @@
 #pragma once
 
-#include "GUI.h"
-#include "../Common/Files.h"
-#include <sstream>
-
-#include <SDL.h>
+#include <SDL_types.h>
+#include <string>
 
 class CGame;
+class CGUI;
 
 class CHighScore {
 public:

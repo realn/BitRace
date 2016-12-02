@@ -1,4 +1,6 @@
 #include "Game.h"
+#include "Log.h"
+#include "IniFiles.h"
 
 #include <GL/wglew.h>
 

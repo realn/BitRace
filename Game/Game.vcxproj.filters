@@ -7,6 +7,9 @@
     <Filter Include="GUI">
       <UniqueIdentifier>{8d5914aa-72f0-4c8f-9a37-23923140a354}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{9368ef62-f6e9-4742-9196-3ad59b96a2ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HighScore.cpp">
@@ -42,6 +45,18 @@
     <ClCompile Include="Level.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="FGXFile.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Files.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="IniFiles.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Log.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HighScore.h">
@@ -68,6 +83,21 @@
     </ClInclude>
     <ClInclude Include="Entity.h">
       <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="FGXFile.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Files.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="IniFiles.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Log.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="mathex.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

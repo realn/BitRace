@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "IniFiles.h"
 
 #include <GL/wglew.h>
 
@@ -35,7 +36,7 @@ void CGame::UpdateLogic(const float timeDelta) {
 		break;
 
 	case GS_GAME:
-  	this->UpdateGame(timeDelta);
+		this->UpdateGame(timeDelta);
 		break;
 
 	case GS_HIGH:
@@ -77,7 +78,7 @@ void CGame::UpdateKeyboard() {
 
 void CGame::UpdateMouse() {
 	Uint32 mouseState = SDL_GetMouseState(&m_MousePos.x, &m_MousePos.y);
-  SDL_GetRelativeMouseState(&m_MousePosDelta.x, &m_MousePosDelta.y);
+	SDL_GetRelativeMouseState(&m_MousePosDelta.x, &m_MousePosDelta.y);
 
 	this->m_MouseButtonStatePrev = this->m_MouseButtonState;
 	this->m_MouseButtonState = mouseState;

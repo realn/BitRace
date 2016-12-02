@@ -1,9 +1,9 @@
 #include "Intro.h"
 #include "GUI.h"
 #include "GUIScreen.h"
-#include "../Common/FGXFile.h"
+#include "FGXFile.h"
+#include "Log.h"
 
-#include "../Common/Log.h"
 #define GLEW_STATIC
 #include <GL/glew.h>
 

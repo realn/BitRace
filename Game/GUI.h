@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../Common/Files.h"
-
 #include <SDL_types.h>
 #include <glm/glm.hpp>
 #include <vector>
