@@ -18,9 +18,6 @@
     <ClCompile Include="Model.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="Racer.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="Space.cpp">
       <Filter>Game</Filter>
     </ClCompile>
@@ -54,9 +51,6 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Model.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Racer.h">
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Space.h">

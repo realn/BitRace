@@ -10,6 +10,9 @@ class CGUIScreen;
 
 class CGUITextControl;
 class CGUIProgressBarControl;
+class CGUIRectControl;
+class CGUIControllerList;
+class IGUIController;
 
 class CSpace;
 
@@ -63,6 +66,11 @@ private:
   CGUITextControl*  m_pGUIPointsNeeded;
   CGUITextControl*  m_pGUILevelText;
   CGUIProgressBarControl* m_pGUIHealthBar;
+  CGUIRectControl*  m_pGUIHealOverlay;
+  CGUIRectControl*  m_pGUIDamageOverlay;
+  CGUIControllerList* m_pGUIControllerList;
+  IGUIController*   m_pGUIHealController;
+  IGUIController*   m_pGUIDamageController;
 
   CSpace*  m_pSpaceTop;
   CSpace*  m_pSpaceBottom;
@@ -80,11 +88,7 @@ private:
 
   glm::vec2	m_vMove;
   float m_WeaponDamage;
-  float	m_fTime;
-  float	m_fUpgTimeOut;
-  float	m_fUpgTime;
-  float	m_fFSQTimeOut;
-  float	m_fFSQTime;
+  float m_SpawnTime;
   float	m_fIntroTime;
   float	m_fGameOverTime;
   float	m_fGameOverTime2;
@@ -152,8 +156,6 @@ private:
   void Render_GameOver();
 
   void CheckDifLevel();
-  void SetUpgScreen(float fTimeOut);
-  void SetFSQ(float fTimeOut, glm::vec3 vColor);
   void GenRandomObject();
   void Clear();
   std::string GetDifLevelString();

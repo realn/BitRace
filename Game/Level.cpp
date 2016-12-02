@@ -160,7 +160,6 @@ CLevel::CLevel() :
   m_pSpaceBottom(nullptr),
   m_pPlayer(nullptr),
   m_WeaponDamage(15.0f),
-  m_fTime(0.0f),
   m_fIntroTime(0.0f),
   m_fGameOverTime(0.0f),
   m_fGameOverTime2(0.0f),
@@ -269,17 +268,27 @@ const bool CLevel::Init(CGUI* pGUI, const glm::vec2& screenSize) {
   {
     glm::vec4 textColor(1.0f, 0.5f, 0.5f, 1.0f);
 
-    m_pGUIPoints = new CGUITextControl(m_pGUIScreen, "POINTS: 0", textColor);
+    m_pGUIPoints = new CGUITextControl("POINTS: 0", textColor);
     m_pGUIScreen->AddControl(m_pGUIPoints, glm::vec2(10.0f, 10.0f));
 
-    m_pGUIPointsNeeded = new CGUITextControl(m_pGUIScreen, "NEED POINTS: 0", textColor);
+    m_pGUIPointsNeeded = new CGUITextControl("NEED POINTS: 0", textColor);
     m_pGUIScreen->AddControl(m_pGUIPointsNeeded, glm::vec2(10.0f, 30.0f));
 
-    m_pGUILevelText = new CGUITextControl(m_pGUIScreen, "LEVEL: UNKNOWN", glm::vec4(1.0f));
+    m_pGUILevelText = new CGUITextControl("LEVEL: UNKNOWN", glm::vec4(1.0f));
     m_pGUIScreen->AddControl(m_pGUILevelText, glm::vec2(10.0f, 10.0f), CGUIScreen::IA_RIGHT | CGUIScreen::IA_TOP);
 
-    m_pGUIHealthBar = new CGUIProgressBarControl(m_pGUIScreen, glm::vec2(200.0f, 20.0f), 0.0f, 100.0f, glm::vec4(1.0f, 0.0f, 0.0f, 0.6f));
+    m_pGUIHealthBar = new CGUIProgressBarControl(glm::vec2(200.0f, 20.0f), 0.0f, 100.0f, glm::vec4(1.0f, 0.0f, 0.0f, 0.6f));
     m_pGUIScreen->AddControl(m_pGUIHealthBar, glm::vec2(10.0f, 10.0f), CGUIScreen::IA_LEFT | CGUIScreen::IA_BOTTOM);
+
+    m_pGUIHealOverlay = new CGUIRectControl(screenSize, glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
+    m_pGUIScreen->AddControl(m_pGUIHealOverlay, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+
+    m_pGUIDamageOverlay = new CGUIRectControl(screenSize, glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
+    m_pGUIScreen->AddControl(m_pGUIDamageOverlay, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+
+    m_pGUIControllerList = new CGUIControllerList();
+    m_pGUIHealController = new CGUIFadeAnimation(m_pGUIControllerList, m_pGUIHealOverlay, 0.5f, false);
+    m_pGUIDamageController = new CGUIFadeAnimation(m_pGUIControllerList, m_pGUIDamageOverlay, 0.3f, false);
   }
 
   glGenBuffers(1, &m_LineParticleBufferId);
@@ -294,6 +303,12 @@ void CLevel::Free() {
   m_pGUIPointsNeeded = nullptr;
   m_pGUILevelText = nullptr;
   m_pGUIHealthBar = nullptr;
+  m_pGUIHealOverlay = nullptr;
+  m_pGUIDamageOverlay = nullptr;
+  delete m_pGUIControllerList;
+  m_pGUIControllerList = nullptr;
+  m_pGUIHealController = nullptr;
+  m_pGUIDamageController = nullptr;
 
   if(glIsBuffer(m_LineParticleBufferId))
     glDeleteBuffers(1, &m_LineParticleBufferId);
@@ -308,7 +323,6 @@ void CLevel::Free() {
   m_WeaponNumberOfProjectiles = 1;
   m_WeaponDamage = 15.0f;
 
-  m_fTime = 0.0f;
   m_uPoints = 0;
   m_uDifLevel = DID_VERY_EASY;
   m_uNeedPoints = 5000;
@@ -368,9 +382,7 @@ const CEntity * CLevel::GetPlayer() const {
 }
 
 void CLevel::UpdateGame(const float timeDelta) {
-  m_fTime += timeDelta;
-  m_fFSQTime += timeDelta;
-  m_fUpgTime += timeDelta;
+  m_SpawnTime += timeDelta;
 
   this->GenRandomObject();
 
@@ -448,6 +460,8 @@ void CLevel::UpdateGUI(const float timeDelta) {
   }
   m_pGUILevelText->SetText("LEVEL: " + this->GetDifLevelString());
   m_pGUIHealthBar->SetValue(m_pPlayer->GetHealth());
+
+  m_pGUIControllerList->Update(timeDelta);
 }
 
 void CLevel::RenderGame(const glm::mat4& transform) {
@@ -567,11 +581,13 @@ const bool CLevel::ExecuteCollision(CEntity * pEntityA, CEntity * pEntityB) {
     if(pEntityB->GetType()->GetGroup() == EG_ENEMY) {
       pEntityA->ModHealth(-pEntityB->GetType()->GetDamage());
       pEntityB->Delete();
+      m_pGUIDamageController->Start();
       return true;
     }
     else if(pEntityB->GetType()->GetGroup() == EG_OTHER) {
       pEntityA->ModHealth(pEntityB->GetType()->GetDamage());
       pEntityB->Delete();
+      m_pGUIHealController->Start();
       return true;
     }
   }
@@ -804,18 +820,6 @@ void CLevel::RenderGUI(CGUI *GUI) {
     return;
 
   this->m_pGUIScreen->Render();
-
-  if(this->m_fUpgTime < this->m_fUpgTimeOut) {
-    glPushMatrix();
-    glm::vec4 color(1.0f, 1.0f, 1.0f, (m_fUpgTimeOut - m_fUpgTime) / m_fUpgTimeOut);
-    glScalef(2.0f, 2.0f, 2.0f);
-    GUI->Print(glm::vec2(120.0f, 35.0f), color, "UPGRADE");
-    glPopMatrix();
-  }
-  if(this->m_fFSQTime < this->m_fFSQTimeOut) {
-    glm::vec4 color(m_vFSQColor.x, m_vFSQColor.y, m_vFSQColor.z, ((m_fFSQTimeOut - m_fFSQTime) / m_fFSQTimeOut) * 0.5f);
-    GUI->RenderQuadFullScreen(screenSize, color);
-  }
 }
 
 unsigned CLevel::GetDifLevel() {
@@ -850,9 +854,9 @@ CEntity* CLevel::CreateEntity(const Uint32 entityId, const bool randomStartPos) 
 void CLevel::GenRandomObject() {
   CDifficulty* pDiff = this->m_DifficultyLevels[m_uDifLevel];
 
-  if(m_fTime < pDiff->GetSpawnTime())
+  if(m_SpawnTime < pDiff->GetSpawnTime())
     return;
-  m_fTime = 0.0f;
+  m_SpawnTime = 0.0f;
 
   Uint32 chance = rand() % 100;
   Uint32 lower = 0;
@@ -882,11 +886,8 @@ void CLevel::ResetGame() {
   m_fGameOverTime2 = 0.0f;
   m_bGameOver = false;
   m_bGameRuning = false;
-  m_fUpgTime = 0.0f;
-  m_fUpgTimeOut = 0.0f;
-  m_fFSQTime = 0.0f;
-  m_fFSQTimeOut = 0.0f;
   m_uTrackState = TS_GAME;
+  m_SpawnTime = 0.0f;
 
   this->m_pPlayer = this->CreateEntity(EID_HTTP10, false);
 }
@@ -908,7 +909,7 @@ void CLevel::CheckDifLevel() {
   //  m_pRacer = new CRacer(this->GetLevelModelType(), m_pModelRepo);
   //}
 
-  this->SetUpgScreen(10.0f);
+  //this->SetUpgScreen(10.0f);
 }
 
 std::string CLevel::GetDifLevelString() {
@@ -945,18 +946,6 @@ const glm::vec2 CLevel::GetLevelPos(CEntity * pEntity) const {
   if(pEntity->GetType()->GetGroup() == EG_PLAYER)
     return glm::vec2(pEntity->GetPos().x, 0.0f);
   return pEntity->GetPos();
-}
-
-void CLevel::SetFSQ(float fTimeOut, glm::vec3 vColor) {
-  this->m_fFSQTime = 0.0f;
-  this->m_fFSQTimeOut = fTimeOut;
-  this->m_vFSQColor = vColor;
-}
-
-void CLevel::SetUpgScreen(float fTimeOut) {
-  this->m_fUpgTime = 0.0f;
-  this->m_fUpgTimeOut = fTimeOut;
-  this->SetFSQ(fTimeOut / 4.0f, glm::vec3(1.0f, 1.0f, 0.0f));
 }
 
 void CLevel::SkipIntro() {

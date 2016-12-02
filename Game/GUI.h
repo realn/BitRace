@@ -2,7 +2,7 @@
 
 #include "../Common/Files.h"
 
-#include <SDL.h>
+#include <SDL_types.h>
 #include <glm/glm.hpp>
 #include <vector>
 #include <map>
@@ -20,10 +20,10 @@ public:
 
 private:
   std::map<Uint8, CFontChar> m_CharList;
-  unsigned int m_FontTexture;
-  unsigned int m_uFontList;
+  Uint32 m_FontTexture;
   glm::vec2 m_Size;
   glm::vec2 m_Vertex[4];
+  glm::mat4 m_Transform;
 
   bool LoadFontTexture(std::string filename);
   bool InitFont();

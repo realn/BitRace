@@ -3,10 +3,22 @@
 
 #include "../Common/MathHelper.h"
 
-CGUIControl::CGUIControl(CGUIScreen * pScreen, const glm::vec2 & size, const glm::vec4 & color) :
-  m_pScreen(pScreen), m_Size(size), m_Color(color), m_Visible(true) {}
+CGUIControl::CGUIControl(const glm::vec2 & size, const glm::vec4 & color) :
+  m_pScreen(nullptr), m_Size(size), m_Color(color), m_Visible(true) 
+{
+}
 
-CGUIControl::~CGUIControl() {}
+CGUIControl::~CGUIControl() 
+{
+  if(m_pScreen)
+    m_pScreen->RemoveControl(this, false);
+}
+
+void CGUIControl::SetScreen(CGUIScreen * pScreen) {
+  if(m_pScreen)
+    m_pScreen->RemoveControl(this, false);
+  m_pScreen = pScreen;
+}
 
 void CGUIControl::SetSize(const glm::vec2 & size) {
   this->m_Size = size;
@@ -36,16 +48,15 @@ const bool CGUIControl::IsVisible() const {
 //================================================================================
 
 
-CGUITextControl::CGUITextControl(CGUIScreen * pScreen, const std::string & text, const glm::vec4& color) :
-  CGUIControl(pScreen, glm::vec2(0.0f), color), m_Text(text) 
+CGUITextControl::CGUITextControl(const std::string & text, const glm::vec4& color) :
+  CGUIControl(glm::vec2(0.0f), color), m_Text(text) 
 {
-  this->m_Size = pScreen->GetGUI()->GetPrintSize(m_Text);
 }
 
 CGUITextControl::~CGUITextControl() {}
 
 void CGUITextControl::Render(const glm::vec2& pos) {
-  if (!this->m_Visible)
+  if (!this->m_Visible || m_pScreen == nullptr)
     return;
 
   CGUI* pGUI = this->m_pScreen->GetGUI();
@@ -53,9 +64,15 @@ void CGUITextControl::Render(const glm::vec2& pos) {
   pGUI->Print(pos, this->m_Color, this->m_Text);
 }
 
+void CGUITextControl::SetScreen(CGUIScreen * pScreen) {
+  CGUIControl::SetScreen(pScreen);
+  if(m_pScreen)
+    this->m_Size = m_pScreen->GetGUI()->GetPrintSize(m_Text);
+}
+
 void CGUITextControl::SetText(const std::string & text, bool changeSize) {
   this->m_Text = text;
-  if (changeSize) {
+  if (changeSize && m_pScreen) {
     this->m_Size = this->m_pScreen->GetGUI()->GetPrintSize(this->m_Text);
   }
 }
@@ -68,13 +85,13 @@ const std::string & CGUITextControl::GetText() const {
 //================================================================================
 
 
-CGUIRectControl::CGUIRectControl(CGUIScreen * pScreen, const glm::vec2 & size, const glm::vec4& color) :
-  CGUIControl(pScreen, size, color), m_TexId(0), m_TexPos(0.0f), m_TexSize(1.0f) {}
+CGUIRectControl::CGUIRectControl(const glm::vec2 & size, const glm::vec4& color) :
+  CGUIControl(size, color), m_TexId(0), m_TexPos(0.0f), m_TexSize(1.0f) {}
 
 CGUIRectControl::~CGUIRectControl() {}
 
 void CGUIRectControl::Render(const glm::vec2& pos) {
-  if (!this->m_Visible)
+  if (!this->m_Visible || m_pScreen == nullptr)
     return;
 
   CGUI* pGUI = this->m_pScreen->GetGUI();
@@ -95,13 +112,13 @@ void CGUIRectControl::SetTextureCoords(const glm::vec2 & texPos, const glm::vec2
 //================================================================================
 
 
-CGUIProgressBarControl::CGUIProgressBarControl(CGUIScreen * pScreen, const glm::vec2& size, const float minValue, const float maxValue, const glm::vec4& color) :
-  CGUIControl(pScreen, size, color), m_MinValue(minValue), m_MaxValue(maxValue), m_Value(0.0f) {}
+CGUIProgressBarControl::CGUIProgressBarControl(const glm::vec2& size, const float minValue, const float maxValue, const glm::vec4& color) :
+  CGUIControl(size, color), m_MinValue(minValue), m_MaxValue(maxValue), m_Value(0.0f) {}
 
 CGUIProgressBarControl::~CGUIProgressBarControl() {}
 
 void CGUIProgressBarControl::Render(const glm::vec2& pos) {
-  if (!this->m_Visible)
+  if (!this->m_Visible || m_pScreen == nullptr)
     return;
 
   CGUI* pGUI = this->m_pScreen->GetGUI();
@@ -218,6 +235,7 @@ CGUIScreenItem* CGUIScreen::AddControl(CGUIControl* pControl, const glm::vec2& p
   if(FindControl(pControl) != m_Items.end())
     return nullptr;
 
+  pControl->SetScreen(this);
   CGUIScreenItem* pItem = new CGUIScreenItem(this, pControl, pos, align);
   this->m_Items.push_back(pItem);
   return pItem;
@@ -236,20 +254,26 @@ void CGUIScreen::RemoveControl(CGUIControl* pControl, const bool deleteControl) 
   if (it == m_Items.end())
     return;
 
-  if (!deleteControl)
-    pItem->SetControl(nullptr);
-
   m_Items.erase(it);
+
+  if(!deleteControl) {
+    pItem->GetControl()->SetScreen(nullptr);
+    pItem->SetControl(nullptr);
+  }
   delete pItem;
 }
 
 void CGUIScreen::ClearControls(const bool deleteControls) {
-  for(std::vector<CGUIScreenItem*>::iterator it = m_Items.begin(); it != m_Items.end(); it++) {
-    if (!deleteControls)
+  std::vector<CGUIScreenItem*> items = m_Items;
+  m_Items.clear();
+
+  for(std::vector<CGUIScreenItem*>::iterator it = items.begin(); it != items.end(); it++) {
+    if(!deleteControls) {
+      (*it)->GetControl()->SetScreen(nullptr);
       (*it)->SetControl(nullptr);
+    }
     delete *it;
   }
-  m_Items.clear();
 }
 
 void CGUIScreen::Render() {
@@ -383,43 +407,39 @@ void CGUIFadeAnimation::Update(float timeDelta) {
   if(!m_Running)
     return;
 
-  m_Time = glm::clamp(m_Time + timeDelta, 0.0f, m_AnimTime);
-  glm::vec4 color = m_pControl->GetColor();
-  if(m_Time >= m_AnimTime) {
-    if(m_Visible) {
-      color.a = 1.0f;
-      m_pControl->SetVisible(true);
-    }
-    else {
-      color.a = 0.0f;
-      m_pControl->SetVisible(false);
-    }
-    m_pControl->SetColor(color);
-    Done();
-    return;
-  }
-  
-  if(m_Visible)
-    color.a = m_Time / m_AnimTime;
-  else
-    color.a = 1.0f - (m_Time / m_AnimTime);
+  float timeAdd = m_Visible ? timeDelta : -timeDelta;
 
+  m_Time = glm::clamp(m_Time + timeAdd, 0.0f, m_AnimTime);
+  glm::vec4 color = m_pControl->GetColor();
+  color.a = m_Time / m_AnimTime;
   m_pControl->SetColor(color);
+
+  if(m_Visible && m_Time == m_AnimTime) {
+    m_pControl->SetVisible(true);
+    Done();
+  }
+  else if(!m_Visible && m_Time == 0.0f) {
+    m_pControl->SetVisible(false);
+    Done();
+  }
+  else {
+    m_pControl->SetVisible(true);
+  }
 }
 
 void CGUIFadeAnimation::Start() {
   m_Done = false;
   m_Running = true;
-  m_Time = 0.0f;
   glm::vec4 color = m_pControl->GetColor();
   if (m_Visible) {
     color.a = 0.0f;
-    m_pControl->SetColor(color);
+    m_Time = 0.0f;
   }
   else {
     color.a = 1.0f;
-    m_pControl->SetColor(color);
+    m_Time = m_AnimTime;
   }
+  m_pControl->SetColor(color);
   m_pControl->SetVisible(true);
 }
 

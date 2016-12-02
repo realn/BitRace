@@ -17,8 +17,10 @@ protected:
   bool      m_Visible;
 
 public:
-  CGUIControl(CGUIScreen* pScreen, const glm::vec2& size, const glm::vec4& color = glm::vec4(1.0f));
+  CGUIControl(const glm::vec2& size, const glm::vec4& color = glm::vec4(1.0f));
   virtual ~CGUIControl();
+
+  virtual void  SetScreen(CGUIScreen* pScreen);
 
   virtual void Render(const glm::vec2& pos) = 0;
 
@@ -38,11 +40,12 @@ protected:
   std::string m_Text;
 
 public:
-  CGUITextControl(CGUIScreen* pScreen, const std::string& text, const glm::vec4& color = glm::vec4(1.0f));
+  CGUITextControl(const std::string& text, const glm::vec4& color = glm::vec4(1.0f));
   virtual ~CGUITextControl();
 
   virtual void Render(const glm::vec2& pos) override;
 
+  virtual void SetScreen(CGUIScreen* pScreen) override;
   void  SetText(const std::string& text, bool changeSize = true);
 
   const std::string&  GetText() const;
@@ -56,7 +59,7 @@ protected:
   glm::vec2 m_TexSize;
 
 public:
-  CGUIRectControl(CGUIScreen* pScreen, const glm::vec2& size, const glm::vec4& color = glm::vec4(1.0f));
+  CGUIRectControl(const glm::vec2& size, const glm::vec4& color = glm::vec4(1.0f));
   virtual ~CGUIRectControl();
 
   virtual void Render(const glm::vec2& pos) override;
@@ -73,7 +76,7 @@ protected:
   float m_Value;
 
 public:
-  CGUIProgressBarControl(CGUIScreen* pScreen, const glm::vec2& size, const float minValue = 0.0f, const float maxValue = 1.0f, const glm::vec4& color = glm::vec4(1.0f));
+  CGUIProgressBarControl(const glm::vec2& size, const float minValue = 0.0f, const float maxValue = 1.0f, const glm::vec4& color = glm::vec4(1.0f));
   virtual ~CGUIProgressBarControl();
 
   virtual void Render(const glm::vec2& pos) override;
@@ -175,7 +178,9 @@ public:
 
   virtual void Start() = 0;
   virtual void Stop() = 0;
+
   void Done() { m_Running = false; m_Done = true; }
+  void Run() { m_Running = true; m_Done = false; }
 
   void SetEnabled(const bool enabled) { m_Enabled = enabled; }
   const bool IsEnabled() const { return m_Enabled; }

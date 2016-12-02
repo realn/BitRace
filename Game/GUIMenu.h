@@ -9,6 +9,8 @@ class CGame;
 class CGUI;
 class CGUIMenu;
 class CGUIScreen;
+class CGUIControllerList;
+class CGUIFadeAnimation;
 
 class CGUITextControl;
 class CGUIRectControl;
@@ -24,6 +26,7 @@ private:
   CGUIMenu*     m_pMenu;
   CGUITextControl*  m_pTextControl;
   CGUIRectControl*  m_pRectControl;
+  CGUIFadeAnimation*  m_pRectFadeAnim;
   Uint32		m_Id;
   Uint32		m_UserDefId;
   Uint32		m_Flags;
@@ -59,6 +62,7 @@ private:
   CGUIMenuManager*    m_pMenuMng;
   CGUIScreen*         m_pScreen;
   CGUITextControl*    m_pTitleControl;
+  CGUIControllerList* m_pControllerList;
   std::vector<CGUIMenuItem*> m_Items;
   Uint32	m_Id;
   Uint32	m_Flags;
@@ -85,6 +89,7 @@ public:
   void SetVisible(const bool visible);
 
   CGUIScreen*  GetScreen() const;
+  CGUIControllerList* GetControllerList() const;
   const std::string GetTitle() const;
   const bool IsVisible() const;
   const Uint32 GetClickedID() const;

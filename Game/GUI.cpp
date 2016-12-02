@@ -4,6 +4,7 @@
 #include "../Common/MathHelper.h"
 #include <stdarg.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 CGUI::CGUI() {
   this->m_Vertex[0] = glm::vec2(0.0f, 16.0f);
@@ -49,8 +50,6 @@ bool CGUI::LoadFontTexture(std::string filename) {
 }
 
 bool CGUI::InitFont() {
-  this->m_uFontList = glGenLists(256);
-
   Uint32 i;
   float cx;
   float cy;
@@ -87,8 +86,6 @@ bool CGUI::Init() {
 }
 
 void CGUI::Free() {
-  if (glIsList(this->m_uFontList))
-    glDeleteLists(this->m_uFontList, 256);
   if (glIsTexture(this->m_FontTexture))
     glDeleteTextures(1, &this->m_FontTexture);
 }
@@ -96,13 +93,7 @@ void CGUI::Free() {
 void CGUI::Begin(const glm::vec2& size) {
   this->m_Size = size;
 
-  glPushMatrix();
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix();
-  glLoadIdentity();
-  gluOrtho2D(0.0f, size.x, size.y, 0.0f);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  m_Transform = glm::ortho(0.0f, size.x, size.y, 0.0f);
   glPushAttrib(GL_ENABLE_BIT);
 
   glDisable(GL_DEPTH_TEST);
@@ -115,10 +106,6 @@ void CGUI::Begin(const glm::vec2& size) {
 
 void CGUI::End() {
   glPopAttrib();
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix();
 }
 
 void CGUI::Print(const glm::vec2& pos, const glm::vec4& color, std::string format, ...) const {
@@ -150,6 +137,9 @@ void CGUI::Print(const glm::vec2& pos, const glm::vec4& color, std::string forma
     textPos += glm::vec2(fontChar.m_Adv, 0.0f);
   }
 
+  glLoadMatrixf(glm::value_ptr(m_Transform));
+  glColor4fv(glm::value_ptr(color));
+
   glVertexPointer(2, GL_FLOAT, 0, &vertList[0]);
   glTexCoordPointer(2, GL_FLOAT, 0, &texList[0]);
 
@@ -157,7 +147,6 @@ void CGUI::Print(const glm::vec2& pos, const glm::vec4& color, std::string forma
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
   glBlendFunc(GL_ONE, GL_ONE);
-  glColor4fv(glm::value_ptr(color));
   glDrawArrays(GL_QUADS, 0, vertList.size());
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -208,21 +197,23 @@ void CGUI::RenderQuad(const glm::vec2 & pos, const glm::vec2 & size,
   ind[4] = 2;
   ind[5] = 3;
 
+  glLoadMatrixf(glm::value_ptr(m_Transform));
+  glColor4fv(glm::value_ptr(color));
+
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
   glVertexPointer(2, GL_FLOAT, 0, vert);
   glTexCoordPointer(2, GL_FLOAT, 0, texc);
 
-  if(texId) {
+  if(texId != 0) {
     glBindTexture(GL_TEXTURE_2D, texId);
   }
   else
     glDisable(GL_TEXTURE_2D);
 
-  glColor4fv(glm::value_ptr(color));
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, ind);
 
-  if(texId) {
+  if(texId != 0) {
     glBindTexture(GL_TEXTURE_2D, m_FontTexture);
   }
   else
@@ -249,11 +240,13 @@ void CGUI::RenderQuadLines(const glm::vec2 & pos, const glm::vec2 & size, const 
   ind[6] = 3;
   ind[7] = 0;
 
+  glLoadMatrixf(glm::value_ptr(m_Transform));
+  glColor4fv(glm::value_ptr(color));
+
   glDisable(GL_TEXTURE_2D);
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer(2, GL_FLOAT, 0, vert);
 
-  glColor4fv(glm::value_ptr(color));
   glDrawElements(GL_LINES, 8, GL_UNSIGNED_SHORT, ind);
 
   glDisableClientState(GL_VERTEX_ARRAY);
@@ -262,7 +255,7 @@ void CGUI::RenderQuadLines(const glm::vec2 & pos, const glm::vec2 & size, const 
 
 void CGUI::RenderQuadFullScreen(const glm::vec2& size, const glm::vec4& color, 
                                 const Uint32 texId, const glm::vec2& texPos, const glm::vec2& texSize) {
-  this->RenderQuad(glm::vec2(0.0f), size, color, texId, texPos, texSize);
+  RenderQuad(glm::vec2(0.0f), size, color, texId, texPos, texSize);
 }
 
 void CGUI::RenderProgressBar(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const float progress) {

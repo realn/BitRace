@@ -54,26 +54,26 @@ bool CIntro::Init(const std::string& logoFilename, const glm::vec2& size) {
   this->m_pScreen = new CGUIScreen(m_pGUI, m_Size);
   glm::vec4 textColor(0.0f, 1.0f, 0.0f, 1.0f);
 
-  this->m_pLogoControl = new CGUIRectControl(m_pScreen, glm::vec2(240.0f));
+  this->m_pLogoControl = new CGUIRectControl(glm::vec2(240.0f));
   this->m_pLogoControl->SetVisible(false);
   this->m_pLogoControl->SetTexture(this->m_LogoTexId);
   this->m_pLogoControl->SetTextureCoords(glm::vec2(0.0f), glm::vec2(0.5f));
 
-  this->m_pPresentTextControl = new CGUITextControl(m_pScreen, m_TextPresent, textColor);
+  this->m_pPresentTextControl = new CGUITextControl(m_TextPresent, textColor);
   this->m_pPresentTextControl->SetVisible(false);
 
-  this->m_pTechText1Control = new CGUITextControl(m_pScreen, m_TextTech1, textColor);
+  this->m_pTechText1Control = new CGUITextControl(m_TextTech1, textColor);
   this->m_pTechText1Control->SetVisible(false);
 
-  this->m_pTechText2Control = new CGUITextControl(m_pScreen, this->m_TextTech2, textColor);
+  this->m_pTechText2Control = new CGUITextControl(this->m_TextTech2, textColor);
   this->m_pTechText2Control->SetVisible(false);
 
-  CGUIRectControl* pTechLogo1Control = new CGUIRectControl(m_pScreen, glm::vec2(240.0f));
+  CGUIRectControl* pTechLogo1Control = new CGUIRectControl(glm::vec2(240.0f));
   pTechLogo1Control->SetVisible(false);
   pTechLogo1Control->SetTexture(this->m_LogoTexId);
   pTechLogo1Control->SetTextureCoords(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f));
 
-  CGUIRectControl* pTechLogo2Control = new CGUIRectControl(m_pScreen, glm::vec2(240.0f));
+  CGUIRectControl* pTechLogo2Control = new CGUIRectControl(glm::vec2(240.0f));
   pTechLogo2Control->SetVisible(false);
   pTechLogo2Control->SetTexture(this->m_LogoTexId);
   pTechLogo2Control->SetTextureCoords(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f));

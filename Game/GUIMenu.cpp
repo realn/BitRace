@@ -10,11 +10,15 @@ CGUIMenuItem::CGUIMenuItem(CGUIMenu* pMenu, const Uint32 id, const std::string& 
 {
   glm::vec2 screenSize = pMenu->GetScreen()->GetSize();
 
-  m_pTextControl = new CGUITextControl(m_pMenu->GetScreen(), text, m_pMenu->GetItemsTextColor());
-  m_pRectControl = new CGUIRectControl(m_pMenu->GetScreen(), glm::vec2(screenSize.x, m_pTextControl->GetSize().y), m_pMenu->GetItemsRectColor());
+  m_pTextControl = new CGUITextControl(text, m_pMenu->GetItemsTextColor());
+  m_pRectControl = new CGUIRectControl(glm::vec2(0.0f), m_pMenu->GetItemsRectColor());
 
   m_pMenu->GetScreen()->AddControl(m_pRectControl);
   m_pMenu->GetScreen()->AddControl(m_pTextControl);
+
+  CGUIControllerList* pList = m_pMenu->GetControllerList();
+
+  m_pRectFadeAnim = new CGUIFadeAnimation(pList, m_pRectControl, 0.5f, false);
 }
 
 CGUIMenuItem::~CGUIMenuItem() {
@@ -23,18 +27,25 @@ CGUIMenuItem::~CGUIMenuItem() {
 }
 
 const bool CGUIMenuItem::Update(CGame* pGame, const float fDT) {
-  if(!IsEnabled()) {
+  bool enabled = IsEnabled();
+  m_pTextControl->SetVisible(enabled);
+  m_pRectControl->SetVisible(enabled);
+  if(!enabled) {
     return false;
   }
 
-  glm::vec4 color = this->m_pRectControl->GetColor();
+  glm::vec2 screenSize = m_pMenu->GetScreen()->GetSize();
+
   if (HasFocus()) {
-    color.a = 1.0f;
+    m_pRectFadeAnim->SetVisible(true);
   }
   else {
-    color.a = 0.0f;
+    m_pRectFadeAnim->SetVisible(false);
   }
-  this->m_pRectControl->SetColor(color);
+  if(!m_pRectFadeAnim->IsRunning())
+    m_pRectFadeAnim->Run();
+  
+  this->m_pRectControl->SetSize(glm::vec2(screenSize.x, m_pTextControl->GetSize().y));
 
   glm::vec2 vMousePos = glm::vec2(pGame->GetMousePos());
   CGUIScreenItem* pItem = m_pMenu->GetScreen()->GetItem(m_pTextControl);
@@ -44,8 +55,9 @@ const bool CGUIMenuItem::Update(CGame* pGame, const float fDT) {
       return true;
     }
   }
-  else
+  else {
     this->SetFocus(false);
+  }
 
   return false;
 }
@@ -125,17 +137,20 @@ CGUIMenu::CGUIMenu(CGUIMenuManager* pMenuMng, const Uint32 id, const std::string
   m_ItemsTextColor(0.0f, 1.0f, 0.0f, 1.0f),
   m_ItemsRectColor(1.0f, 1.0f, 1.0f, 0.0f)
 {
+  m_pControllerList = new CGUIControllerList();
   m_pScreen = new CGUIScreen(m_pMenuMng->GetGUI(), size);
-  m_pTitleControl = new CGUITextControl(m_pScreen, title);
+  m_pTitleControl = new CGUITextControl(title);
   m_pScreen->AddControl(m_pTitleControl, glm::vec2(10.0f, 10.0f));
 }
 
 CGUIMenu::~CGUIMenu() {
   Clear(true);
   delete m_pScreen;
+  delete m_pControllerList;
 }
 
 const bool CGUIMenu::Update(CGame* pGame, float timeDelta) {
+  this->m_pControllerList->Update(timeDelta);
   for(std::vector<CGUIMenuItem*>::iterator it = m_Items.begin(); it != m_Items.end(); it++) {
     if((*it)->Update(pGame, timeDelta)) {
       m_ClickedID = (*it)->GetID();
@@ -251,6 +266,10 @@ void CGUIMenu::UpdateItemsPos() {
 
 CGUIScreen * CGUIMenu::GetScreen() const {
   return m_pScreen;
+}
+
+CGUIControllerList * CGUIMenu::GetControllerList() const {
+  return m_pControllerList;
 }
 
 
