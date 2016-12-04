@@ -1,6 +1,8 @@
 #include "Game.h"
+#include "GameView.h"
 #include "IniFiles.h"
 
+#include <SDL_timer.h>
 #include <GL/wglew.h>
 
 float CGame::s_fMaxDT = 0.02f;
@@ -50,15 +52,9 @@ void CGame::UpdateLogic(const float timeDelta) {
 		break;
 	};
 	if (this->IsKeyboardKeyPressed(SDL_SCANCODE_F11)) {
-		SDL_MinimizeWindow(this->m_pWindow);
-
-		if (ScrParam.bFullscreen)
-			SDL_SetWindowDisplayMode(this->m_pWindow, &this->m_ModeOryginal);
-
+    m_pView->Minimize();
 		SDL_WaitEvent(NULL);
-
-		if (ScrParam.bFullscreen)
-			this->ChangeDispMode();
+    m_pView->Restore();
 	}
 	if (this->IsKeyboardKeyPressed(SDL_SCANCODE_F12)) {
 			this->m_bTakeScreen = true;
@@ -152,29 +148,32 @@ void CGame::UpdateMenu(const float timeDelta) {
 
 		case MI_RESOLUTION:
 			id = Item->GetUserDefID();
-			if (++id >= Uint32(this->m_ModeList.size()))
-				id = 0;
-			ScrParam.uDevID = id;
-			if (this->m_ModeList[id].w == ScrParam.uWidth && this->m_ModeList[id].h == ScrParam.uHeight)
+      SDL_DisplayMode dispMode;
+      if(!m_pView->GetDispMode(id, dispMode)) {
+        id = 0;
+        m_pView->GetDispMode(id, dispMode);
+      }
+			m_pView->GetParams().uDevID = id;
+			if (glm::vec2(dispMode.w, dispMode.h) == m_pView->GetSize())
 				Menu->GetMenuItem(MI_OPWARNING)->SetEnable(false);
 			else 
 				Menu->GetMenuItem(MI_OPWARNING)->SetEnable(true);
 
 			ini.Open(m_strConfigFile);
-			ini.WriteInt("GRAPHIC", "uWidth", int(m_ModeList[id].w));
-			ini.WriteInt("GRAPHIC", "uHeight", int(m_ModeList[id].h));
-			ini.WriteInt("GRAPHIC", "uRefreshRate", int(m_ModeList[id].refresh_rate));
+			ini.WriteInt("GRAPHIC", "uWidth", int(dispMode.w));
+			ini.WriteInt("GRAPHIC", "uHeight", int(dispMode.h));
+			ini.WriteInt("GRAPHIC", "uRefreshRate", int(dispMode.refresh_rate));
 			ini.Close();
 
-			sprintf_s(szBuffer, 1000, "Resolution: %u X %u", m_ModeList[id].w, m_ModeList[id].h);
+			sprintf_s(szBuffer, 1000, "Resolution: %u X %u", dispMode.w, dispMode.h);
 
 			Item->SetName(szBuffer);
 			Item->SetUserDefID(id);
 			break;
 
 		case MI_SMOOTHSHADE:
-			ScrParam.bSmoothShade = !ScrParam.bSmoothShade;
-			if (ScrParam.bSmoothShade) {
+			m_pView->GetParams().bSmoothShade = !m_pView->GetParams().bSmoothShade;
+			if (m_pView->GetParams().bSmoothShade) {
 				glShadeModel(GL_SMOOTH);
 				Item->SetName("Smooth Shading: Enabled");
 			}
@@ -183,13 +182,13 @@ void CGame::UpdateMenu(const float timeDelta) {
 				Item->SetName("Smooth Shading: Disabled");
 			}
 			ini.Open(m_strConfigFile);
-			ini.WriteBool("GRAPHIC", "bSmoothShade", ScrParam.bSmoothShade);
+			ini.WriteBool("GRAPHIC", "bSmoothShade", m_pView->GetParams().bSmoothShade);
 			ini.Close();
 			break;
 
 		case MI_SMOOTHLINE:
-			ScrParam.bSmoothLines = !ScrParam.bSmoothLines;
-			if (ScrParam.bSmoothLines) {
+      m_pView->GetParams().bSmoothLines = !m_pView->GetParams().bSmoothLines;
+			if (m_pView->GetParams().bSmoothLines) {
 				glEnable(GL_LINE_SMOOTH);
 				Item->SetName("Smooth Lines: Enabled");
 			}
@@ -198,7 +197,7 @@ void CGame::UpdateMenu(const float timeDelta) {
 				Item->SetName("Smooth Lines: Disabled");
 			}
 			ini.Open(m_strConfigFile);
-			ini.WriteBool("GRAPHIC", "bSmoothLines", ScrParam.bSmoothLines);
+			ini.WriteBool("GRAPHIC", "bSmoothLines", m_pView->GetParams().bSmoothLines);
 			ini.Close();
 			break;
 
@@ -209,7 +208,7 @@ void CGame::UpdateMenu(const float timeDelta) {
 			else Item->SetName("Fullscreen: Disabled");
 
 			Item->SetUserDefID(id);
-			if ((id ? true : false) == ScrParam.bFullscreen)
+			if ((id ? true : false) == m_pView->GetParams().bFullscreen)
 				Menu->GetMenuItem(MI_OPWARNING)->SetEnable(false);
 			else Menu->GetMenuItem(MI_OPWARNING)->SetEnable(true);
 			ini.Open(m_strConfigFile);
@@ -218,16 +217,16 @@ void CGame::UpdateMenu(const float timeDelta) {
 			break;
 
 		case MI_FPSCOUNTER:
-			ScrParam.bFPSCount = !ScrParam.bFPSCount;
-			Item->SetName((ScrParam.bFPSCount) ? "FPS Counter: Enabled" : "FPS Counter: Disabled");
+      m_pView->GetParams().bFPSCount = !m_pView->GetParams().bFPSCount;
+			Item->SetName((m_pView->GetParams().bFPSCount) ? "FPS Counter: Enabled" : "FPS Counter: Disabled");
 			ini.Open(m_strConfigFile);
-			ini.WriteBool("GRAPHIC", "bFPSCount", ScrParam.bFPSCount);
+			ini.WriteBool("GRAPHIC", "bFPSCount", m_pView->GetParams().bFPSCount);
 			ini.Close();
 			break;
 
 		case MI_VSYNC:
-			ScrParam.bVSync = !ScrParam.bVSync;
-			if (ScrParam.bVSync) {
+      m_pView->GetParams().bVSync = !m_pView->GetParams().bVSync;
+			if (m_pView->GetParams().bVSync) {
 				wglSwapIntervalEXT(1);
 				Item->SetName("VSync: Enabled");
 			}
@@ -236,7 +235,7 @@ void CGame::UpdateMenu(const float timeDelta) {
 				Item->SetName("VSync: Disabled");
 			}
 			ini.Open(m_strConfigFile);
-			ini.WriteBool("GRAPHIC", "bVSync", ScrParam.bVSync);
+			ini.WriteBool("GRAPHIC", "bVSync", m_pView->GetParams().bVSync);
 			ini.Close();
 			break;
 

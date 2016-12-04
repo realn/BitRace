@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "GameView.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -51,11 +52,11 @@ void CGame::Render() {
     m_bTakeScreen = false;
   }
 
-  SDL_GL_SwapWindow(this->m_pWindow);
+  m_pView->Swap();
 }
 
 void CGame::RenderGame() {
-  glm::mat4 proj = glm::perspective(glm::radians(50.0f), ScrParam.GetAspectRatio(), 1.0f, 50000.0f);
+  glm::mat4 proj = glm::perspective(glm::radians(50.0f), m_pView->GetAspectRatio(), 1.0f, 50000.0f);
 
   switch(m_uGameState) {
   case GS_INTRO:
@@ -77,7 +78,7 @@ void CGame::RenderGame() {
 }
 
 void CGame::RenderGUI() {
-  m_GUI.Begin(ScrParam.GetSize());
+  m_GUI.Begin(m_pView->GetSize());
   switch (m_uGameState) {
   case GS_INTRO:
     m_Intro.RenderGUI();
@@ -95,7 +96,7 @@ void CGame::RenderGUI() {
     m_HS.RenderGUI(&m_GUI);
     break;
   };
-  if (ScrParam.bFPSCount && m_uGameState != GS_INTRO) {
+  if (m_pView->GetParams().bFPSCount && m_uGameState != GS_INTRO) {
     m_GUI.Print(glm::vec2(530.0f, 5.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), "FPS: %d", int(1.0f / (this->m_fDT != 0.0f ? this->m_fDT : 1.0f)));
   }
   m_GUI.End();
@@ -103,7 +104,7 @@ void CGame::RenderGUI() {
 
 void CGame::RenderMenu() {
   if (m_bGamePause) {
-    m_GUI.RenderQuadFullScreen(ScrParam.GetSize(), glm::vec4(0.0f, 0.0f, 0.0f, 0.4f));
+    m_GUI.RenderQuadFullScreen(m_pView->GetSize(), glm::vec4(0.0f, 0.0f, 0.0f, 0.4f));
   }
   m_MenuMng.Render();
 }

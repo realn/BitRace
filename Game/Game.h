@@ -8,7 +8,8 @@
 #include <GL/glew.h>
 //#include <GL/wglew.h>
 
-#include <SDL.h>
+#include <SDL_types.h>
+#include <SDL_events.h>
 #include <glm/glm.hpp>
 
 #include "Level.h"
@@ -17,10 +18,11 @@
 #include "Intro.h"
 #include "HighScore.h"
 
+class CGameView;
+
 class CGame {
 private:
-	SDL_Window*   m_pWindow;
-	SDL_GLContext m_pGLContext;
+  CGameView*  m_pView;
 
 	CGUI		        m_GUI;
 	CGUIMenuManager	m_MenuMng;
@@ -89,42 +91,17 @@ private:
 	};
 	unsigned m_uGameState;
 
-	struct	SCREENPARAMS {
-		unsigned	uWidth;
-		unsigned	uHeight;
-		unsigned	uColorBits;
-		unsigned	uRefreshRate;
-
-		unsigned	uDevID;
-
-		bool	bSmoothLines;
-		bool	bSmoothShade;
-		bool	bFullscreen;
-		bool	bFPSCount;
-		bool	bVSync;
-		bool	bBlur;
-
-		const glm::vec2 GetSize() const;
-		const float GetAspectRatio() const;
-	}	ScrParam;
-
-	SDL_DisplayMode m_ModeOryginal;
-	std::vector<SDL_DisplayMode> m_ModeList;
 
 public:
 	CGame();
 	~CGame();
 
 	bool Init(std::string strCmdLine);
-	bool InitWindow(std::string strTitle);
-	bool InitRender();
 	bool InitInput();
 	bool InitOpenGL();
 	bool InitGame();
 
 	void Free();
-	void FreeWindow();
-	void FreeRender();
 	void FreeInput();
 	void FreeOpenGL();
 	void FreeGame();
@@ -139,8 +116,6 @@ public:
 	void RenderGUI();
 	void RenderMenu();
 	void TakeScreenshot();
-	void ScanDispModes();
-	void ChangeDispMode();
 
 	bool  IsKeyboardKeyDown(const SDL_Scancode code) const;
 	bool  IsKeyboardKeyPressed(const SDL_Scancode code) const;

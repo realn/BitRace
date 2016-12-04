@@ -1,33 +1,20 @@
 #include "Game.h"
+#include "GameView.h"
 #include "Log.h"
+
+#include <SDL.h>
 
 void CGame::Free() {
   this->FreeGame();
   this->FreeOpenGL();
   this->FreeInput();
-  this->FreeRender();
-  this->FreeWindow();
-  Log_Free();
-}
 
-void CGame::FreeWindow() {
-  if(this->m_pWindow) {
-    SDL_DestroyWindow(this->m_pWindow);
-    this->m_pWindow = nullptr;
-  }
-}
-
-void CGame::FreeRender() {
-  if(this->m_pGLContext) {
-    SDL_GL_DeleteContext(this->m_pGLContext);
-    this->m_pGLContext = nullptr;
+  if(m_pView) {
+    m_pView->Destroy();
+    delete m_pView;
+    m_pView = nullptr;
   }
 
-  if (ScrParam.bFullscreen) {
-    SDL_SetWindowDisplayMode(this->m_pWindow, &this->m_ModeOryginal);
-  }
-
-  SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
 void CGame::FreeInput() {

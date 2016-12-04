@@ -99,6 +99,7 @@
     <ClCompile Include="GameFree.cpp" />
     <ClCompile Include="GameInit.cpp" />
     <ClCompile Include="GameRender.cpp" />
+    <ClCompile Include="GameView.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="GUIMenu.cpp" />
     <ClCompile Include="GUIScreen.cpp" />
@@ -116,6 +117,7 @@
     <ClInclude Include="FGXFile.h" />
     <ClInclude Include="Files.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="GameView.h" />
     <ClInclude Include="GUI.h" />
     <ClInclude Include="GUIMenu.h" />
     <ClInclude Include="GUIScreen.h" />

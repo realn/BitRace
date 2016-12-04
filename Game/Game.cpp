@@ -1,4 +1,7 @@
 #include "Game.h"
+#include "Log.h"
+
+#include <SDL.h>
 
 #pragma comment(lib, "SDL2.lib")
 #pragma comment(lib, "SDL2main.lib")
@@ -6,17 +9,8 @@
 #pragma comment(lib, "glu32.lib")
 #pragma comment(lib, "glew32s.lib")
 
-const glm::vec2 CGame::SCREENPARAMS::GetSize() const {
-  return glm::vec2((float)uWidth, (float)uHeight);
-}
-
-const float CGame::SCREENPARAMS::GetAspectRatio() const {
-  return (float)uWidth / (float)uHeight;
-}
-
 CGame::CGame() :
-  m_pWindow(NULL),
-  m_pGLContext(NULL),
+  m_pView(nullptr),
   m_GUI(),
   m_MenuMng(&m_GUI),
   m_Intro(&m_GUI, glm::vec2(800.0f, 600.0f)),
@@ -31,12 +25,14 @@ CGame::CGame() :
   m_uBlurTexture(0),
   m_uBlurTexSize(64)
 {
+  Log_Init("main.log", "BIT_RACE_LOG");
   SDL_Init(0);
 }
 
 CGame::~CGame() {
   Free();
   SDL_Quit();
+  Log_Free();
 }
 
 int CGame::MainLoop() {
