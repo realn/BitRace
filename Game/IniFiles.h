@@ -1,32 +1,45 @@
 #pragma once
 
-#include "Files.h"
+#include <SDL_types.h>
 #include <string>
-#include <sstream>
 #include <vector>
+#include <map>
 
 class CIniFile {
-protected:
-  std::vector<std::string> Lines;
-  std::string FileName;
+private:
+  typedef std::map<std::string, std::string> valuemap;
+  class CSection {
+  public:
+    valuemap Values;
 
-  std::string CIniFile::GetVar(std::string str);
-  std::string CIniFile::GetValue(std::string str);
-  int CIniFile::FindSection(std::string str);
-  int CIniFile::FindVar(std::string Section, std::string Var);
+    CSection() {}
+    CSection(const std::string& name, const std::string& value) {
+      Values[name] = value;
+    }
+  };
+  typedef std::map<std::string, CSection> sectionmap;
+  sectionmap m_Sections;
+
 public:
   CIniFile();
-  CIniFile(std::string filename);
+  CIniFile(const std::string& filename);
   ~CIniFile();
-  bool CIniFile::Open(std::string filename);
-  bool CIniFile::Close();
-  void CIniFile::WriteBool(std::string Section, std::string Var, bool value);
-  void CIniFile::WriteFloat(std::string Section, std::string Var, float value);
-  void CIniFile::WriteInt(std::string Section, std::string Var, int value);
-  void CIniFile::WriteString(std::string Section, std::string Var, std::string value);
-  bool CIniFile::ReadBool(std::string Section, std::string Var, bool DefValue);
-  float CIniFile::ReadFloat(std::string Section, std::string Var, float DefValue);
-  int CIniFile::ReadInt(std::string Section, std::string Var, int DefValue);
-  std::string CIniFile::ReadString(std::string Section, std::string Var, std::string DefValue);
-  bool CIniFile::Opened();
+
+  const bool Load(const std::string& filename);
+  const bool Save(const std::string& filename);
+  void Clear();
+
+  void Write(const std::string& section, const std::string& var, const std::string& value);
+  void Write(const std::string& section, const std::string& var, const bool value);
+  void Write(const std::string& section, const std::string& var, const float value);
+  void Write(const std::string& section, const std::string& var, const Sint32 value);
+
+  const std::string Read(const std::string& section, const std::string& var, const std::string& defValue) const;
+  const bool    Read(const std::string& section, const std::string& var, const bool defValue) const;
+  const float   Read(const std::string& section, const std::string& var, const float defValue) const;
+  const Sint32  Read(const std::string& section, const std::string& var, const Sint32 defValue) const;
+
+private:
+  static const std::string GetVar(const std::string& str);
+  static const std::string GetValue(const std::string& str);
 };

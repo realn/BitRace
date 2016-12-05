@@ -1,227 +1,152 @@
 #include "IniFiles.h"
+#include "Files.h"
 
-std::string CIniFile::GetVar(std::string str) {
+#include <sstream>
+
+CIniFile::CIniFile() {}
+
+CIniFile::CIniFile(const std::string& filename) {
+  Load(filename);
+}
+
+CIniFile::~CIniFile() {
+  Clear();
+}
+
+const bool CIniFile::Load(const std::string & filename) {
+  CFile file(filename, "r");
+  if(!file.IsOpened())
+    return false;
+
+  Clear();
+  std::string currentSection;
+  std::string line;
+  while(!file.IsEndOfFile()) {
+    file.ReadLine(line);
+    if(line.empty())
+      continue;
+
+    if(line[0] == '[' && *line.rbegin() == ']') {
+      currentSection = line.substr(1, line.length() - 2);
+      if(m_Sections.find(currentSection) == m_Sections.end())
+        m_Sections[currentSection] = CSection();
+      continue;
+    }
+
+    if(currentSection.empty())
+      continue;
+
+    CSection& section = m_Sections[currentSection];
+
+    std::string name = GetVar(line);
+    std::string val = GetValue(line);
+
+    if(!name.empty() && !val.empty())
+      section.Values[name] = val;
+  }
+
+  return true;
+}
+
+const bool CIniFile::Save(const std::string & filename) {
+  CFile file(filename, "w");
+  if(!file.IsOpened())
+    return false;
+
+  for(sectionmap::iterator it = m_Sections.begin(); it != m_Sections.end(); it++) {
+    file.WriteLine("[" + it->first + "]");
+
+    for(valuemap::iterator itv = it->second.Values.begin(); itv != it->second.Values.end(); itv++) {
+      file.WriteLine(itv->first + "=" + itv->second);
+    }
+  }
+
+  return false;
+}
+
+void CIniFile::Clear() {
+  m_Sections.clear();
+}
+
+void CIniFile::Write(const std::string & section, const std::string & var, const std::string & value) {
+  sectionmap::iterator it = m_Sections.find(section);
+  if(it == m_Sections.end()) {
+    m_Sections[section] = CSection(var, value);
+    return;
+  }
+  it->second.Values[var] = value;
+}
+
+void CIniFile::Write(const std::string & section, const std::string & var, const bool value) {
+  Write(section, var, std::string(value ? "True" : "False"));
+}
+
+void CIniFile::Write(const std::string & section, const std::string & var, const float value) {
+  std::stringstream ss;
+  ss << value;
+  Write(section, var, ss.str());
+}
+
+void CIniFile::Write(const std::string & section, const std::string & var, const Sint32 value) {
+  std::stringstream ss;
+  ss << value;
+  Write(section, var, ss.str());
+}
+
+const std::string CIniFile::Read(const std::string & section, const std::string & var, const std::string & defValue) const {
+  sectionmap::const_iterator it = m_Sections.find(section);
+  if(it == m_Sections.end())
+    return defValue;
+
+  valuemap::const_iterator vit = it->second.Values.find(var);
+  if(vit == it->second.Values.end())
+    return defValue;
+
+  return vit->second;
+}
+
+const bool CIniFile::Read(const std::string & section, const std::string & var, const bool defValue) const {
+  return Read(section, var, std::string(defValue ? "True" : "False")) == "True";
+}
+
+const float CIniFile::Read(const std::string & section, const std::string & var, const float defValue) const {
+  std::string value = Read(section, var, std::string());
+  if(value.empty())
+    return defValue;
+
+  std::stringstream ss;
+  float result;
+  ss << value;
+  ss >> result;
+  if(!ss)
+    return defValue;
+  return result;
+}
+
+const Sint32 CIniFile::Read(const std::string & section, const std::string & var, const Sint32 defValue) const {
+  std::string value = Read(section, var, std::string());
+  if(value.empty())
+    return defValue;
+
+  std::stringstream ss;
+  Sint32 result;
+  ss << value;
+  ss >> result;
+  if(!ss)
+    return defValue;
+  return result;
+}
+
+const std::string CIniFile::GetVar(const std::string& str) {
   size_t pos = str.find('=');
-  if (pos == std::string::npos)
+  if(pos == std::string::npos)
     return str;
   return str.substr(0, pos);
 }
 
-std::string CIniFile::GetValue(std::string str) {
+const std::string CIniFile::GetValue(const std::string& str) {
   size_t pos = str.find('=');
-  if (pos == std::string::npos)
+  if(pos == std::string::npos)
     return str;
   return str.substr(pos + 1);
-}
-
-int CIniFile::FindSection(std::string str) {
-  int i;
-  for (i = 0; i < int(Lines.size()); i++)
-    if (Lines[i] == "[" + str + "]")
-      return i;
-  return -1;
-}
-
-int CIniFile::FindVar(std::string Section, std::string Var) {
-  int i, a;
-  a = FindSection(Section);
-  if (a == Lines.size() - 1)
-    return -1;
-  for (i = a + 1; i < int(Lines.size()); i++) {
-    if (!Lines[i].empty()) {
-      if (Lines[i][0] == '[')
-        return -1;
-      if (GetVar(Lines[i]) == Var)
-        return i;
-    }
-  }
-  return -1;
-}
-
-CIniFile::CIniFile() {}
-
-CIniFile::CIniFile(std::string filename) {
-  Open(filename);
-}
-
-CIniFile::~CIniFile() {
-  Close();
-}
-
-bool CIniFile::Open(std::string filename) {
-  FileName = filename;
-
-  CFile fp;
-  if (!fp.Open(filename, "rt"))
-    return false;
-
-  std::string str;
-  while (!fp.EndOfFile()) {
-    str = fp.ReadStr(1000);
-    if (str.length() == 1 && str[0] == '\n')
-      str = "";
-    else if (str.length() > 0 && str[str.length() - 1] == '\n')
-      str = str.substr(0, str.length() - 1);
-    Lines.push_back(str);
-  }
-  return true;
-}
-
-bool CIniFile::Close() {
-  if (FileName.empty()) {
-    Lines.clear();
-    return false;
-  }
-  if (Lines.size() == 0) {
-    FileName = "";
-    return true;
-  }
-  CFile fp;
-  if (!fp.Open(FileName, "wt")) {
-    FileName = "";
-    Lines.clear();
-    return false;
-  }
-  size_t i;
-  for (i = 0; i < Lines.size() - 1; i++) {
-    fp.WriteStr(Lines[i] + "\n");
-  }
-  fp.WriteStr(Lines[i]);
-
-  FileName = "";
-  Lines.clear();
-
-  return true;
-}
-
-void CIniFile::WriteBool(std::string Section, std::string Var, bool value) {
-  if (Lines.size() == 0 || FindSection(Section) == -1) {
-    Lines.push_back("[" + Section + "]");
-    Lines.push_back(Var + "=" + (value ? "1" : "0"));
-    return;
-  }
-  int a;
-  if ((a = FindVar(Section, Var)) != -1) {
-    Lines[a] = Var + "=" + (value ? "1" : "0");
-    return;
-  }
-  a = FindSection(Section);
-  if (a == Lines.size() - 1) {
-    Lines.push_back(Var + "=" + (value ? "1" : "0"));
-    return;
-  }
-  a++;
-  Lines.insert(Lines.begin() + a, Var + "=" + (value ? "1" : "0"));
-}
-
-void CIniFile::WriteFloat(std::string Section, std::string Var, float value) {
-  std::stringstream ss;
-  ss << value;
-  if (Lines.size() == 0 || FindSection(Section) == -1) {
-    Lines.push_back("[" + Section + "]");
-    Lines.push_back(Var + "=" + ss.str());
-    return;
-  }
-  int a;
-  if ((a = FindVar(Section, Var)) != -1) {
-    Lines[a] = Var + "=" + ss.str();
-    return;
-  }
-  a = FindSection(Section);
-  if (a == Lines.size() - 1) {
-    Lines.push_back(Var + "=" + ss.str());
-    return;
-  }
-  a++;
-  Lines.insert(Lines.begin() + a, Var + "=" + ss.str());
-}
-
-void CIniFile::WriteInt(std::string Section, std::string Var, int value) {
-  std::stringstream ss;
-  ss << value;
-  if (Lines.size() == 0 || FindSection(Section) == -1) {
-    Lines.push_back("[" + Section + "]");
-    Lines.push_back(Var + "=" + ss.str());
-    return;
-  }
-  int a;
-  if ((a = FindVar(Section, Var)) != -1) {
-    Lines[a] = Var + "=" + ss.str();
-    return;
-  }
-  a = FindSection(Section);
-  if (a == Lines.size() - 1) {
-    Lines.push_back(Var + "=" + ss.str());
-    return;
-  }
-  a++;
-  Lines.insert(Lines.begin() + a, Var + "=" + ss.str());
-}
-
-void CIniFile::WriteString(std::string Section, std::string Var, std::string value) {
-  if (Lines.size() == 0 || FindSection(Section) == -1) {
-    Lines.push_back("[" + Section + "]");
-    Lines.push_back(Var + "=" + value);
-    return;
-  }
-  int a;
-  if ((a = FindVar(Section, Var)) != -1) {
-    Lines[a] = Var + "=" + value;
-    return;
-  }
-  a = FindSection(Section);
-  if (a == Lines.size() - 1) {
-    Lines.push_back(Var + "=" + value);
-    return;
-  }
-  a++;
-  Lines.insert(Lines.begin() + a, Var + "=" + value);
-}
-
-bool CIniFile::ReadBool(std::string Section, std::string Var, bool DefValue) {
-  if (Lines.size() == 0)
-    return DefValue;
-  int a = FindVar(Section, Var);
-  if (a == -1)
-    return DefValue;
-  return (GetValue(Lines[a]) == "1") ? true : false;
-}
-
-float CIniFile::ReadFloat(std::string Section, std::string Var, float DefValue) {
-  if (Lines.size() == 0)
-    return DefValue;
-  int a = FindVar(Section, Var);
-  if (a == -1)
-    return DefValue;
-  std::stringstream ss;
-  ss << GetValue(Lines[a]);
-  ss >> DefValue;
-  return DefValue;
-}
-
-int CIniFile::ReadInt(std::string Section, std::string Var, int DefValue) {
-  if (Lines.size() == 0)
-    return DefValue;
-  int a = FindVar(Section, Var);
-  if (a == -1)
-    return DefValue;
-  std::stringstream ss;
-  ss << GetValue(Lines[a]);
-  ss >> DefValue;
-  return DefValue;
-}
-
-std::string CIniFile::ReadString(std::string Section, std::string Var, std::string DefValue) {
-  if (Lines.size() == 0)
-    return DefValue;
-  int a = FindVar(Section, Var);
-  if (a == -1)
-    return DefValue;
-  return GetValue(Lines[a]);
-}
-
-bool CIniFile::Opened() {
-  if (FileName.empty())
-    return false;
-  return true;
 }

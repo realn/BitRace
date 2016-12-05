@@ -159,11 +159,11 @@ void CGame::UpdateMenu(const float timeDelta) {
 			else 
 				Menu->GetMenuItem(MI_OPWARNING)->SetEnable(true);
 
-			ini.Open(m_strConfigFile);
-			ini.WriteInt("GRAPHIC", "uWidth", int(dispMode.w));
-			ini.WriteInt("GRAPHIC", "uHeight", int(dispMode.h));
-			ini.WriteInt("GRAPHIC", "uRefreshRate", int(dispMode.refresh_rate));
-			ini.Close();
+      ini.Load(m_strConfigFile);
+			ini.Write("GRAPHIC", "uWidth", dispMode.w);
+			ini.Write("GRAPHIC", "uHeight", dispMode.h);
+			ini.Write("GRAPHIC", "uRefreshRate", dispMode.refresh_rate);
+      ini.Save(m_strConfigFile);
 
 			sprintf_s(szBuffer, 1000, "Resolution: %u X %u", dispMode.w, dispMode.h);
 
@@ -181,9 +181,9 @@ void CGame::UpdateMenu(const float timeDelta) {
 				glShadeModel(GL_FLAT);
 				Item->SetName("Smooth Shading: Disabled");
 			}
-			ini.Open(m_strConfigFile);
-			ini.WriteBool("GRAPHIC", "bSmoothShade", m_pView->GetParams().bSmoothShade);
-			ini.Close();
+			ini.Load(m_strConfigFile);
+			ini.Write("GRAPHIC", "bSmoothShade", m_pView->GetParams().bSmoothShade);
+			ini.Save(m_strConfigFile);
 			break;
 
 		case MI_SMOOTHLINE:
@@ -196,9 +196,9 @@ void CGame::UpdateMenu(const float timeDelta) {
 				glDisable(GL_LINE_SMOOTH);
 				Item->SetName("Smooth Lines: Disabled");
 			}
-			ini.Open(m_strConfigFile);
-			ini.WriteBool("GRAPHIC", "bSmoothLines", m_pView->GetParams().bSmoothLines);
-			ini.Close();
+			ini.Load(m_strConfigFile);
+			ini.Write("GRAPHIC", "bSmoothLines", m_pView->GetParams().bSmoothLines);
+			ini.Save(m_strConfigFile);
 			break;
 
 		case MI_FULLSCREEN:
@@ -211,17 +211,17 @@ void CGame::UpdateMenu(const float timeDelta) {
 			if ((id ? true : false) == m_pView->GetParams().bFullscreen)
 				Menu->GetMenuItem(MI_OPWARNING)->SetEnable(false);
 			else Menu->GetMenuItem(MI_OPWARNING)->SetEnable(true);
-			ini.Open(m_strConfigFile);
-			ini.WriteBool("GRAPHIC", "bFullscreen", bool((id) ? true : false));
-			ini.Close();
+			ini.Load(m_strConfigFile);
+			ini.Write("GRAPHIC", "bFullscreen", bool((id) ? true : false));
+			ini.Save(m_strConfigFile);
 			break;
 
 		case MI_FPSCOUNTER:
       m_pView->GetParams().bFPSCount = !m_pView->GetParams().bFPSCount;
 			Item->SetName((m_pView->GetParams().bFPSCount) ? "FPS Counter: Enabled" : "FPS Counter: Disabled");
-			ini.Open(m_strConfigFile);
-			ini.WriteBool("GRAPHIC", "bFPSCount", m_pView->GetParams().bFPSCount);
-			ini.Close();
+			ini.Load(m_strConfigFile);
+			ini.Write("GRAPHIC", "bFPSCount", m_pView->GetParams().bFPSCount);
+			ini.Save(m_strConfigFile);
 			break;
 
 		case MI_VSYNC:
@@ -234,9 +234,9 @@ void CGame::UpdateMenu(const float timeDelta) {
 				wglSwapIntervalEXT(0);
 				Item->SetName("VSync: Disabled");
 			}
-			ini.Open(m_strConfigFile);
-			ini.WriteBool("GRAPHIC", "bVSync", m_pView->GetParams().bVSync);
-			ini.Close();
+			ini.Load(m_strConfigFile);
+			ini.Write("GRAPHIC", "bVSync", m_pView->GetParams().bVSync);
+			ini.Save(m_strConfigFile);
 			break;
 
 		case MI_HSRESET:

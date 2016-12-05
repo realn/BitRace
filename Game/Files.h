@@ -1,47 +1,38 @@
 #pragma once
 
-#include <stdio.h>
-#include <io.h>
+#include <SDL_rwops.h>
 #include <string>
 
 class CFile {
 protected:
-  FILE* fp;
+  SDL_RWops* m_pFile;
 
 public:
-  CFile() : fp(NULL) {}
-  CFile(std::string filename, char *flags = "rb");
+  CFile();
+  CFile(const std::string& filename, const char *flags = "rb");
   ~CFile();
 
-  bool Open(std::string filename, char *flags = "rb");
+  const bool Open(const std::string& filename, const char *flags = "rb");
 
-  bool Close();
+  const bool Close();
 
-  unsigned int CFile::Write(void *Data, unsigned int Size, unsigned int Count = 1);
+  const Uint32 Write(const void *pData, const Uint32 size, const Uint32 number = 1);
+  const Uint32 Write(const std::string& text);
+  const Uint32 WriteLine(const std::string& line);
 
-  unsigned int CFile::Read(void *Data, unsigned int Size, unsigned int Count = 1);
+  const Uint32 Read(void *pData, const Uint32 size, const Uint32 number = 1);
+  const Uint32 Read(std::string& outText);
+  const Uint32 ReadLine(std::string& outLine, const Uint32 bufferSize = 1024);
 
-  unsigned int CFile::WriteStr(std::string str);
+  const Uint64 GetPos() const;
+  const Uint64 GetSize() const;
 
-  unsigned int CFile::WriteStr(std::wstring str);
+  const Uint64 CFile::Seek(const Uint64 offset, const Sint32 origin);
+  const bool CFile::IsOpened() const;
 
-  std::string CFile::ReadStr(unsigned int BufSize);
+  const bool CFile::IsEndOfFile() const;
 
-  std::wstring CFile::ReadWStr(unsigned int BufSize);
+  static const bool FileExists(const std::string& filename);
 
-  __int64 CFile::Length();
-
-  bool CFile::Seek(__int64 offset, int origin);
-
-  FILE* CFile::GetPointer();
-
-  bool CFile::Opened();
-
-  bool CFile::EndOfFile();
-
-  bool CFile::Flush();
-
-  static bool FileExists(std::string filename);
-
-  static std::string ReadTextFile(std::string filename);
+  static const std::string ReadTextFile(const std::string& filename);
 };

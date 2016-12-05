@@ -13,16 +13,16 @@ CGameView::CGameView(CIniFile& ini) :
     throw std::exception("Failed initializing SDL VIDEO.");
   }
 
-  m_ScrParam.uWidth = Uint32(ini.ReadInt("GRAPHIC", "uWidth", 640));
-  m_ScrParam.uHeight = Uint32(ini.ReadInt("GRAPHIC", "uHeight", 480));
-  m_ScrParam.uColorBits = Uint32(ini.ReadInt("GRAPHIC", "uColorBits", 32));
-  m_ScrParam.uRefreshRate = Uint32(ini.ReadInt("GRAPHIC", "uRefreshRate", 60));
-  m_ScrParam.bFullscreen = ini.ReadBool("GRAPHIC", "bFullscreen", true);
-  m_ScrParam.bSmoothShade = ini.ReadBool("GRAPHIC", "bSmoothShade", true);
-  m_ScrParam.bSmoothLines = ini.ReadBool("GRAPHIC", "bSmoothLines", true);
-  m_ScrParam.bFPSCount = ini.ReadBool("GRAPHIC", "bFPSCount", false);
-  m_ScrParam.bVSync = ini.ReadBool("GRAPHIC", "bVSync", true);
-  m_ScrParam.bBlur = ini.ReadBool("GRAPHIC", "bBlur", false);
+  m_ScrParam.uWidth = Uint32(ini.Read("GRAPHIC", "uWidth", 640));
+  m_ScrParam.uHeight = Uint32(ini.Read("GRAPHIC", "uHeight", 480));
+  m_ScrParam.uColorBits = Uint32(ini.Read("GRAPHIC", "uColorBits", 32));
+  m_ScrParam.uRefreshRate = Uint32(ini.Read("GRAPHIC", "uRefreshRate", 60));
+  m_ScrParam.bFullscreen = ini.Read("GRAPHIC", "bFullscreen", true);
+  m_ScrParam.bSmoothShade = ini.Read("GRAPHIC", "bSmoothShade", true);
+  m_ScrParam.bSmoothLines = ini.Read("GRAPHIC", "bSmoothLines", true);
+  m_ScrParam.bFPSCount = ini.Read("GRAPHIC", "bFPSCount", false);
+  m_ScrParam.bVSync = ini.Read("GRAPHIC", "bVSync", true);
+  m_ScrParam.bBlur = ini.Read("GRAPHIC", "bBlur", false);
 }
 
 CGameView::~CGameView() {

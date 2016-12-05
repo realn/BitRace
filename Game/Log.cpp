@@ -7,20 +7,19 @@
 CFile Log_fp;
 
 bool Log_Init(std::string filename, std::string InitMsg) {
-  if (Log_fp.Opened())
+  if (Log_fp.IsOpened())
     return false;
 
-  if (!Log_fp.Open(filename, "wt"))
+  if (!Log_fp.Open(filename, "w"))
     return false;
 
-  Log_fp.WriteStr(InitMsg + "\n");
-  Log_fp.Flush();
+  Log_fp.WriteLine(InitMsg);
 
   return true;
 }
 
 bool Log(std::string str, ...) {
-  if (!Log_fp.Opened())
+  if (!Log_fp.IsOpened())
     return false;
 
   char* text;
@@ -35,8 +34,7 @@ bool Log(std::string str, ...) {
   vsprintf_s(text, len, str.c_str(), ap);
   va_end(ap);
 
-  Log_fp.WriteStr(std::string(text) + "\n");
-  Log_fp.Flush();
+  Log_fp.WriteLine(std::string(text));
 
   delete[] text;
 
@@ -56,9 +54,8 @@ bool Log_Error(std::string str, ...) {
   vsprintf_s(text, len, str.c_str(), ap);
   va_end(ap);
 
-  if (Log_fp.Opened()) {
-    Log_fp.WriteStr(std::string(text) + "\n");
-    Log_fp.Flush();
+  if (Log_fp.IsOpened()) {
+    Log_fp.WriteLine(std::string(text));
   }
 
   MessageBox(NULL, text, "ERROR", MB_OK);
