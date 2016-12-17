@@ -1,5 +1,6 @@
 #include "IniFiles.h"
 #include "Files.h"
+#include "helper.h"
 
 #include <sstream>
 
@@ -114,11 +115,8 @@ const float CIniFile::Read(const std::string & section, const std::string & var,
   if(value.empty())
     return defValue;
 
-  std::stringstream ss;
   float result;
-  ss << value;
-  ss >> result;
-  if(!ss)
+  if(!helper::fromstr(value, result))
     return defValue;
   return result;
 }
@@ -128,11 +126,8 @@ const Sint32 CIniFile::Read(const std::string & section, const std::string & var
   if(value.empty())
     return defValue;
 
-  std::stringstream ss;
   Sint32 result;
-  ss << value;
-  ss >> result;
-  if(!ss)
+  if(!helper::fromstr(value, result))
     return defValue;
   return result;
 }

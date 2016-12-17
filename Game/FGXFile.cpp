@@ -19,7 +19,7 @@ bool CFGXFile::Load(const std::string filename) {
 
   file.Read(&this->m_Header, sizeof(FGXHEADER));
   this->m_Data.resize(m_Header.IMAGEWIDTH * m_Header.IMAGEHEIGHT * m_Header.IMAGEDEPTH);
-  file.Read(&this->m_Data[0], sizeof(Byte), this->m_Data.size());
+  file.Read(&this->m_Data[0], sizeof(Uint8), this->m_Data.size());
 
   file.Close();
   return true;

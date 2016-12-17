@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-class CGame;
+class CInput;
 class CGUI;
 class CGUIMenu;
 class CGUIScreen;
@@ -35,7 +35,7 @@ public:
   CGUIMenuItem(CGUIMenu* pMenu, const Uint32 id, const std::string& name, Uint32 userDefID);
   ~CGUIMenuItem();
 
-  const bool Update(CGame* pGame, const float fDT);
+  const bool Update(CInput* pInput, const float fDT);
 
   void SetPos(const glm::vec2& pos);
   void SetName(const std::string& name);
@@ -77,7 +77,7 @@ public:
   CGUIMenu(CGUIMenuManager* pMenuMng, const Uint32 id, const std::string& title, const glm::vec2& size);
   ~CGUIMenu();
 
-  const bool Update(CGame* pGame, const float timeDelta);
+  const bool Update(CInput* pInput, const float timeDelta);
   void Render();
 
   CGUIMenuItem* AddMenuItem(const Uint32 id, const std::string& name, const Uint32 userDefId = 0);
@@ -121,7 +121,7 @@ public:
 
   const glm::vec2&  GetSize() const;
 
-  bool Update(CGame* pGame, const float timeDelta);
+  bool Update(CInput* pInput, const float timeDelta);
   void Render();
 
   CGUI* GetGUI() const;

@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "GameView.h"
+#include "Input.h"
 #include "Log.h"
 #include "IniFiles.h"
 
@@ -22,9 +23,9 @@ bool CGame::Init(std::string strCmdLine) {
 		Free();
 		return false;
 	}
-	if(!this->InitInput()) {
-		Log_Error("Can't initialize input.");
-	}
+
+  if(!m_pInput)
+    m_pInput = new CInput();
 
 	if (!this->InitOpenGL()) {
 		Log_Error("Can't Initialize OpenGL");
@@ -36,23 +37,6 @@ bool CGame::Init(std::string strCmdLine) {
 		Free();
 		return false;
 	}
-
-	return true;
-}
-
-bool  CGame::InitInput() {
-	SDL_InitSubSystem(SDL_INIT_EVENTS);
-
-	memset(this->m_KeyState, 0, sizeof(Uint8) * SDL_NUM_SCANCODES);
-	memset(this->m_KeyStatePrev, 0, sizeof(Uint8) * SDL_NUM_SCANCODES);
-
-	this->m_MouseButtonState = 0;
-	this->m_MouseButtonStatePrev = 0;
-
-	this->m_MousePos = glm::ivec2(0);
-	this->m_MousePosDelta = glm::ivec2(0);
-
-	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	return true;
 }

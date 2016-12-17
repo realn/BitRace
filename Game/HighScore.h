@@ -3,7 +3,7 @@
 #include <SDL_types.h>
 #include <string>
 
-class CGame;
+class CInput;
 class CGUI;
 
 class CHighScore {
@@ -53,7 +53,7 @@ public:
 
   void	SetTempScore(unsigned uScore);
 
-  void	Update(CGame* pGame, float fDT);
+  void	Update(CInput* pInput, float timeDelta);
   void	RenderGUI(CGUI* GUI);
 
   std::string GetName(unsigned uIndex);

@@ -58,6 +58,8 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="GameView.cpp" />
+    <ClCompile Include="helper.cpp" />
+    <ClCompile Include="Input.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HighScore.h">
@@ -97,10 +99,13 @@
     <ClInclude Include="Log.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="mathex.h">
+    <ClInclude Include="GameView.h" />
+    <ClInclude Include="helper.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="GameView.h" />
+    <ClInclude Include="Input.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="Level.h">

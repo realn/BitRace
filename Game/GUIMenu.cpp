@@ -1,6 +1,10 @@
 #include "GUIMenu.h"
 #include "GUIScreen.h"
-#include "Game.h"
+#include "GUI.h"
+#include "Input.h"
+
+#define GLEW_STATIC
+#include <GL/glew.h>
 
 CGUIMenuItem::CGUIMenuItem(CGUIMenu* pMenu, const Uint32 id, const std::string& text, const Uint32 userDefID) :
   m_pMenu(pMenu),
@@ -26,7 +30,7 @@ CGUIMenuItem::~CGUIMenuItem() {
   this->m_pMenu->GetScreen()->RemoveControl(m_pRectControl, true);
 }
 
-const bool CGUIMenuItem::Update(CGame* pGame, const float fDT) {
+const bool CGUIMenuItem::Update(CInput* pInput, const float fDT) {
   bool enabled = IsEnabled();
   m_pTextControl->SetVisible(enabled);
   m_pRectControl->SetVisible(enabled);
@@ -47,11 +51,11 @@ const bool CGUIMenuItem::Update(CGame* pGame, const float fDT) {
   
   this->m_pRectControl->SetSize(glm::vec2(screenSize.x, m_pTextControl->GetSize().y));
 
-  glm::vec2 vMousePos = glm::vec2(pGame->GetMousePos());
+  glm::vec2 vMousePos = glm::vec2(pInput->GetMousePos());
   CGUIScreenItem* pItem = m_pMenu->GetScreen()->GetItem(m_pTextControl);
   if(pItem->Contains(vMousePos)) {
     this->SetFocus(true);
-    if(pGame->IsMouseButtonPressed(SDL_BUTTON_LEFT)) {
+    if(pInput->IsMouseButtonPressed(SDL_BUTTON_LEFT)) {
       return true;
     }
   }
@@ -149,10 +153,10 @@ CGUIMenu::~CGUIMenu() {
   delete m_pControllerList;
 }
 
-const bool CGUIMenu::Update(CGame* pGame, float timeDelta) {
+const bool CGUIMenu::Update(CInput* pInput, float timeDelta) {
   this->m_pControllerList->Update(timeDelta);
   for(std::vector<CGUIMenuItem*>::iterator it = m_Items.begin(); it != m_Items.end(); it++) {
-    if((*it)->Update(pGame, timeDelta)) {
+    if((*it)->Update(pInput, timeDelta)) {
       m_ClickedID = (*it)->GetID();
       return true;
     }
@@ -295,8 +299,8 @@ const glm::vec2 & CGUIMenuManager::GetSize() const {
   return this->m_Size;
 }
 
-bool CGUIMenuManager::Update(CGame* pGame, float timeDelta) {
-  this->m_MousePos = pGame->GetMousePos();
+bool CGUIMenuManager::Update(CInput* pInput, float timeDelta) {
+  this->m_MousePos = pInput->GetMousePos();
   this->m_MousePos = glm::clamp(m_MousePos, glm::vec2(0.0f), m_Size);
 
   if(this->m_MenuList.size() == 0)
@@ -316,7 +320,7 @@ bool CGUIMenuManager::Update(CGame* pGame, float timeDelta) {
     m_pCurrentMenu->SetVisible(true);
   }
 
-  if (m_pCurrentMenu->Update(pGame, timeDelta))
+  if (m_pCurrentMenu->Update(pInput, timeDelta))
     return true;
   return false;
 }

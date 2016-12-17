@@ -19,36 +19,29 @@
 #include "HighScore.h"
 
 class CGameView;
+class CInput;
 
 class CGame {
 private:
   CGameView*  m_pView;
+  CInput*     m_pInput;
 
 	CGUI		        m_GUI;
 	CGUIMenuManager	m_MenuMng;
-	CLevel		m_RaceTrack;
-	CIntro			m_Intro;
+	CLevel		    m_RaceTrack;
+	CIntro			  m_Intro;
 	CHighScore		m_HS;
-
-	Uint8 m_KeyState[SDL_NUM_SCANCODES];
-	Uint8 m_KeyStatePrev[SDL_NUM_SCANCODES];
-
-	Uint32  m_MouseButtonState;
-	Uint32  m_MouseButtonStatePrev;
-	glm::ivec2  m_MousePos;
-	glm::ivec2  m_MousePosDelta;
 
 	bool			m_bShutdown;
 	bool			m_bGamePause;
 	bool			m_bTakeScreen;
-	Uint64			m_iLastTick;
-	Uint64			m_iFreq;
+	Uint64		m_iLastTick;
+	Uint64		m_iFreq;
 	float			m_fDT;
 	float			m_fBlurTexAlpha;
-	Uint32	m_uBlurTexture;
-	Uint32	m_uBlurTexSize;
+	Uint32	  m_uBlurTexture;
+	Uint32	  m_uBlurTexSize;
 	std::string		m_strConfigFile;
-
 
 	enum MENU_ID {
 		MENU_MAIN = 0,
@@ -97,12 +90,10 @@ public:
 	~CGame();
 
 	bool Init(std::string strCmdLine);
-	bool InitInput();
 	bool InitOpenGL();
 	bool InitGame();
 
 	void Free();
-	void FreeInput();
 	void FreeOpenGL();
 	void FreeGame();
 
@@ -117,19 +108,10 @@ public:
 	void RenderMenu();
 	void TakeScreenshot();
 
-	bool  IsKeyboardKeyDown(const SDL_Scancode code) const;
-	bool  IsKeyboardKeyPressed(const SDL_Scancode code) const;
-	bool  IsMouseButtonDown(const Uint32 button) const;
-	bool  IsMouseButtonPressed(const Uint32 button) const;
-	const glm::ivec2& GetMousePos() const;
-	const glm::ivec2  GetMousePosDelta() const;
-
 	int MainLoop();
 
 	static float	s_fMaxDT;
 
-	void UpdateKeyboard();
-	void UpdateMouse();
 	void UpdateTimer();
 	void UpdateHS();
 };

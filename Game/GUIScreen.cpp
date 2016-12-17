@@ -1,6 +1,6 @@
 #include "GUIScreen.h"
 #include "GUI.h"
-#include "mathex.h"
+#include "helper.h"
 
 CGUIControl::CGUIControl(const glm::vec2 & size, const glm::vec4 & color) :
   m_pScreen(nullptr), m_Size(size), m_Color(color), m_Visible(true) 
@@ -163,8 +163,8 @@ const bool CGUIScreenItem::Contains(const glm::vec2 & point) const {
   glm::vec2 pos = this->GetRenderPos();
   glm::vec2 size = this->m_pControl->GetSize();
   return
-    mathex::inrange(point.x, pos.x, pos.x + size.x) &&
-    mathex::inrange(point.y, pos.y, pos.y + size.y);
+    helper::inrange(point.x, pos.x, pos.x + size.x) &&
+    helper::inrange(point.y, pos.y, pos.y + size.y);
 }
 
 void CGUIScreenItem::SetControl(CGUIControl * pControl) {

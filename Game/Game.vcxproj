@@ -103,8 +103,10 @@
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="GUIMenu.cpp" />
     <ClCompile Include="GUIScreen.cpp" />
+    <ClCompile Include="helper.cpp" />
     <ClCompile Include="HighScore.cpp" />
     <ClCompile Include="IniFiles.cpp" />
+    <ClCompile Include="Input.cpp" />
     <ClCompile Include="Intro.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -123,9 +125,10 @@
     <ClInclude Include="GUIScreen.h" />
     <ClInclude Include="HighScore.h" />
     <ClInclude Include="IniFiles.h" />
+    <ClInclude Include="Input.h" />
     <ClInclude Include="Intro.h" />
     <ClInclude Include="Log.h" />
-    <ClInclude Include="mathex.h" />
+    <ClInclude Include="helper.h" />
     <ClInclude Include="Model.h" />
     <CustomBuild Include="Level.h" />
     <ClInclude Include="Space.h" />

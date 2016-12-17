@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SDL_types.h>
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
@@ -10,18 +11,17 @@
 #define FGX_RLE_COMPRESS	0x00000001
 
 struct FGXHEADER {
-  char			FILEID[3];
-  unsigned int	FILEVERSION;
-  unsigned int	IMAGEWIDTH;
-  unsigned int	IMAGEHEIGHT;
-  unsigned int	IMAGEDEPTH;
-  unsigned int	FLAGS;
+  char		FILEID[3];
+  Uint32	FILEVERSION;
+  Uint32	IMAGEWIDTH;
+  Uint32	IMAGEHEIGHT;
+  Uint32	IMAGEDEPTH;
+  Uint32	FLAGS;
 };
 
 class CFGXFile {
 public:
-  typedef unsigned char Byte;
-  typedef std::vector<Byte> CData;
+  typedef std::vector<Uint8> CData;
 
 private:
   FGXHEADER m_Header;
@@ -38,7 +38,7 @@ public:
   bool  IsValid() const;
 
   const glm::ivec2  GetSize() const;
-  const unsigned    GetImgDepth() const;
+  const Uint32    GetImgDepth() const;
 
   const CData&  GetData() const;
 };

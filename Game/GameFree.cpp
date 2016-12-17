@@ -1,25 +1,22 @@
 #include "Game.h"
 #include "GameView.h"
+#include "Input.h"
 #include "Log.h"
+#include "helper.h"
 
 #include <SDL.h>
 
 void CGame::Free() {
   this->FreeGame();
   this->FreeOpenGL();
-  this->FreeInput();
+
+  helper::deleteobj(m_pInput);
 
   if(m_pView) {
     m_pView->Destroy();
-    delete m_pView;
-    m_pView = nullptr;
   }
 
-}
-
-void CGame::FreeInput() {
-  SDL_SetRelativeMouseMode(SDL_FALSE);
-  SDL_QuitSubSystem(SDL_INIT_EVENTS);
+  helper::deleteobj(m_pView);
 }
 
 void CGame::FreeOpenGL() {

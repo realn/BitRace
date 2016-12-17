@@ -1,14 +1,14 @@
 #include "HighScore.h"
-#include "Game.h"
+#include "Input.h"
 #include "Log.h"
 #include "Files.h"
-
-#include <sstream>
+#include "helper.h"
+#include "GUI.h"
 
 struct HSHEADER {
-  char	FILEID[3];
-  unsigned	FILEVER;
-  unsigned	SCORECOUNT;
+  char	  FILEID[3];
+  Uint32	FILEVER;
+  Uint32	SCORECOUNT;
 };
 
 #define HSFILEID	"HSF"
@@ -121,9 +121,9 @@ void CHighScore::SetTempScore(unsigned uScore) {
   memset(m_bKeyDown, 0, sizeof(bool) * 256);
 }
 
-void CHighScore::Update(CGame* pGame, float fDT) {
+void CHighScore::Update(CInput* pInput, float timeDelta) {
   for (unsigned key = 0; key < SDL_NUM_SCANCODES; key++) {
-    if (pGame->IsKeyboardKeyPressed((SDL_Scancode)key)) {
+    if (pInput->IsKeyboardKeyPressed((SDL_Scancode)key)) {
       this->ParseKey(key);
     }
   }
@@ -131,7 +131,7 @@ void CHighScore::Update(CGame* pGame, float fDT) {
   std::stringstream ss;
   switch (m_uHSS) {
   case HSS_STATE1:
-    m_fTime += 1.0f * fDT;
+    m_fTime += 1.0f * timeDelta;
     if (m_fTime > 0.1f) {
       if (m_uCharCount < m_strText1.length())
         m_uCharCount++;
@@ -144,7 +144,7 @@ void CHighScore::Update(CGame* pGame, float fDT) {
     break;
 
   case HSS_STATE2:
-    m_fTime += float(m_uTempScore) * 0.3f * fDT;
+    m_fTime += float(m_uTempScore) * 0.3f * timeDelta;
     if (m_fTime >= float(m_uTempScore)) {
       m_fTime = 0.0f;
       ss << m_uTempScore;
@@ -154,7 +154,7 @@ void CHighScore::Update(CGame* pGame, float fDT) {
     break;
 
   case HSS_STATE3:
-    m_fTime += 1.0f * fDT;
+    m_fTime += 1.0f * timeDelta;
     if (m_fTime > 2.0f) {
       if (CheckScore()) {
         ss << (m_uHSPos + 1);
@@ -180,7 +180,7 @@ void CHighScore::Update(CGame* pGame, float fDT) {
     break;
 
   case HSS_STATE4:
-    m_fTime += 1.0f * fDT;
+    m_fTime += 1.0f * timeDelta;
     if (m_fTime > 0.1f) {
       if (m_uCharCount < m_strText2.length())
         m_uCharCount++;
@@ -193,7 +193,7 @@ void CHighScore::Update(CGame* pGame, float fDT) {
     break;
 
   case HSS_STATE5:
-    m_fTime += 1.0f * fDT;
+    m_fTime += 1.0f * timeDelta;
     if (m_fTime > 2.0f) {
       m_fTime = 0.0f;
       if (m_bCanWrite)
@@ -203,7 +203,7 @@ void CHighScore::Update(CGame* pGame, float fDT) {
     break;
 
   case HSS_STATE6:
-    m_fTime += 1.0f * fDT;
+    m_fTime += 1.0f * timeDelta;
     if (m_fTime > 0.1f) {
       if (m_uCharCount < m_strText3.length())
         m_uCharCount++;
