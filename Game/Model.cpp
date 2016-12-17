@@ -1,9 +1,7 @@
+#include "stdafx.h"
 #include "Model.h"
 
 #include <glm/gtc/type_ptr.hpp>
-
-#define GLEW_STATIC
-#include <GL/glew.h>
 
 class CModel::CMesh {
 private:

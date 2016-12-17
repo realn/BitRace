@@ -1,18 +1,20 @@
+#include "stdafx.h"
 #include "Input.h"
 
 #include <SDL.h>
 
-CInput::CInput() {
+CInput::CInput() :
+  m_MouseButtonState(0),
+  m_MouseButtonStatePrev(0),
+  m_MousePos(0),
+  m_MousePosDelta(0),
+  m_Cursor(0),
+  m_SelectionLength(0)
+{
   SDL_InitSubSystem(SDL_INIT_EVENTS);
 
   memset(this->m_KeyState, 0, sizeof(Uint8) * SDL_NUM_SCANCODES);
   memset(this->m_KeyStatePrev, 0, sizeof(Uint8) * SDL_NUM_SCANCODES);
-
-  this->m_MouseButtonState = 0;
-  this->m_MouseButtonStatePrev = 0;
-
-  this->m_MousePos = glm::ivec2(0);
-  this->m_MousePosDelta = glm::ivec2(0);
 
   SDL_SetRelativeMouseMode(SDL_TRUE);
 }
@@ -25,6 +27,57 @@ CInput::~CInput() {
 void CInput::Update(const float timeDelta) {
   this->UpdateKeyboard();
   this->UpdateMouse();
+}
+
+void CInput::ProcessEvent(const SDL_Event & event) {
+  switch(event.type) {
+  case SDL_TEXTEDITING:
+    m_Composition = std::string(event.edit.text);
+    m_Cursor = (Uint32)event.edit.start;
+    m_SelectionLength = (Uint32)event.edit.length;
+    break;
+
+  case SDL_TEXTINPUT:
+    m_Text += std::string(event.text.text);
+    break;
+
+  default:
+    break;
+  }
+}
+
+void CInput::StartTextInput() {
+  SDL_StartTextInput();
+}
+
+void CInput::StartTextInput(const glm::vec2 & pos, const glm::vec2 & size) {
+  SDL_Rect rect;
+  rect.x = (int)pos.x;
+  rect.y = (int)pos.y;
+  rect.w = (int)size.x;
+  rect.h = (int)size.y;
+  SDL_SetTextInputRect(&rect);
+  SDL_StartTextInput();
+}
+
+void CInput::StopTextInput() {
+  SDL_StopTextInput();
+}
+
+const std::string & CInput::GetText() const {
+  return m_Text;
+}
+
+const std::string & CInput::GetTextComposition() const {
+  return m_Composition;
+}
+
+const Uint32 CInput::GetTextCursor() const {
+  return m_Cursor;
+}
+
+const Uint32 CInput::GetTextSelectionLength() const {
+  return m_SelectionLength;
 }
 
 bool CInput::IsKeyboardKeyDown(const SDL_Scancode code) const {

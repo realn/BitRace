@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "GUI.h"
 #include "Game.h"
 #include "FGXFile.h"

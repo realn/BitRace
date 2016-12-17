@@ -3,6 +3,7 @@
 #include <SDL_types.h>
 #include <SDL_events.h>
 #include <glm/glm.hpp>
+#include <string>
 
 class CInput {
 private:
@@ -14,11 +15,26 @@ private:
   glm::ivec2  m_MousePos;
   glm::ivec2  m_MousePosDelta;
 
+  std::string m_Text;
+  std::string m_Composition;
+  Uint32  m_Cursor;
+  Uint32  m_SelectionLength;
+
 public:
   CInput();
   ~CInput();
 
   void Update(const float timeDelta);
+  void ProcessEvent(const SDL_Event& event);
+
+  void StartTextInput();
+  void StartTextInput(const glm::vec2& pos, const glm::vec2& size);
+  void StopTextInput();
+
+  const std::string& GetText() const;
+  const std::string& GetTextComposition() const;
+  const Uint32  GetTextCursor() const;
+  const Uint32  GetTextSelectionLength() const;
 
   bool  IsKeyboardKeyDown(const SDL_Scancode code) const;
   bool  IsKeyboardKeyPressed(const SDL_Scancode code) const;

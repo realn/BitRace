@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "GameView.h"
 #include "IniFiles.h"
 #include "Log.h"

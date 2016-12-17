@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Files.h"
 #include <SDL.h>
 #include <vector>

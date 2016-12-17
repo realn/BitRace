@@ -1,9 +1,7 @@
+#include "stdafx.h"
 #include "Space.h"
 
 #include <glm/gtc/type_ptr.hpp>
-
-#define GLEW_STATIC
-#include <GL/glew.h>
 
 CSpace::CSpace(const glm::vec2& size, const glm::uvec2& lineNum, const float y) {
   glm::uvec2 lines = lineNum + glm::uvec2(1);

@@ -1,13 +1,9 @@
+#include "stdafx.h"
 #include "Game.h"
 #include "Log.h"
+#include "Input.h"
 
 #include <SDL.h>
-
-#pragma comment(lib, "SDL2.lib")
-#pragma comment(lib, "SDL2main.lib")
-#pragma comment(lib, "opengl32.lib")
-#pragma comment(lib, "glu32.lib")
-#pragma comment(lib, "glew32s.lib")
 
 CGame::CGame() :
   m_pView(nullptr),
@@ -15,7 +11,7 @@ CGame::CGame() :
   m_GUI(),
   m_MenuMng(&m_GUI),
   m_Intro(&m_GUI, glm::vec2(800.0f, 600.0f)),
-  m_bShutdown(false),
+  m_Run(true),
   m_bGamePause(false),
   m_bTakeScreen(false),
   m_iLastTick(0),
@@ -39,11 +35,10 @@ CGame::~CGame() {
 int CGame::MainLoop() {
   SDL_Event event;
 
-  while (!m_bShutdown) {
+  while (m_Run) {
 
     if (SDL_PollEvent(&event)) {
-      if (event.type == SDL_QUIT)
-        this->m_bShutdown = true;
+      this->ProcessEvent(event);
     }
 
     this->Update();
@@ -54,3 +49,12 @@ int CGame::MainLoop() {
   return 0;
 }
 
+void CGame::ProcessEvent(const SDL_Event& event) {
+  switch(event.type) {
+  case SDL_QUIT: m_Run = false; break;
+  default:
+    break;
+  }
+
+
+}

@@ -4,10 +4,6 @@
 #define GAME_FULLNAME "CodeRulers BitRace v1.0a"
 #define	GAME_BLEND_TEX_SIZE	64
 
-#define GLEW_STATIC
-#include <GL/glew.h>
-//#include <GL/wglew.h>
-
 #include <SDL_types.h>
 #include <SDL_events.h>
 #include <glm/glm.hpp>
@@ -32,7 +28,7 @@ private:
 	CIntro			  m_Intro;
 	CHighScore		m_HS;
 
-	bool			m_bShutdown;
+	bool			m_Run;
 	bool			m_bGamePause;
 	bool			m_bTakeScreen;
 	Uint64		m_iLastTick;
@@ -114,4 +110,7 @@ public:
 
 	void UpdateTimer();
 	void UpdateHS();
+
+private:
+  void ProcessEvent(const SDL_Event& event);
 };

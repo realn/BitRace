@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "IniFiles.h"
 #include "Files.h"
 #include "helper.h"

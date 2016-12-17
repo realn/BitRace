@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "GUIScreen.h"
 #include "GUI.h"
 #include "helper.h"

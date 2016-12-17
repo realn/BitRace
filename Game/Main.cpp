@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Game.h"
 
 int __stdcall WinMain(void* hInstance, void* hPrevInstance, char* lpCmdLine, int nShowCmd) {

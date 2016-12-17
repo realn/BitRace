@@ -1,10 +1,8 @@
+#include "stdafx.h"
 #include "GUIMenu.h"
 #include "GUIScreen.h"
 #include "GUI.h"
 #include "Input.h"
-
-#define GLEW_STATIC
-#include <GL/glew.h>
 
 CGUIMenuItem::CGUIMenuItem(CGUIMenu* pMenu, const Uint32 id, const std::string& text, const Uint32 userDefID) :
   m_pMenu(pMenu),

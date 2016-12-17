@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Level.h"
 #include "GUIScreen.h"
 #include "GUI.h"
@@ -8,10 +9,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include <glm/gtx/closest_point.hpp>
-
-#define GLEW_STATIC
-#include <GL/glew.h>
-
 
 enum CLevel::DifficultyId {
   DID_VERY_EASY = 0,
@@ -394,8 +391,8 @@ void CLevel::UpdateGame(const float timeDelta) {
   this->CheckCollisions();
   this->CheckDifLevel();
 
-  //if(m_pPlayer->GetHealth() < 0.0f)
-  //  m_uTrackState = TS_GAMEOVER;
+  if(m_pPlayer->GetHealth() < 0.0f)
+    m_uTrackState = TS_GAMEOVER;
 }
 
 void CLevel::UpdateEntities(const float timeDelta) {

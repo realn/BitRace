@@ -1,11 +1,9 @@
+#include "stdafx.h"
 #include "Intro.h"
 #include "GUI.h"
 #include "GUIScreen.h"
 #include "FGXFile.h"
 #include "Log.h"
-
-#define GLEW_STATIC
-#include <GL/glew.h>
 
 enum CIntro::INTRO_STATE {
   IS_STATE1 = 0,

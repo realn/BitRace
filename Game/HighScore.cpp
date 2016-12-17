@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "HighScore.h"
 #include "Input.h"
 #include "Log.h"

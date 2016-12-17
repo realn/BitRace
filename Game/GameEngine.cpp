@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Game.h"
 #include "GameView.h"
 #include "IniFiles.h"
@@ -119,7 +120,7 @@ void CGame::UpdateMenu(const float timeDelta) {
     break;
 
   case MI_EXIT:
-    this->m_bShutdown = true;
+    this->m_Run = false;
     break;
 
   case MI_HIGH:

@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Game.h"
 #include "GameView.h"
 #include "Input.h"
@@ -5,7 +6,6 @@
 #include "IniFiles.h"
 
 #include <SDL.h>
-#include <GL/wglew.h>
 
 bool CGame::Init(std::string strCmdLine) {
 	m_strConfigFile = "config.ini";
@@ -112,11 +112,11 @@ bool CGame::InitGame() {
 	this->m_RaceTrack.Init(&m_GUI, glm::vec2(640.0f, 480.0f));
 	this->m_HS.LoadScores("score.hsf");
 
-	if (WGLEW_EXT_swap_control) {
-		if (m_pView->GetParams().bVSync)
-			wglSwapIntervalEXT(1);
-		else wglSwapIntervalEXT(0);
-	}
+	//if (WGLEW_EXT_swap_control) {
+	//	if (m_pView->GetParams().bVSync)
+	//		wglSwapIntervalEXT(1);
+	//	else wglSwapIntervalEXT(0);
+	//}
 
 	m_MenuMng.SetSize(m_pView->GetSize());
 
@@ -134,9 +134,9 @@ bool CGame::InitGame() {
 	Menu->AddMenuItem(MI_SMOOTHLINE, (m_pView->GetParams().bSmoothLines) ? "Smooth Lines: Enabled" : "Smooth Lines: Disabled");
 	Menu->AddMenuItem(MI_FPSCOUNTER, (m_pView->GetParams().bFPSCount) ? "FPS Counter: Enabled" : "FPS Counter: Disabled");
 	Menu->AddMenuItem(MI_VSYNC, (m_pView->GetParams().bVSync) ? "VSync: Enabled" : "VSync: Disabled");
-	if (WGLEW_EXT_swap_control) {
-		Menu->GetMenuItem(MI_VSYNC)->SetEnable(false);
-	}
+	//if (WGLEW_EXT_swap_control) {
+	//	Menu->GetMenuItem(MI_VSYNC)->SetEnable(false);
+	//}
 	Menu->AddMenuItem(MI_OPWARNING, "WARNING: You must restart the game, to apply changes")->SetEnable(false);
 	Menu->AddMenuItem(MI_GOBACK, "Return to Main Menu", MENU_MAIN);
 	Menu = this->m_MenuMng.AddMenu(MENU_HIGH, "High Scores");

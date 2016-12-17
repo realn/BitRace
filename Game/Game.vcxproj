@@ -58,7 +58,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader />
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link>
@@ -113,6 +113,9 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="Space.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entity.h" />
@@ -130,6 +133,7 @@
     <ClInclude Include="Log.h" />
     <ClInclude Include="helper.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="stdafx.h" />
     <CustomBuild Include="Level.h" />
     <ClInclude Include="Space.h" />
   </ItemGroup>

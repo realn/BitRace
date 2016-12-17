@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "helper.h"
 #include <SDL_types.h>
 
