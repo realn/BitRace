@@ -27,6 +27,7 @@ void CGame::FreeOpenGL() {
 }
 
 void CGame::FreeGame() {
+  helper::deleteobj(m_pHS);
   m_RaceTrack.Free();
   m_MenuMng.Clear();
   m_GUI.Free();

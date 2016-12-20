@@ -43,9 +43,9 @@ void CGame::UpdateLogic(const float timeDelta) {
     break;
 
   case GS_HIGH:
-    m_HS.Update(this->m_pInput, timeDelta);
-    if(m_HS.IsEnded()) {
-      m_HS.SaveScores("score.hsf");
+    m_pHS->Update(this->m_pInput, timeDelta);
+    if(m_pHS->IsEnded()) {
+      m_pHS->Save("score.hsf");
       UpdateHS();
       m_MenuMng.ForceSwitchToMenu(MENU_HIGH);
       m_uGameState = GS_MENU;
@@ -83,7 +83,7 @@ void CGame::UpdateGame(const float timeDelta) {
   if(m_RaceTrack.IsGameOver()) {
     m_MenuMng.ForceSwitchToMenu(MENU_MAIN);
     m_MenuMng.GetMenu(MENU_MAIN)->GetMenuItem(MI_RETURN)->SetEnable(false);
-    m_HS.SetTempScore(m_RaceTrack.GetPoints());
+    m_pHS->StartScoreAnim(m_RaceTrack.GetPoints());
     m_uGameState = GS_HIGH;
     return;
   }
@@ -221,9 +221,9 @@ void CGame::UpdateMenu(const float timeDelta) {
     break;
 
   case MI_HSRESET:
-    m_HS.ResetAllScores();
+    m_pHS->ResetAllScores();
     UpdateHS();
-    m_HS.SaveScores("score.hsf");
+    m_pHS->Save("score.hsf");
     break;
   };
 }
@@ -237,8 +237,8 @@ void CGame::UpdateHS() {
     CGUIMenuItem* HSMI = Menu->GetMenuItem(MI_HS1 + i);
     if(HSMI == NULL)
       continue;
-    strName = m_HS.GetName(i);
-    uScore = m_HS.GetScore(i);
+    strName = m_pHS->GetName(i);
+    uScore = m_pHS->GetScore(i);
     if(strName.empty())
       buffer = helper::format("%u. --EMPTY SCORE--", i + 1);
     else

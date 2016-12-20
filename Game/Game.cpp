@@ -11,6 +11,7 @@ CGame::CGame() :
   m_GUI(),
   m_MenuMng(&m_GUI),
   m_Intro(&m_GUI, glm::vec2(800.0f, 600.0f)),
+  m_pHS(nullptr),
   m_Run(true),
   m_bGamePause(false),
   m_bTakeScreen(false),
@@ -35,6 +36,8 @@ CGame::~CGame() {
 int CGame::MainLoop() {
   SDL_Event event;
 
+  
+  this->UpdateTimer();
   while (m_Run) {
 
     if (SDL_PollEvent(&event)) {
@@ -53,8 +56,7 @@ void CGame::ProcessEvent(const SDL_Event& event) {
   switch(event.type) {
   case SDL_QUIT: m_Run = false; break;
   default:
+    m_pInput->ProcessEvent(event);
     break;
   }
-
-
 }

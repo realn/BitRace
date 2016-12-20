@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "GUIMenu.h"
 #include "GUIScreen.h"
+#include "GUIController.h"
 #include "GUI.h"
 #include "Input.h"
 
@@ -10,17 +11,24 @@ CGUIMenuItem::CGUIMenuItem(CGUIMenu* pMenu, const Uint32 id, const std::string& 
   m_UserDefId(userDefID),
   m_Flags(MIF_ENABLED | MIF_VISIBLE)
 {
-  glm::vec2 screenSize = pMenu->GetScreen()->GetSize();
+  glm::vec2 screenSize = m_pMenu->GetScreen()->GetSize();
+  glm::vec4 rectCol = m_pMenu->GetStyleColor(CGUIMenu::SC_ITEMRECT);
+  glm::vec4 rectColHS = m_pMenu->GetStyleColor(CGUIMenu::SC_ITEMRECTHIGHLIGHT);
+  glm::vec4 textCol = m_pMenu->GetStyleColor(CGUIMenu::SC_ITEMTEXT);
+  glm::vec4 textColHS = m_pMenu->GetStyleColor(CGUIMenu::SC_ITEMTEXTHIGHLIGHT);
 
-  m_pTextControl = new CGUITextControl(text, m_pMenu->GetItemsTextColor());
-  m_pRectControl = new CGUIRectControl(glm::vec2(0.0f), m_pMenu->GetItemsRectColor());
+  m_pTextControl = new CGUITextControl(text, textCol);
+  m_pRectControl = new CGUIRectControl(glm::vec2(0.0f), rectCol);
 
   m_pMenu->GetScreen()->AddControl(m_pRectControl);
   m_pMenu->GetScreen()->AddControl(m_pTextControl);
 
   CGUIControllerList* pList = m_pMenu->GetControllerList();
 
-  m_pRectFadeAnim = new CGUIFadeAnimation(pList, m_pRectControl, 0.5f, false);
+  m_pRectFadeAnim = new CGUIColorFadeAnimation(pList, m_pRectControl, 0.5f, rectCol, rectColHS, false);
+  m_pRectFadeAnim->ForceRun();
+  m_pTextFadeAnim = new CGUIColorFadeAnimation(pList, m_pTextControl, 0.5f, textCol, textColHS, false);
+  m_pTextFadeAnim->ForceRun();
 }
 
 CGUIMenuItem::~CGUIMenuItem() {
@@ -38,14 +46,11 @@ const bool CGUIMenuItem::Update(CInput* pInput, const float fDT) {
 
   glm::vec2 screenSize = m_pMenu->GetScreen()->GetSize();
 
-  if (HasFocus()) {
-    m_pRectFadeAnim->SetVisible(true);
-  }
-  else {
-    m_pRectFadeAnim->SetVisible(false);
-  }
-  if(!m_pRectFadeAnim->IsRunning())
-    m_pRectFadeAnim->Run();
+  m_pRectFadeAnim->SetVisible(HasFocus());
+  m_pTextFadeAnim->SetVisible(HasFocus());
+
+  m_pRectFadeAnim->Run();
+  m_pTextFadeAnim->Run();
   
   this->m_pRectControl->SetSize(glm::vec2(screenSize.x, m_pTextControl->GetSize().y));
 
@@ -135,10 +140,13 @@ CGUIMenu::CGUIMenu(CGUIMenuManager* pMenuMng, const Uint32 id, const std::string
   m_Index(0),
   m_ClickedID(0),
   m_ItemsPos(40.0f, 70.0f),
-  m_ItemsPadding(0.0f, 30.0f),
-  m_ItemsTextColor(0.0f, 1.0f, 0.0f, 1.0f),
-  m_ItemsRectColor(1.0f, 1.0f, 1.0f, 0.0f)
+  m_ItemsPadding(0.0f, 30.0f)
 {
+  m_StyleColors[SC_ITEMRECT] = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+  m_StyleColors[SC_ITEMTEXT] = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+  m_StyleColors[SC_ITEMRECTHIGHLIGHT] = glm::vec4(1.0f, 1.0f, 1.0f, 0.9f);
+  m_StyleColors[SC_ITEMTEXTHIGHLIGHT] = glm::vec4(0.0f, 0.1f, 0.0f, 1.0f);
+
   m_pControllerList = new CGUIControllerList();
   m_pScreen = new CGUIScreen(m_pMenuMng->GetGUI(), size);
   m_pTitleControl = new CGUITextControl(title);
@@ -246,12 +254,11 @@ const Uint32 CGUIMenu::GetID() const {
   return m_Id;
 }
 
-const glm::vec4 CGUIMenu::GetItemsTextColor() const {
-  return m_ItemsTextColor;
-}
-
-const glm::vec4 CGUIMenu::GetItemsRectColor() const {
-  return m_ItemsRectColor;
+const glm::vec4 CGUIMenu::GetStyleColor(const STYLECOLORS color) const {
+  stylecolors::const_iterator it = m_StyleColors.find(color);
+  if(it == m_StyleColors.end())
+    return glm::vec4();
+  return it->second;
 }
 
 void CGUIMenu::UpdateItemsPos() {

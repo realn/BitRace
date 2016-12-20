@@ -2,6 +2,8 @@
 #include "Intro.h"
 #include "GUI.h"
 #include "GUIScreen.h"
+#include "GUIController.h"
+#include "GUIBuilder.h"
 #include "FGXFile.h"
 #include "Log.h"
 
@@ -50,96 +52,143 @@ bool CIntro::Init(const std::string& logoFilename, const glm::vec2& size) {
 
   this->m_Size = size;
   this->m_pScreen = new CGUIScreen(m_pGUI, m_Size);
+  this->m_pControllerList = new CGUIControllerList();
+
   glm::vec4 textColor(0.0f, 1.0f, 0.0f, 1.0f);
 
-  this->m_pLogoControl = new CGUIRectControl(glm::vec2(240.0f));
-  this->m_pLogoControl->SetVisible(false);
-  this->m_pLogoControl->SetTexture(this->m_LogoTexId);
-  this->m_pLogoControl->SetTextureCoords(glm::vec2(0.0f), glm::vec2(0.5f));
+  std::string texImages = "texImages";
+  std::string textPresent = "textPresent";
+  std::string textTech1 = "textTech1";
+  std::string textTech2 = "textTech2";
+  std::string rectLogo = "rectLogo";
 
-  this->m_pPresentTextControl = new CGUITextControl(m_TextPresent, textColor);
-  this->m_pPresentTextControl->SetVisible(false);
+  CGUIBuilder gui(m_pScreen, m_pControllerList);
 
-  this->m_pTechText1Control = new CGUITextControl(m_TextTech1, textColor);
-  this->m_pTechText1Control->SetVisible(false);
+  gui.Texture(texImages, m_LogoTexId);
 
-  this->m_pTechText2Control = new CGUITextControl(this->m_TextTech2, textColor);
-  this->m_pTechText2Control->SetVisible(false);
+  gui.Rect(rectLogo, glm::vec2(240.0f));
+  gui.SetRectTexture(rectLogo, texImages, glm::vec2(0.0f), glm::vec2(0.5f));
+  gui.SetVisible(rectLogo, false);
 
-  CGUIRectControl* pTechLogo1Control = new CGUIRectControl(glm::vec2(240.0f));
-  pTechLogo1Control->SetVisible(false);
-  pTechLogo1Control->SetTexture(this->m_LogoTexId);
-  pTechLogo1Control->SetTextureCoords(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f));
+  gui.Label(textPresent, "PRESENTS", textColor); 
+  gui.SetVisible(textPresent, false);
 
-  CGUIRectControl* pTechLogo2Control = new CGUIRectControl(glm::vec2(240.0f));
-  pTechLogo2Control->SetVisible(false);
-  pTechLogo2Control->SetTexture(this->m_LogoTexId);
-  pTechLogo2Control->SetTextureCoords(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f));
+  gui.Label(textTech1, "A GAME BUILD WITH", textColor);
+  gui.SetVisible(textTech1, false);
 
-  this->m_pScreen->AddControl(m_pLogoControl, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
-  this->m_pScreen->AddControl(pTechLogo1Control, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
-  this->m_pScreen->AddControl(pTechLogo2Control, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
-  this->m_pScreen->AddControl(m_pPresentTextControl, glm::vec2(0.0f, 100.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
-  this->m_pScreen->AddControl(m_pTechText1Control, glm::vec2(0.0f, -100.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
-  this->m_pScreen->AddControl(m_pTechText2Control, glm::vec2(0.0f, 100.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+  gui.Label(textTech2, "TECHNOLOGY", textColor);
+  gui.SetVisible(textTech2, false);
 
-  this->m_pControllerList = new CGUIControllerList();
-  CGUIControllerList* pList = m_pControllerList;
+  gui.Put(rectLogo, glm::vec2(0.0f), CGUIScreen::IA_SCREEN_CENTER);
+  gui.Put(textPresent, glm::vec2(0.0f, 100.0f), CGUIScreen::IA_SCREEN_CENTER);
+  gui.Put(textTech1, glm::vec2(0.0f, -100.0f), CGUIScreen::IA_SCREEN_CENTER);
+  gui.Put(textTech2, glm::vec2(0.0f, 100.0f), CGUIScreen::IA_SCREEN_CENTER);
+
+  gui.TextShow(textPresent, 1.0f);
+  gui.FadeIn(rectLogo, 2.0f);
+  gui.Wait(1.0f);
+  gui.FadeOut(rectLogo, 1.0f);
+  gui.TextHide(textPresent, 1.0f);
+
+  gui.BeginParallel();
+  gui.TextShow(textTech1, 1.0f);
+  gui.TextShow(textTech2, 1.0f);
+  gui.EndParallel();
+
+  m_pIntroStart = gui.GetFirst();
+  m_pIntroEnd = gui.GetLast();
+
+  m_pIntroStart->Run();
+
+  //this->m_pLogoControl = new CGUIRectControl(glm::vec2(240.0f));
+  //this->m_pLogoControl->SetVisible(false);
+  //this->m_pLogoControl->SetTexture(this->m_LogoTexId);
+  //this->m_pLogoControl->SetTextureCoords(glm::vec2(0.0f), glm::vec2(0.5f));
+
+  //this->m_pPresentTextControl = new CGUITextControl(m_TextPresent, textColor);
+  //this->m_pPresentTextControl->SetVisible(false);
+
+  //this->m_pTechText1Control = new CGUITextControl(m_TextTech1, textColor);
+  //this->m_pTechText1Control->SetVisible(false);
+
+  //this->m_pTechText2Control = new CGUITextControl(this->m_TextTech2, textColor);
+  //this->m_pTechText2Control->SetVisible(false);
+
+  //CGUIRectControl* pTechLogo1Control = new CGUIRectControl(glm::vec2(240.0f));
+  //pTechLogo1Control->SetVisible(false);
+  //pTechLogo1Control->SetTexture(this->m_LogoTexId);
+  //pTechLogo1Control->SetTextureCoords(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f));
+
+  //CGUIRectControl* pTechLogo2Control = new CGUIRectControl(glm::vec2(240.0f));
+  //pTechLogo2Control->SetVisible(false);
+  //pTechLogo2Control->SetTexture(this->m_LogoTexId);
+  //pTechLogo2Control->SetTextureCoords(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f));
+
+  //this->m_pScreen->AddControl(m_pLogoControl, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+  //this->m_pScreen->AddControl(pTechLogo1Control, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+  //this->m_pScreen->AddControl(pTechLogo2Control, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+  //this->m_pScreen->AddControl(m_pPresentTextControl, glm::vec2(0.0f, 100.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+  //this->m_pScreen->AddControl(m_pTechText1Control, glm::vec2(0.0f, -100.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+  //this->m_pScreen->AddControl(m_pTechText2Control, glm::vec2(0.0f, 100.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
+
 
   {
-    m_pIntroStart = new CGUIFadeAnimation(pList, m_pLogoControl, 1.0f);
-    m_pIntroStart->Start();
 
-    IGUIController* pTextShowAnim = new CGUITextAnimation(pList, m_pPresentTextControl, 0.6f);
-    CGUIDoneTrigger* pTrigger = new CGUIDoneTrigger(pList, m_pIntroStart, pTextShowAnim);
+    //m_pIntroStart = new CGUIAlphaFadeAnimation(pList, m_pLogoControl, 1.0f);
+    //m_pIntroStart->Run();
 
-    IGUIController* pWaitTimer = new CGUITimer(pList, 1.0f);
-    pTrigger = new CGUIDoneTrigger(pList, pTextShowAnim, pWaitTimer);
+    //CGUIController* pTextShowAnim = new CGUITextAnimation(pList, m_pPresentTextControl, 0.6f);
+    //CGUIDoneTrigger* pTrigger = new CGUIDoneTrigger(pList, m_pIntroStart, pTextShowAnim);
 
-    IGUIController* pTextHideAnim = new CGUITextAnimation(pList, m_pPresentTextControl, 0.6f, false);
-    IGUIController* pFadeHideAnim = new CGUIFadeAnimation(pList, m_pLogoControl, 1.0f, false);
+    //CGUIController* pWaitTimer = new CGUITimer(pList, 1.0f);
+    //pTrigger = new CGUIDoneTrigger(pList, pTextShowAnim, pWaitTimer);
 
-    pTrigger = new CGUIDoneTrigger(pList, pWaitTimer);
-    pTrigger->AddTarget(pTextHideAnim);
-    pTrigger->AddTarget(pFadeHideAnim);
+    //CGUIController* pTextHideAnim = new CGUITextAnimation(pList, m_pPresentTextControl, 0.6f, false);
+    //CGUIController* pFadeHideAnim = 
+    //  new CGUIAlphaFadeAnimation(pList, m_pLogoControl, 1.0f, 0.0f, 1.0f, false);
 
-    IGUIController* pTextShowAnim1 = new CGUITextAnimation(pList, m_pTechText1Control, 0.6f);
-    IGUIController* pTextShowAnim2 = new CGUITextAnimation(pList, m_pTechText2Control, 0.6f);
+    //pTrigger = new CGUIDoneTrigger(pList, pWaitTimer);
+    //pTrigger->AddTarget(pTextHideAnim);
+    //pTrigger->AddTarget(pFadeHideAnim);
 
-    pTrigger = new CGUIDoneTrigger(pList);
-    pTrigger->AddCondition(pTextHideAnim);
-    pTrigger->AddCondition(pFadeHideAnim);
-    pTrigger->AddTarget(pTextShowAnim1);
-    pTrigger->AddTarget(pTextShowAnim2);
+    //CGUIController* pTextShowAnim1 = new CGUITextAnimation(pList, m_pTechText1Control, 0.6f);
+    //CGUIController* pTextShowAnim2 = new CGUITextAnimation(pList, m_pTechText2Control, 0.6f);
 
-    IGUIController* pFadeShowAnim = new CGUIFadeAnimation(pList, pTechLogo1Control, 1.0f);
+    //pTrigger = new CGUIDoneTrigger(pList);
+    //pTrigger->AddCondition(pTextHideAnim);
+    //pTrigger->AddCondition(pFadeHideAnim);
+    //pTrigger->AddTarget(pTextShowAnim1);
+    //pTrigger->AddTarget(pTextShowAnim2);
 
-    pTrigger = new CGUIDoneTrigger(pList);
-    pTrigger->AddCondition(pTextShowAnim1);
-    pTrigger->AddCondition(pTextShowAnim2);
-    pTrigger->AddTarget(pFadeShowAnim);
+    //CGUIController* pFadeShowAnim = new CGUIAlphaFadeAnimation(pList, pTechLogo1Control, 1.0f);
 
-    pFadeHideAnim = new CGUIFadeAnimation(pList, pTechLogo1Control, 1.0f, false);
-    pTrigger = new CGUIDoneTrigger(pList, pFadeShowAnim, pFadeHideAnim);
+    //pTrigger = new CGUIDoneTrigger(pList);
+    //pTrigger->AddCondition(pTextShowAnim1);
+    //pTrigger->AddCondition(pTextShowAnim2);
+    //pTrigger->AddTarget(pFadeShowAnim);
 
-    pFadeShowAnim = new CGUIFadeAnimation(pList, pTechLogo2Control, 1.0f);
-    pTrigger = new CGUIDoneTrigger(pList, pFadeHideAnim, pFadeShowAnim);
+    //pFadeHideAnim = new CGUIAlphaFadeAnimation(pList, pTechLogo1Control, 1.0f, 0.0f, 1.0f, false);
+    //pTrigger = new CGUIDoneTrigger(pList, pFadeShowAnim, pFadeHideAnim);
+
+    //pFadeShowAnim = new CGUIAlphaFadeAnimation(pList, pTechLogo2Control, 1.0f);
+    //pTrigger = new CGUIDoneTrigger(pList, pFadeHideAnim, pFadeShowAnim);
 
 
-    pFadeHideAnim = new CGUIFadeAnimation(pList, pTechLogo2Control, 1.0f, false);
-    IGUIController* pTextHideAnim1 = new CGUITextAnimation(pList, m_pTechText1Control, 0.6f, false);
-    IGUIController* pTextHideAnim2 = new CGUITextAnimation(pList, m_pTechText2Control, 0.6f, false);
-    pTrigger = new CGUIDoneTrigger(pList, pFadeShowAnim);
-    pTrigger->AddTarget(pFadeHideAnim);
-    pTrigger->AddTarget(pTextHideAnim1);
-    pTrigger->AddTarget(pTextHideAnim2);
+    //pFadeHideAnim = new CGUIAlphaFadeAnimation(pList, pTechLogo2Control, 1.0f, 0.0f, 1.0f, false);
+    //CGUIController* pTextHideAnim1 = new CGUITextAnimation(pList, m_pTechText1Control, 0.6f, false);
+    //CGUIController* pTextHideAnim2 = new CGUITextAnimation(pList, m_pTechText2Control, 0.6f, false);
 
-    pTrigger = new CGUIDoneTrigger(pList);
-    pTrigger->AddCondition(pFadeHideAnim);
-    pTrigger->AddCondition(pTextHideAnim1);
-    pTrigger->AddCondition(pTextHideAnim2);
+    //pTrigger = new CGUIDoneTrigger(pList, pFadeShowAnim);
+    //pTrigger->AddTarget(pFadeHideAnim);
+    //pTrigger->AddTarget(pTextHideAnim1);
+    //pTrigger->AddTarget(pTextHideAnim2);
 
-    m_pIntroEnd = pTrigger;
+    //pTrigger = new CGUIDoneTrigger(pList);
+    //pTrigger->AddCondition(pFadeHideAnim);
+    //pTrigger->AddCondition(pTextHideAnim1);
+    //pTrigger->AddCondition(pTextHideAnim2);
+
+    //m_pIntroEnd = pTrigger;
   }
 
   return true;

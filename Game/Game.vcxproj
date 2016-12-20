@@ -101,6 +101,8 @@
     <ClCompile Include="GameRender.cpp" />
     <ClCompile Include="GameView.cpp" />
     <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="GUIBuilder.cpp" />
+    <ClCompile Include="GUIController.cpp" />
     <ClCompile Include="GUIMenu.cpp" />
     <ClCompile Include="GUIScreen.cpp" />
     <ClCompile Include="helper.cpp" />
@@ -124,6 +126,8 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameView.h" />
     <ClInclude Include="GUI.h" />
+    <ClInclude Include="GUIBuilder.h" />
+    <ClInclude Include="GUIController.h" />
     <ClInclude Include="GUIMenu.h" />
     <ClInclude Include="GUIScreen.h" />
     <ClInclude Include="HighScore.h" />

@@ -110,7 +110,6 @@ bool CGame::InitGame() {
 	m_pView->ScanDispModes();
 
 	this->m_RaceTrack.Init(&m_GUI, glm::vec2(640.0f, 480.0f));
-	this->m_HS.LoadScores("score.hsf");
 
 	//if (WGLEW_EXT_swap_control) {
 	//	if (m_pView->GetParams().bVSync)
@@ -153,6 +152,9 @@ bool CGame::InitGame() {
 	Menu->AddMenuItem(MI_HSRESET, "Reset Hight Scores");
 	Menu->AddMenuItem(MI_GOBACK, "Return to Main Menu", MENU_MAIN);
 
+  m_pHS = new CHighScore(&m_GUI, m_pView->GetSize());
+  //m_pHS->Load("score.hsf");
+  
 	UpdateHS();
 
 	m_Intro.Init("logos.fgx", m_pView->GetSize());

@@ -2,21 +2,42 @@
 
 #include <SDL_types.h>
 #include <string>
+#include <vector>
+#include <glm/glm.hpp>
 
 class CInput;
 class CGUI;
+class CGUIScreen;
+class CGUIControllerList;
+class CGUIController;
+template<typename _Type> class CGUITextCountAnimation;
+class CGUITextAnimation;
 
 class CHighScore {
 public:
   class CScore {
   public:
-    unsigned m_uScore;
-    char m_acName[7];
+    Uint32 m_Points;
+    std::string m_Name;
 
-    CScore();
+    CScore() : m_Points(0) {}
   };
 private:
-  CScore	m_aScore[10];
+  std::vector<CScore> m_Scores;
+
+  CGUIScreen* m_pScreen;
+  CGUIControllerList* m_pControllerList;
+
+  CGUIController* m_pAnimStart;
+  CGUIController* m_pAnimEnd;
+  CGUITextAnimation* m_pNameAnim;
+  CGUITextCountAnimation<Uint32>* m_pScoreAnim;
+
+  Uint32    m_ScorePoints;
+  Sint32    m_ScorePosition;
+  std::string m_ScoreName;
+  std::string m_Comment;
+
   unsigned	m_uTempScore;
   unsigned	m_uCurPos;
   unsigned	m_uHSS;
@@ -27,38 +48,26 @@ private:
   std::string m_strText2;
   std::string m_strText3;
   float	m_fTime;
-  bool	m_bCanWrite;
   bool	m_bIsEnd;
-  bool	m_bKeyDown[256];
-
-  void	ParseKey(unsigned key);
-  bool	CheckScore();
-
-  enum	HIGHSCORE_STATE {
-    HSS_STATE1 = 0,
-    HSS_STATE2,
-    HSS_STATE3,
-    HSS_STATE4,
-    HSS_STATE5,
-    HSS_STATE6,
-    HSS_STATE7,
-    HSS_STATE8
-  };
 
 public:
-  CHighScore();
+  CHighScore(CGUI* pGUI, const glm::vec2& screenSize);
+  ~CHighScore();
 
-  bool	LoadScores(std::string strFile);
-  bool	SaveScores(std::string strFile);
+  const bool	Load(const std::string& filename);
+  const bool	Save(const std::string& filename);
 
-  void	SetTempScore(unsigned uScore);
+  void  StartScoreAnim(const Uint32 score);
 
   void	Update(CInput* pInput, float timeDelta);
   void	RenderGUI(CGUI* GUI);
 
-  std::string GetName(unsigned uIndex);
-  unsigned	GetScore(unsigned uIndex);
+  const std::string GetName(const Uint32 position) const;
+  const Uint32	GetScore(const Uint32 position) const;
 
   bool	IsEnded();
   void	ResetAllScores();
+
+private:
+  bool	CheckScore();
 };

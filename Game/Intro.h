@@ -10,7 +10,7 @@ class CGUIScreen;
 class CGUITextControl;
 class CGUIRectControl;
 
-class IGUIController;
+class CGUIController;
 class CGUIControllerList;
 
 class CIntro {
@@ -24,8 +24,8 @@ private:
   CGUIRectControl* m_pLogoControl;
   
 
-  IGUIController* m_pIntroStart;
-  IGUIController* m_pIntroEnd;
+  CGUIController* m_pIntroStart;
+  CGUIController* m_pIntroEnd;
 
   CGUIControllerList* m_pControllerList;
 

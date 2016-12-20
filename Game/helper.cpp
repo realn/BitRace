@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "helper.h"
+#include "Files.h"
+
 #include <SDL_types.h>
 
 #include <cstdarg>
@@ -20,4 +22,20 @@ const std::string helper::format(const std::string text, ...) {
   va_end(pArg);
 
   return result;
+}
+
+void helper::writestr(CFile & file, const std::string & text) {
+  Uint32 len = text.length();
+  file.Write(&len, sizeof(Uint32));
+  if(len > 0)
+    file.Write(text.c_str(), sizeof(char), len);
+}
+
+void helper::readstr(CFile & file, std::string & outText) {
+  Uint32 len = 0;
+  file.Read(&len, sizeof(Uint32));
+  if(len > 0) {
+    outText.resize(len);
+    file.Read(&outText[0], sizeof(char), len);
+  }
 }

@@ -12,7 +12,7 @@ class CGUITextControl;
 class CGUIProgressBarControl;
 class CGUIRectControl;
 class CGUIControllerList;
-class IGUIController;
+class CGUIController;
 
 class CSpace;
 
@@ -69,8 +69,8 @@ private:
   CGUIRectControl*  m_pGUIHealOverlay;
   CGUIRectControl*  m_pGUIDamageOverlay;
   CGUIControllerList* m_pGUIControllerList;
-  IGUIController*   m_pGUIHealController;
-  IGUIController*   m_pGUIDamageController;
+  CGUIController*   m_pGUIHealController;
+  CGUIController*   m_pGUIDamageController;
 
   CSpace*  m_pSpaceTop;
   CSpace*  m_pSpaceBottom;

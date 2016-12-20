@@ -1,10 +1,12 @@
 #include "stdafx.h"
 #include "Level.h"
-#include "GUIScreen.h"
 #include "GUI.h"
+#include "GUIScreen.h"
+#include "GUIController.h"
 #include "Space.h"
 #include "Model.h"
 #include "Entity.h"
+#include "helper.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/vector_angle.hpp>
@@ -241,17 +243,9 @@ CLevel::CLevel() :
 CLevel::~CLevel() {
   Free();
 
-  for(std::map<Uint32, CEntityType*>::iterator it = m_EntityTypes.begin(); it != m_EntityTypes.end(); it++) {
-    delete it->second;
-  }
-  m_EntityTypes.clear();
-
-  for(std::map<Uint32, CDifficulty*>::iterator it = m_DifficultyLevels.begin(); it != m_DifficultyLevels.end(); it++) {
-    delete it->second;
-  }
-  m_DifficultyLevels.clear();
-
-  delete m_pModelRepo;
+  helper::deletemap(m_EntityTypes);
+  helper::deletemap(m_DifficultyLevels);
+  helper::deleteobj(m_pModelRepo);
 }
 
 const bool CLevel::Init(CGUI* pGUI, const glm::vec2& screenSize) {
@@ -284,8 +278,8 @@ const bool CLevel::Init(CGUI* pGUI, const glm::vec2& screenSize) {
     m_pGUIScreen->AddControl(m_pGUIDamageOverlay, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
 
     m_pGUIControllerList = new CGUIControllerList();
-    m_pGUIHealController = new CGUIFadeAnimation(m_pGUIControllerList, m_pGUIHealOverlay, 0.5f, false);
-    m_pGUIDamageController = new CGUIFadeAnimation(m_pGUIControllerList, m_pGUIDamageOverlay, 0.3f, false);
+    m_pGUIHealController = new CGUIAlphaFadeAnimation(m_pGUIControllerList, m_pGUIHealOverlay, 0.5f, 0.0f, 0.3f, false);
+    m_pGUIDamageController = new CGUIAlphaFadeAnimation(m_pGUIControllerList, m_pGUIDamageOverlay, 0.3f, 0.0f, 0.3f, false);
   }
 
   glGenBuffers(1, &m_LineParticleBufferId);
@@ -294,26 +288,23 @@ const bool CLevel::Init(CGUI* pGUI, const glm::vec2& screenSize) {
 }
 
 void CLevel::Free() {
-  delete m_pGUIScreen;
-  m_pGUIScreen = nullptr;
+  helper::deleteobj(m_pGUIScreen);
   m_pGUIPoints = nullptr;
   m_pGUIPointsNeeded = nullptr;
   m_pGUILevelText = nullptr;
   m_pGUIHealthBar = nullptr;
   m_pGUIHealOverlay = nullptr;
   m_pGUIDamageOverlay = nullptr;
-  delete m_pGUIControllerList;
-  m_pGUIControllerList = nullptr;
+
+  helper::deleteobj(m_pGUIControllerList);
   m_pGUIHealController = nullptr;
   m_pGUIDamageController = nullptr;
 
   if(glIsBuffer(m_LineParticleBufferId))
     glDeleteBuffers(1, &m_LineParticleBufferId);
 
-  delete m_pSpaceTop;
-  delete m_pSpaceBottom;
-  m_pSpaceTop = nullptr;
-  m_pSpaceBottom = nullptr;
+  helper::deleteobj(m_pSpaceTop);
+  helper::deleteobj(m_pSpaceBottom);
 
   m_vMove = glm::vec2(0.0f);
 
@@ -391,7 +382,7 @@ void CLevel::UpdateGame(const float timeDelta) {
   this->CheckCollisions();
   this->CheckDifLevel();
 
-  if(m_pPlayer->GetHealth() < 0.0f)
+  if(m_pPlayer->GetHealth() <= 0.0f)
     m_uTrackState = TS_GAMEOVER;
 }
 
@@ -568,6 +559,7 @@ void CLevel::CheckProjectileCollisions(CEntity *pEntity) {
   for(std::map<float, CProjectile*>::iterator it = collisions.begin(); it != collisions.end(); it++) {
     if(pEntity->GetType()->GetGroup() == EG_ENEMY) {
       pEntity->ModHealth(-it->second->GetDamage());
+      m_uPoints += pEntity->GetType()->GetPoints();
       it->second->Delete();
     }
   }
@@ -578,13 +570,14 @@ const bool CLevel::ExecuteCollision(CEntity * pEntityA, CEntity * pEntityB) {
     if(pEntityB->GetType()->GetGroup() == EG_ENEMY) {
       pEntityA->ModHealth(-pEntityB->GetType()->GetDamage());
       pEntityB->Delete();
-      m_pGUIDamageController->Start();
+      m_pGUIDamageController->Rerun();
       return true;
     }
     else if(pEntityB->GetType()->GetGroup() == EG_OTHER) {
       pEntityA->ModHealth(pEntityB->GetType()->GetDamage());
+      m_uPoints += pEntityB->GetType()->GetPoints();
       pEntityB->Delete();
-      m_pGUIHealController->Start();
+      m_pGUIHealController->Rerun();
       return true;
     }
   }
@@ -730,22 +723,23 @@ void CLevel::Render_Intro() {
 }
 
 void CLevel::Engine_GameOver(float fDT) {
-  m_fGameOverTime += 0.3f * fDT;
-  if(m_fGameOverTime < 2.0f)
-    m_fGameOverTime += 1.0f * fDT;
-  else {
-    m_fGameOverTime2 += 1.0f * fDT;
-    if(m_uGameOverCharCount < unsigned(m_strGameOver.length())) {
-      if(m_fGameOverTime2 > 0.2f) {
-        m_uGameOverCharCount++;
-        m_fGameOverTime2 = 0.0f;
-      }
-    }
-    else {
-      if(m_fGameOverTime2 > 2.0f)
-        m_bGameOver = true;
-    }
-  }
+  m_bGameOver = true;
+  //m_fGameOverTime += 0.3f * fDT;
+  //if(m_fGameOverTime < 2.0f)
+  //  m_fGameOverTime += 1.0f * fDT;
+  //else {
+  //  m_fGameOverTime2 += 1.0f * fDT;
+  //  if(m_uGameOverCharCount < unsigned(m_strGameOver.length())) {
+  //    if(m_fGameOverTime2 > 0.2f) {
+  //      m_uGameOverCharCount++;
+  //      m_fGameOverTime2 = 0.0f;
+  //    }
+  //  }
+  //  else {
+  //    if(m_fGameOverTime2 > 2.0f)
+  //      m_bGameOver = true;
+  //  }
+  //}
 }
 
 void CLevel::Render_GameOver() {

@@ -146,9 +146,7 @@ void CGUI::Print(const glm::vec2& pos, const glm::vec4& color, std::string forma
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-  glBlendFunc(GL_ONE, GL_ONE);
   glDrawArrays(GL_QUADS, 0, vertList.size());
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);

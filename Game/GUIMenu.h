@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
+#include <map>
 
 class CInput;
 class CGUI;
@@ -27,6 +28,7 @@ private:
   CGUITextControl*  m_pTextControl;
   CGUIRectControl*  m_pRectControl;
   CGUIFadeAnimation*  m_pRectFadeAnim;
+  CGUIFadeAnimation*  m_pTextFadeAnim;
   Uint32		m_Id;
   Uint32		m_UserDefId;
   Uint32		m_Flags;
@@ -55,10 +57,18 @@ public:
 class CGUIMenuManager;
 class CGUIMenu {
 public:
+  enum STYLECOLORS {
+    SC_ITEMRECT = 0,
+    SC_ITEMTEXT,
+    SC_ITEMRECTHIGHLIGHT,
+    SC_ITEMTEXTHIGHLIGHT,
+  };
   enum MENUFLAG {
     MF_VISIBLE = 0x1
   };
 private:
+  typedef std::map<STYLECOLORS, glm::vec4> stylecolors;
+
   CGUIMenuManager*    m_pMenuMng;
   CGUIScreen*         m_pScreen;
   CGUITextControl*    m_pTitleControl;
@@ -70,8 +80,7 @@ private:
   Uint32	m_ClickedID;
   glm::vec2 m_ItemsPos;
   glm::vec2 m_ItemsPadding;
-  glm::vec4 m_ItemsTextColor;
-  glm::vec4 m_ItemsRectColor;
+  stylecolors m_StyleColors;
 
 public:
   CGUIMenu(CGUIMenuManager* pMenuMng, const Uint32 id, const std::string& title, const glm::vec2& size);
@@ -95,8 +104,7 @@ public:
   const Uint32 GetClickedID() const;
   const Uint32 GetID() const;
 
-  const glm::vec4 GetItemsTextColor() const;
-  const glm::vec4 GetItemsRectColor() const;
+  const glm::vec4 GetStyleColor(const STYLECOLORS color) const;
 
 private:
   void  UpdateItemsPos();

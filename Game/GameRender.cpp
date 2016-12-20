@@ -94,7 +94,7 @@ void CGame::RenderGUI() {
     break;
 
   case GS_HIGH:
-    m_HS.RenderGUI(&m_GUI);
+    m_pHS->RenderGUI(&m_GUI);
     break;
   };
   if (m_pView->GetParams().bFPSCount && m_uGameState != GS_INTRO) {

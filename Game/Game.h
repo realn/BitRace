@@ -19,14 +19,14 @@ class CInput;
 
 class CGame {
 private:
-  CGameView*  m_pView;
-  CInput*     m_pInput;
+	CGameView*  m_pView;
+	CInput*     m_pInput;
 
 	CGUI		        m_GUI;
 	CGUIMenuManager	m_MenuMng;
 	CLevel		    m_RaceTrack;
 	CIntro			  m_Intro;
-	CHighScore		m_HS;
+	CHighScore*	m_pHS;
 
 	bool			m_Run;
 	bool			m_bGamePause;
@@ -112,5 +112,5 @@ public:
 	void UpdateHS();
 
 private:
-  void ProcessEvent(const SDL_Event& event);
+	void ProcessEvent(const SDL_Event& event);
 };
