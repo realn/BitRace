@@ -6,36 +6,14 @@
 #include "GUIBuilder.h"
 #include "FGXFile.h"
 #include "Log.h"
-
-enum CIntro::INTRO_STATE {
-  IS_STATE1 = 0,
-  IS_STATE2,
-  IS_STATE3,
-  IS_STATE4,
-  IS_STATE5,
-  IS_STATE6,
-  IS_STATE7,
-  IS_STATE8,
-  IS_STATE9,
-  IS_STATE10,
-  IS_STATE11,
-  IS_STATE12,
-  IS_STATE13
-};
+#include "helper.h"
 
 CIntro::CIntro(CGUI* pGUI, const glm::vec2& size) :
   m_pGUI(pGUI),
   m_pScreen(nullptr),
-  m_pPresentTextControl(nullptr),
-  m_pTechText1Control(nullptr),
-  m_pTechText2Control(nullptr),
-  m_pLogoControl(nullptr),
-  m_pControllerList(nullptr),
+  m_pAnimation(nullptr),
   m_Size(size),
-  m_IntroState(IS_STATE1),
   m_LogoTexId(0),
-  m_uCharCount(0),
-  m_IntroEnd(false),
   m_TextPresent("PRESENTS"),
   m_TextTech1("A GAME BUILD WITH"),
   m_TextTech2("TECHNOLOGY") {
@@ -52,7 +30,6 @@ bool CIntro::Init(const std::string& logoFilename, const glm::vec2& size) {
 
   this->m_Size = size;
   this->m_pScreen = new CGUIScreen(m_pGUI, m_Size);
-  this->m_pControllerList = new CGUIControllerList();
 
   glm::vec4 textColor(0.0f, 1.0f, 0.0f, 1.0f);
 
@@ -61,14 +38,24 @@ bool CIntro::Init(const std::string& logoFilename, const glm::vec2& size) {
   std::string textTech1 = "textTech1";
   std::string textTech2 = "textTech2";
   std::string rectLogo = "rectLogo";
+  std::string rectTechLogo1 = "rectTechLogo1";
+  std::string rectTechLogo2 = "rectTechLogo2";
 
-  CGUIBuilder gui(m_pScreen, m_pControllerList);
+  CGUIBuilder gui(m_pScreen);
 
   gui.Texture(texImages, m_LogoTexId);
 
   gui.Rect(rectLogo, glm::vec2(240.0f));
   gui.SetRectTexture(rectLogo, texImages, glm::vec2(0.0f), glm::vec2(0.5f));
   gui.SetVisible(rectLogo, false);
+
+  gui.Rect(rectTechLogo1, glm::vec2(240.0f));
+  gui.SetRectTexture(rectTechLogo1, texImages, glm::vec2(0.0f, 0.5f), glm::vec2(0.5f));
+  gui.SetVisible(rectTechLogo1, false);
+
+  gui.Rect(rectTechLogo2, glm::vec2(240.0f));
+  gui.SetRectTexture(rectTechLogo2, texImages, glm::vec2(0.5f), glm::vec2(0.5f));
+  gui.SetVisible(rectTechLogo2, false);
 
   gui.Label(textPresent, "PRESENTS", textColor); 
   gui.SetVisible(textPresent, false);
@@ -80,25 +67,51 @@ bool CIntro::Init(const std::string& logoFilename, const glm::vec2& size) {
   gui.SetVisible(textTech2, false);
 
   gui.Put(rectLogo, glm::vec2(0.0f), CGUIScreen::IA_SCREEN_CENTER);
+  gui.Put(rectTechLogo1, glm::vec2(0.0f), CGUIScreen::IA_SCREEN_CENTER);
+  gui.Put(rectTechLogo2, glm::vec2(0.0f), CGUIScreen::IA_SCREEN_CENTER);
   gui.Put(textPresent, glm::vec2(0.0f, 100.0f), CGUIScreen::IA_SCREEN_CENTER);
   gui.Put(textTech1, glm::vec2(0.0f, -100.0f), CGUIScreen::IA_SCREEN_CENTER);
   gui.Put(textTech2, glm::vec2(0.0f, 100.0f), CGUIScreen::IA_SCREEN_CENTER);
 
-  gui.TextShow(textPresent, 1.0f);
-  gui.FadeIn(rectLogo, 2.0f);
-  gui.Wait(1.0f);
-  gui.FadeOut(rectLogo, 1.0f);
-  gui.TextHide(textPresent, 1.0f);
+  CGUIControllerBuilder guic(&gui);
 
-  gui.BeginParallel();
-  gui.TextShow(textTech1, 1.0f);
-  gui.TextShow(textTech2, 1.0f);
-  gui.EndParallel();
+  guic.BeginSequence();
+  {
+    guic.FadeIn(rectLogo, 2.0f);
+    guic.Wait(0.5f);
+    guic.TextShow(textPresent, 1.0f);
+    guic.Wait(1.0f);
+    guic.FadeOut(rectLogo, 1.0f);
+    guic.TextHide(textPresent, 1.0f);
 
-  m_pIntroStart = gui.GetFirst();
-  m_pIntroEnd = gui.GetLast();
+    guic.Wait(0.5f);
 
-  m_pIntroStart->Run();
+    guic.BeginParallel();
+    {
+      guic.TextShow(textTech1, 1.0f);
+      guic.TextShow(textTech2, 1.0f);
+    }
+    guic.EndParallel();
+
+    guic.FadeIn(rectTechLogo1, 1.0f);
+    guic.Wait(0.5f);
+    guic.FadeOut(rectTechLogo1, 1.0f);
+    guic.FadeIn(rectTechLogo2, 1.0f);
+    guic.Wait(0.5f);
+    guic.FadeOut(rectTechLogo2, 1.0f);
+
+    guic.BeginParallel();
+    {
+      guic.TextHide(textTech1, 1.0f);
+      guic.TextHide(textTech2, 1.0f);
+    }
+    guic.EndParallel();
+    guic.Wait(1.0f);
+  }
+  guic.EndSequence();
+
+  m_pAnimation = guic.GetResultController();
+  m_pAnimation->Run();
 
   //this->m_pLogoControl = new CGUIRectControl(glm::vec2(240.0f));
   //this->m_pLogoControl->SetVisible(false);
@@ -198,22 +211,15 @@ void CIntro::Free() {
   if (glIsTexture(m_LogoTexId))
     glDeleteTextures(1, &m_LogoTexId);
 
-  delete m_pControllerList;
-  delete m_pScreen;
-
-  m_pControllerList = nullptr;
-  m_pScreen = nullptr;
+  helper::deleteobj(m_pAnimation);
+  helper::deleteobj(m_pScreen);
  
-  m_IntroState = 0;
   m_LogoTexId = 0;
 }
 
 void CIntro::Update(float timeDelta) {
-  this->m_pControllerList->Update(timeDelta);
-
-  if(m_pIntroEnd->IsDone()) {
-    m_IntroEnd = true;
-  }
+  if(m_pAnimation)
+    m_pAnimation->Update(timeDelta);
 }
 
 void CIntro::Render() {
@@ -225,7 +231,9 @@ void CIntro::RenderGUI() {
 }
 
 bool CIntro::IsIntroEnded() {
-  return m_IntroEnd;
+  if(m_pAnimation)
+    return m_pAnimation->IsDone();
+  return true;
 }
 
 bool CIntro::LoadTexture(std::string filename) {

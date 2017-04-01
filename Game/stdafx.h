@@ -7,4 +7,6 @@
 #include <SDL_types.h>
 #include <string>
 
+#include <glm/glm.hpp>
+
 #include "Log.h"

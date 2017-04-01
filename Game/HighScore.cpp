@@ -7,6 +7,7 @@
 #include "GUI.h"
 #include "GUIScreen.h"
 #include "GUIController.h"
+#include "GUIBuilder.h"
 
 struct HSHEADER {
   char	  FILEID[3];
@@ -17,7 +18,7 @@ struct HSHEADER {
 #define HSFILEID	"HSF"
 #define HSFILEVER	100
 
-static const std::string textScore = "YOUR SCORE: ";
+static const std::string textScore = "YOUR SCORE:    ";
 static const std::string textScoreFmt = "YOUR SCORE: %d";
 static const std::string textCommentNoPlace = "SORRY, YOU AREN'T ON HIGH SCORES...";
 static const std::string textCommentSomePlace = "YOU ARE ON PLACE: ";
@@ -31,7 +32,7 @@ static const std::string textNamePrompt = "ENTER YOUR NAME: ";
 
 CHighScore::CHighScore(CGUI* pGUI, const glm::vec2& screenSize) :
   m_pScreen(nullptr),
-  m_pControllerList(nullptr),
+  m_pAnimation(nullptr),
   m_uTempScore(0),
   m_uCurPos(0),
   m_uCharCount(0),
@@ -40,64 +41,45 @@ CHighScore::CHighScore(CGUI* pGUI, const glm::vec2& screenSize) :
   m_strText2("YOU ARE ON POSITION "),
   m_strText3(""),
   m_fTime(0.0f),
-  m_bIsEnd(false) 
-{
+  m_bIsEnd(false) {
   glm::vec4 color(0.0f, 1.0f, 0.0f, 1.0f);
 
+  std::string colText = "colText";
+  std::string ctrlScoreText = "ctrlScoreText";
+  std::string ctrlComment = "ctrlComment";
+
   m_pScreen = new CGUIScreen(pGUI, screenSize);
-  m_pControllerList = new CGUIControllerList();
+  CGUIBuilder gui(m_pScreen);
+
+  gui.Color(colText, color);
+
+  gui.Label(ctrlScoreText, textScore);
+  gui.Label(ctrlComment, textCommentNoPlace);
+
+  gui.Put(ctrlScoreText, glm::vec2(0.0f, -20.0f), CGUIScreen::IA_SCREEN_CENTER);
+  gui.Put(ctrlComment, glm::vec2(0.0f), CGUIScreen::IA_SCREEN_CENTER);
+
+  gui.SetVisible(ctrlScoreText, false);
+  gui.SetVisible(ctrlComment, false);
+
+  CGUIControllerBuilder guic(&gui);
+  {
+    guic.BeginSequence();
+
+    guic.TextShow(ctrlScoreText, 1.0f);
+    guic.TextCountAsc(ctrlScoreText, 1000, textScoreFmt, 2.0f);
+    guic.Wait(1.0f);
+    guic.TextShow(ctrlComment, 2.0f);
+    guic.Wait(1.0f);
+
+    guic.EndSequence();
+  }
   
-  CGUITextControl* pScoreText = new CGUITextControl(textScore, color);
-  CGUITextControl* pCommentText = new CGUITextControl(textCommentNoPlace, color);
-  CGUITextControl* pNamePromptText = new CGUITextControl(textNamePrompt, color);
-
-  pScoreText->SetVisible(false);
-  pCommentText->SetVisible(false);
-  pNamePromptText->SetVisible(false);
-
-   m_pScreen->AddControl(
-    pScoreText, 
-    glm::vec2(0.0f, -20.0f), 
-    CGUIScreen::IA_MIDDLE | CGUIScreen::IA_CENTER);
-
-   m_pScreen->AddControl(
-     pCommentText,
-     glm::vec2(0.0f, 0.0f),
-     CGUIScreen::IA_MIDDLE | CGUIScreen::IA_CENTER);
-
-   m_pScreen->AddControl(
-     pNamePromptText,
-     glm::vec2(0.0f, 20.0f),
-     CGUIScreen::IA_MIDDLE | CGUIScreen::IA_CENTER);
-
-   {
-     CGUIControllerList* pList = m_pControllerList;
-
-     CGUITextAnimation* pScoreAnim = new CGUITextAnimation(pList, pScoreText, 2.0f);
-
-     CGUITextCountAnimation<Uint32>* pCountAnim =
-       new CGUITextCountAnimation<Uint32>(pList, pScoreText, 1, textScoreFmt, 3.0f);
-
-     CGUITextAnimation* pCommentAnim = new CGUITextAnimation(pList, pCommentText, 1.0f);
-
-     //CGUITimer* pTimer = new CGUITimer(pList, 1.0f, )
-
-     //CGUIDoneTrigger* pTrigger = new CGUIDoneTrigger(pList, pScoreAnim, pCountAnim);
-
-
-     //pTrigger = new CGUIDoneTrigger(m_pControllerList, pCountAnim, pCommentAnim);
-
-
-
-     m_pAnimStart = pScoreAnim;
-     m_pAnimEnd = pCommentAnim;
-
-     m_pScoreAnim = pCountAnim;
-   }
+  m_pAnimation = guic.GetResultController();
 }
 
 CHighScore::~CHighScore() {
-  helper::deleteobj(m_pControllerList);
+  helper::deleteobj(m_pAnimation);
   helper::deleteobj(m_pScreen);
 }
 
@@ -177,18 +159,20 @@ const bool CHighScore::Save(const std::string& filename) {
 }
 
 void CHighScore::StartScoreAnim(const Uint32 score) {
+  m_pValueController->SetValue(score);
+
+
   m_ScorePoints = score;
   m_ScoreName = "";
   m_ScorePosition = -1;
-  this->m_pControllerList->StopAll();
-  this->m_pAnimStart->Run();
+  this->m_pAnimation->Rerun();
   if(CheckScore()) {
 
   }
 }
 
 void CHighScore::Update(CInput* pInput, float timeDelta) {
-  m_pControllerList->Update(timeDelta);
+  m_pAnimation->Update(timeDelta);
 
   //switch (m_uHSS) {
   //case HSS_STATE1:
@@ -335,7 +319,7 @@ void CHighScore::RenderGUI(CGUI *GUI) {
 }
 
 bool CHighScore::IsEnded() {
-  return m_pAnimEnd->IsDone();
+  return m_pAnimation->IsDone();
 }
 
 bool CHighScore::CheckScore() {

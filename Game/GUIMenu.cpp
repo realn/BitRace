@@ -147,7 +147,7 @@ CGUIMenu::CGUIMenu(CGUIMenuManager* pMenuMng, const Uint32 id, const std::string
   m_StyleColors[SC_ITEMRECTHIGHLIGHT] = glm::vec4(1.0f, 1.0f, 1.0f, 0.9f);
   m_StyleColors[SC_ITEMTEXTHIGHLIGHT] = glm::vec4(0.0f, 0.1f, 0.0f, 1.0f);
 
-  m_pControllerList = new CGUIControllerList();
+  m_pControllerList = new CGUIParallelList();
   m_pScreen = new CGUIScreen(m_pMenuMng->GetGUI(), size);
   m_pTitleControl = new CGUITextControl(title);
   m_pScreen->AddControl(m_pTitleControl, glm::vec2(10.0f, 10.0f));

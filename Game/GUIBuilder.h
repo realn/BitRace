@@ -6,83 +6,34 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+#include "InstructionBuilder.h"
+
 class CGUIScreen;
 class CGUIControl;
 
-class CGUIController;
-class CGUIControllerList;
-class CGUIDoneTrigger;
-
 class CGUIBuilder {
 private:
-  class CContext {
-  protected:
-    CGUIControllerList* m_pList;
-    CGUIController* m_pBegin;
-    CGUIController* m_pEnd;
-
-  public:
-    CContext(CGUIControllerList* pList);
-    virtual ~CContext();
-
-    virtual void AddController(CGUIController* pBegin, CGUIController* pEnd) = 0;
-    CGUIController* GetBegin() const;
-    CGUIController* GetEnd() const;
-  };
-
-  class CSequenceContext :
-    public CContext
-  {
-  public:
-    CSequenceContext(CGUIControllerList* pList);
-    virtual ~CSequenceContext();
-
-    // Inherited via CContext
-    virtual void AddController(CGUIController * pBegin, CGUIController * pEnd) override;
-  };
-
-  class CParallelContext :
-    public CContext 
-  {
-  private:
-    CGUIDoneTrigger* m_pTriggerBegin;
-    CGUIDoneTrigger* m_pTriggerEnd;
-
-  public:
-    CParallelContext(CGUIControllerList* pList);
-    virtual ~CParallelContext();
-
-    // Inherited via CContext
-    virtual void AddController(CGUIController * pBegin, CGUIController * pEnd) override;
-  };
-
   typedef std::map<std::string, glm::vec4> colormap;
   typedef std::map<std::string, CGUIControl*> controlmap;
   typedef std::map<std::string, Uint32> texturemap;
-  typedef std::vector<CContext*>  contextstack;
 
   CGUIScreen* m_pScreen;
-  CGUIControllerList* m_pList;
   
-  contextstack  m_ContextStack;
-  CContext* m_pCurrentContext;
-
   colormap    m_Colors;
   controlmap  m_Controls;
   texturemap  m_Textures;
   
 public:
-  CGUIBuilder(CGUIScreen* pScreen, CGUIControllerList* pControllerList);
+  CGUIBuilder(CGUIScreen* pScreen);
   ~CGUIBuilder();
 
-  CGUIController* GetFirst() const;
-  CGUIController* GetLast() const;
-
-  void  BeginSequence();
-  void  EndSequence();
-
-  void  BeginParallel();
-  void  EndParallel();
+  const glm::vec4  GetColor(const std::string& name) const;
+  CGUIControl*  GetControl(const std::string& name) const;
+  template<typename _Type>
+  const bool    GetControl(const std::string& name, _Type*& pControl) const {
+    pControl = dynamic_cast<_Type*>(GetControl(name));
+    return pControl != nullptr;
+  }
 
   void  Color(const std::string& name, const glm::vec4& color);
   void  Color(const std::string& name, const float r, const float g, const float b, const float a);
@@ -101,30 +52,25 @@ public:
 
   void  SetVisible(const std::string& name, const bool value);
   void  SetRectTexture(const std::string& name, const std::string& texName, const glm::vec2& pos, const glm::vec2& size);
+};
 
-  void  TextShow(const std::string& name, const float time, const std::string& text);
-  void  TextShow(const std::string& name, const float time);
-
-  void  TextHide(const std::string& name, const float time, const std::string& text);
-  void  TextHide(const std::string& name, const float time);
-
-  void  FadeIn(const std::string& name, const float time, const float min = 0.0f, const float max = 1.0f);
-
-  void  FadeOut(const std::string& name, const float time, const float min = 0.0f, const float max = 1.0f);
-
-  void  BlendIn(const std::string& name, const float time, const glm::vec4& min = glm::vec4(0.0f), const glm::vec4& max = glm::vec4(1.0f));
-
-  void  BlendOut(const std::string& name, const float time, const glm::vec4& min = glm::vec4(0.0f), const glm::vec4& max = glm::vec4(1.0f));
-
-  void  Wait(const float time);
-
+class CGUIInstructionBuilder : public CInstructionBuilder {
 private:
-  void  BeginBlock(CContext* pNewContext);
-  void  EndBlock();
-  void  AddController(CGUIController* pController);
+  CGUIBuilder*  m_pGUIBuilder;
+ 
+public:
+  CGUIInstructionBuilder(CGUIBuilder* pGUIBuilder);
+  ~CGUIInstructionBuilder();
 
-  template<typename _Type>
-  _Type* GetControl(const std::string& name) {
-    return dynamic_cast<_Type*>(m_Controls[name]);
-  }
+  CInstruction* TextShow(const std::string& name, const float time, const std::string& text);
+  CInstruction* TextShow(const std::string& name, const float time);
+
+  CInstruction* TextHide(const std::string& name, const float time, const std::string& text);
+  CInstruction* TextHide(const std::string& name, const float time);
+
+  CInstruction* TextCount(const std::string& name, const Sint32 fromVal, const Sint32 toVal, const float time);
+  CInstruction* TextCount(const std::string& name, const Sint32 fromVal, const Sint32 toVal, const float time, const std::string& prefix = "", const std::string& sufix = "");
+
+  CInstruction* Fade(const std::string& name, const float time, const float fromVal = 0.0f, const float toVal = 1.0f);
+  CInstruction* Blend(const std::string& name, const float time, const glm::vec4& fromVal, const glm::vec4& toVal);
 };

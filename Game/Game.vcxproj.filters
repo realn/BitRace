@@ -10,6 +10,12 @@
     <Filter Include="Core">
       <UniqueIdentifier>{9368ef62-f6e9-4742-9196-3ad59b96a2ca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUI\Instructions">
+      <UniqueIdentifier>{1f4f5f44-a019-4c54-ab6a-13f85adb65d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Instructions">
+      <UniqueIdentifier>{4a45a0f5-3a42-4984-9147-efb579125c04}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="HighScore.cpp">
@@ -65,11 +71,17 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="GUIController.cpp">
-      <Filter>GUI</Filter>
+    <ClCompile Include="Instructions.cpp">
+      <Filter>Core\Instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="InstructionBuilder.cpp">
+      <Filter>Core\Instructions</Filter>
     </ClCompile>
     <ClCompile Include="GUIBuilder.cpp">
-      <Filter>GUI</Filter>
+      <Filter>GUI\Instructions</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIInstructions.cpp">
+      <Filter>GUI\Instructions</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -118,11 +130,17 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="GUIController.h">
-      <Filter>GUI</Filter>
+    <ClInclude Include="Instructions.h">
+      <Filter>Core\Instructions</Filter>
+    </ClInclude>
+    <ClInclude Include="InstructionBuilder.h">
+      <Filter>Core\Instructions</Filter>
     </ClInclude>
     <ClInclude Include="GUIBuilder.h">
-      <Filter>GUI</Filter>
+      <Filter>GUI\Instructions</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIInstructions.h">
+      <Filter>GUI\Instructions</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

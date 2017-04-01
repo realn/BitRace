@@ -26,12 +26,10 @@ private:
   std::vector<CScore> m_Scores;
 
   CGUIScreen* m_pScreen;
-  CGUIControllerList* m_pControllerList;
 
-  CGUIController* m_pAnimStart;
-  CGUIController* m_pAnimEnd;
-  CGUITextAnimation* m_pNameAnim;
-  CGUITextCountAnimation<Uint32>* m_pScoreAnim;
+  CGUIController* m_pAnimation;
+  CGUITextCountAnimation<Sint32>* m_pValueController;
+  CGUITextAnimation* m_pCommentController;
 
   Uint32    m_ScorePoints;
   Sint32    m_ScorePosition;

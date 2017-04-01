@@ -15,25 +15,13 @@ class CGUIControllerList;
 
 class CIntro {
 private:
-  enum INTRO_STATE;
   CGUI*   m_pGUI;
   CGUIScreen* m_pScreen;
-  CGUITextControl* m_pPresentTextControl;
-  CGUITextControl* m_pTechText1Control;
-  CGUITextControl* m_pTechText2Control;
-  CGUIRectControl* m_pLogoControl;
-  
 
-  CGUIController* m_pIntroStart;
-  CGUIController* m_pIntroEnd;
-
-  CGUIControllerList* m_pControllerList;
+  CGUIController* m_pAnimation;
 
   glm::vec2 m_Size;
-  Uint32	m_IntroState;
   Uint32	m_LogoTexId;
-  Uint32	m_uCharCount;
-  bool	  m_IntroEnd;
   std::string m_TextPresent;
   std::string m_TextTech1;
   std::string m_TextTech2;

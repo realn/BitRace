@@ -1,112 +1,30 @@
 #include "stdafx.h"
 #include "GUIBuilder.h"
 #include "GUIScreen.h"
-#include "GUIController.h"
+#include "GUIInstructions.h"
 #include "helper.h"
 
-CGUIBuilder::CContext::CContext(CGUIControllerList* pList) : 
-  m_pList(pList), m_pBegin(nullptr), m_pEnd(nullptr) {}
 
-CGUIBuilder::CContext::~CContext() {}
-
-CGUIController * CGUIBuilder::CContext::GetBegin() const {
-  return m_pBegin;
-}
-
-CGUIController * CGUIBuilder::CContext::GetEnd() const {
-  return m_pEnd;
-}
-
-
-
-
-CGUIBuilder::CSequenceContext::CSequenceContext(CGUIControllerList* pList) :
-  CContext(pList) {}
-
-CGUIBuilder::CSequenceContext::~CSequenceContext() {}
-
-void CGUIBuilder::CSequenceContext::AddController(CGUIController * pBegin, CGUIController * pEnd) {
-  if(m_pBegin == nullptr) {
-    m_pBegin = pBegin;
-  }
-  else {
-    CGUIDoneTrigger* pDone = new CGUIDoneTrigger(m_pList, m_pEnd, pBegin);
-  }
-  m_pEnd = pEnd;
-}
-
-CGUIBuilder::CParallelContext::CParallelContext(CGUIControllerList * pList) :
-  CContext(pList), m_pTriggerBegin(nullptr), m_pTriggerEnd(nullptr) {}
-
-CGUIBuilder::CParallelContext::~CParallelContext() {}
-
-void CGUIBuilder::CParallelContext::AddController(CGUIController * pBegin, CGUIController * pEnd) {
-  if(m_pBegin == nullptr) {
-    m_pBegin = pBegin;
-  }
-  else if(m_pTriggerBegin == nullptr) {
-    m_pTriggerBegin = new CGUIDoneTrigger(m_pList);
-    m_pTriggerBegin->AddTarget(m_pBegin);
-    m_pTriggerBegin->AddTarget(pBegin);
-    m_pBegin = m_pTriggerBegin;
-  }
-  else {
-    m_pTriggerBegin->AddTarget(pBegin);
-  }
-
-  if(m_pEnd == nullptr) {
-    m_pEnd = pEnd;
-  }
-  else if(m_pTriggerEnd == nullptr) {
-    m_pTriggerEnd = new CGUIDoneTrigger(m_pList);
-    m_pTriggerEnd->AddCondition(m_pEnd);
-    m_pTriggerEnd->AddCondition(pEnd);
-    m_pEnd = m_pTriggerEnd;
-  }
-  else {
-    m_pTriggerEnd->AddCondition(pEnd);
-  }
-}
-
-
-
-CGUIBuilder::CGUIBuilder(CGUIScreen * pScreen, CGUIControllerList * pControllerList) :
-  m_pScreen(pScreen), m_pList(pControllerList), m_pCurrentContext(nullptr)
+CGUIBuilder::CGUIBuilder(CGUIScreen * pScreen) :
+  m_pScreen(pScreen)
 {
-  m_pCurrentContext = new CSequenceContext(m_pList);
 }
 
 CGUIBuilder::~CGUIBuilder() {
-  helper::deletevector(m_ContextStack);
-  delete m_pCurrentContext;
 }
 
-CGUIController * CGUIBuilder::GetFirst() const {
-  if(m_pCurrentContext)
-    return m_pCurrentContext->GetBegin();
+const glm::vec4 CGUIBuilder::GetColor(const std::string & name) const {
+  colormap::const_iterator it = m_Colors.find(name);
+  if(it != m_Colors.end())
+    return it->second;
+  return glm::vec4(1.0f, 1.0f, 0.0f, 1.0f); // pink
+}
+
+CGUIControl * CGUIBuilder::GetControl(const std::string & name) const {
+  controlmap::const_iterator it = m_Controls.find(name);
+  if(it != m_Controls.end())
+    return it->second;
   return nullptr;
-}
-
-CGUIController * CGUIBuilder::GetLast() const {
-  if(m_pCurrentContext)
-    return m_pCurrentContext->GetEnd();
-  return nullptr;
-}
-
-void CGUIBuilder::BeginSequence() {
-  this->BeginBlock(new CSequenceContext(m_pList));
-}
-
-void CGUIBuilder::EndSequence() {
-  this->EndBlock();
-}
-
-void CGUIBuilder::BeginParallel() {
-  this->BeginBlock(new CParallelContext(m_pList));
-}
-
-void CGUIBuilder::EndParallel() {
-  this->EndBlock();
 }
 
 void CGUIBuilder::Color(const std::string & name, const glm::vec4 & color) {
@@ -160,83 +78,113 @@ void CGUIBuilder::SetVisible(const std::string & name, const bool value) {
 }
 
 void CGUIBuilder::SetRectTexture(const std::string & name, const std::string & texName, const glm::vec2 & pos, const glm::vec2 & size) {
-  CGUIRectControl* pControl = GetControl<CGUIRectControl>(name);
+  CGUIRectControl* pControl = nullptr;
+  if(!GetControl(name, pControl))
+    return;
+
   pControl->SetTexture(m_Textures[texName]);
   pControl->SetTextureCoords(pos, size);
 }
 
-void CGUIBuilder::TextShow(const std::string & name, const float time, const std::string & showText) {
-  CGUITextControl* pControl = GetControl<CGUITextControl>(name);
-  CGUITextAnimation* pAnim = new CGUITextAnimation(m_pList, pControl, showText, time, true);
-  this->AddController(pAnim);
+
+
+CGUIInstructionBuilder::CGUIInstructionBuilder(CGUIBuilder * pGUIBuilder) :
+  m_pGUIBuilder(pGUIBuilder) {
 }
 
-void CGUIBuilder::TextShow(const std::string & name, const float time) {
-  CGUITextControl* pControl = GetControl<CGUITextControl>(name);
-  CGUITextAnimation* pAnim = new CGUITextAnimation(m_pList, pControl, time, true);
-  this->AddController(pAnim);
+CGUIInstructionBuilder::~CGUIInstructionBuilder() {
 }
 
-void CGUIBuilder::TextHide(const std::string & name, const float time, const std::string & text) {
-  CGUITextControl* pControl = GetControl<CGUITextControl>(name);
-  CGUITextAnimation* pAnim = new CGUITextAnimation(m_pList, pControl, text, time, false);
-  this->AddController(pAnim);
+CInstruction* CGUIInstructionBuilder::TextShow(const std::string & name, const float time, const std::string & showText) {
+  CGUITextControl* pControl = nullptr;
+  if(!m_pGUIBuilder->GetControl(name, pControl))
+    return nullptr;
+  return new CGUITextAnimation(pControl, showText, 0, showText.length(), time);
 }
 
-void CGUIBuilder::TextHide(const std::string & name, const float time) {
-  CGUITextControl* pControl = GetControl<CGUITextControl>(name);
-  CGUITextAnimation* pAnim = new CGUITextAnimation(m_pList, pControl, time, false);
-  this->AddController(pAnim);
+CInstruction* CGUIInstructionBuilder::TextShow(const std::string & name, const float time) {
+  CGUITextControl* pControl = nullptr;
+  if(!m_pGUIBuilder->GetControl(name, pControl))
+    return nullptr;
+  std::string text = pControl->GetText();
+  return new CGUITextAnimation(m_pList, pControl, time, true);
 }
 
-void CGUIBuilder::FadeIn(const std::string & name, const float time, const float min, const float max) {
-  CGUIControl* pControl = m_Controls[name];
-  CGUIAlphaFadeAnimation* pAnim = new CGUIAlphaFadeAnimation(m_pList, pControl, time, min, max, true);
-  this->AddController(pAnim);
+CInstruction* CGUIInstructionBuilder::TextHide(const std::string & name, const float time, const std::string & text) {
+  CGUITextControl* pControl = nullptr;
+  if(!m_pGUIBuilder->GetControl(name, pControl))
+    return nullptr;
+  return new CGUITextAnimation(m_pList, pControl, text, time, false);
 }
 
-void CGUIBuilder::FadeOut(const std::string & name, const float time, const float min, const float max) {
-  CGUIControl* pControl = m_Controls[name];
-  CGUIAlphaFadeAnimation* pAnim = new CGUIAlphaFadeAnimation(m_pList, pControl, time, min, max, false);
-  this->AddController(pAnim);
+CInstruction* CGUIInstructionBuilder::TextHide(const std::string & name, const float time) {
+  CGUITextControl* pControl = nullptr;
+  if(!m_pGUIBuilder->GetControl(name, pControl))
+    return nullptr;
+  return new CGUITextAnimation(m_pList, pControl, time, false);
 }
 
-void CGUIBuilder::BlendIn(const std::string & name, const float time, const glm::vec4 & min, const glm::vec4 & max) {
-  CGUIControl* pControl = m_Controls[name];
-  CGUIColorFadeAnimation* pAnim = new CGUIColorFadeAnimation(m_pList, pControl, time, min, max, true);
-  this->AddController(pAnim);
+CInstruction* CGUIInstructionBuilder::TextCountAsc(const std::string& name, const Sint32 value, const std::string & formatText, const float time) {
+  CGUITextControl* pControl = nullptr;
+  if(!m_pGUIBuilder->GetControl(name, pControl))
+    return nullptr;
+  return new CGUITextCountAnimation<Sint32>(m_pList, pControl, value, formatText, time, true);
 }
 
-void CGUIBuilder::BlendOut(const std::string & name, const float time, const glm::vec4 & min, const glm::vec4 & max) {
-  CGUIControl* pControl = m_Controls[name];
-  CGUIColorFadeAnimation* pAnim = new CGUIColorFadeAnimation(m_pList, pControl, time, min, max, false);
-  this->AddController(pAnim);
+CInstruction* CGUIInstructionBuilder::TextCountDsc(const std::string& name, const Sint32 value, const std::string & formatText, const float time) {
+  CGUITextControl* pControl = nullptr;
+  if(!m_pGUIBuilder->GetControl(name, pControl))
+    return nullptr;
+  return new CGUITextCountAnimation<Sint32>(m_pList, pControl, value, formatText, time, false);
 }
 
-void CGUIBuilder::Wait(const float time) {
-  CGUIController* pTimer = new CGUITimer(m_pList, time);
-  this->AddController(pTimer);
+CInstruction* CGUIInstructionBuilder::FadeIn(const std::string & name, const float time, const float min, const float max) {
+  CGUIControl* pControl = m_pGUIBuilder->GetControl(name);
+  return new CGUIAlphaFadeAnimation(m_pList, pControl, time, min, max, true);
 }
 
-void CGUIBuilder::BeginBlock(CContext * pNewContext) {
-  m_ContextStack.push_back(m_pCurrentContext);
-  m_pCurrentContext = pNewContext;
+CInstruction* CGUIInstructionBuilder::FadeOut(const std::string & name, const float time, const float min, const float max) {
+  CGUIControl* pControl = m_pGUIBuilder->GetControl(name);
+  return new CGUIAlphaFadeAnimation(m_pList, pControl, time, min, max, false);
 }
 
-void CGUIBuilder::EndBlock() {
-  if(m_ContextStack.empty())
+CInstruction* CGUIInstructionBuilder::BlendIn(const std::string & name, const float time, const glm::vec4 & min, const glm::vec4 & max) {
+  CGUIControl* pControl = m_pGUIBuilder->GetControl(name);
+  return new CGUIColorFadeAnimation(m_pList, pControl, time, min, max, true);
+}
+
+CInstruction* CGUIInstructionBuilder::BlendOut(const std::string & name, const float time, const glm::vec4 & min, const glm::vec4 & max) {
+  CGUIControl* pControl = m_pGUIBuilder->GetControl(name);
+  return new CGUIColorFadeAnimation(m_pList, pControl, time, min, max, false);
+}
+
+CInstruction* CGUIInstructionBuilder::Wait(const float time) {
+  return new CGUITimer(m_pList, time);
+}
+
+void CGUIInstructionBuilder::BeginBlock(CGUIInstructionList* pNewContext) {
+  if(m_pList)
+    m_ContextStack.push_back(m_pList);
+  m_pList = pNewContext;
+}
+
+void CGUIInstructionBuilder::EndBlock() {
+  if(m_ContextStack.empty()) {
+    if(m_pResult)
+      helper::deleteobj(m_pResult);
+    m_pResult = m_pList;
+    m_pList = nullptr;
     return;
+  }
 
-  CContext* pContext = *m_ContextStack.rbegin();
-  pContext->AddController(m_pCurrentContext->GetBegin(),
-                          m_pCurrentContext->GetEnd());
-
+  CGUIInstructionList* pContext = *m_ContextStack.rbegin();
+  if(m_pList->IsEmpty()) {
+    delete m_pList;
+  }
+  else {
+    pContext->Add(m_pList);
+  }
   m_ContextStack.pop_back();
-  delete m_pCurrentContext;
-  m_pCurrentContext = pContext;
-}
-
-void CGUIBuilder::AddController(CGUIController * pController) {
-  m_pCurrentContext->AddController(pController, pController);
+  m_pList = pContext;
 }
 

@@ -277,7 +277,7 @@ const bool CLevel::Init(CGUI* pGUI, const glm::vec2& screenSize) {
     m_pGUIDamageOverlay = new CGUIRectControl(screenSize, glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
     m_pGUIScreen->AddControl(m_pGUIDamageOverlay, glm::vec2(0.0f), CGUIScreen::IA_CENTER | CGUIScreen::IA_MIDDLE);
 
-    m_pGUIControllerList = new CGUIControllerList();
+    m_pGUIControllerList = new CGUIParallelList();
     m_pGUIHealController = new CGUIAlphaFadeAnimation(m_pGUIControllerList, m_pGUIHealOverlay, 0.5f, 0.0f, 0.3f, false);
     m_pGUIDamageController = new CGUIAlphaFadeAnimation(m_pGUIControllerList, m_pGUIDamageOverlay, 0.3f, 0.0f, 0.3f, false);
   }
