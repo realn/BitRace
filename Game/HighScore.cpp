@@ -1,6 +1,10 @@
+#include "stdafx.h"
 #include "HighScore.h"
 #include "Game.h"
-#include "../Common/Log.h"
+#include "GUI.h"
+#include "GLDefines.h"
+
+#include <CBIO/File.h>
 
 struct HSHEADER {
   char	FILEID[3];
@@ -34,27 +38,28 @@ CHighScore::CHighScore() :
   memset(m_bKeyDown, 0, sizeof(bool) * 256);
 }
 
-bool CHighScore::LoadScores(std::string strFile) {
-  if (strFile.empty())
+bool CHighScore::LoadScores(const cb::string& filepath) {
+  if (filepath.empty())
     return false;
 
-  CFile fp;
-  if (!fp.Open(strFile)) {
-    Log("Can't find HighScores file %s, NULLing table", strFile.c_str());
+  cb::ifstream file(filepath, std::ios::out | std::ios::binary);
+  if (!file.is_open()) {
+    cb::error(cb::format(L"Can't find HighScores file {0}, NULLing table", filepath));
     memset(m_aScore, 0, sizeof(CScore) * 10);
     return true;
   }
   HSHEADER head;
 
-  fp.Read(&head, sizeof(HSHEADER));
+  file.read(cb::byteptr(head), sizeof(HSHEADER));
 
   if (strncmp(head.FILEID, HSFILEID, 3) != 0 ||
-      head.FILEVER != HSFILEVER || head.SCORECOUNT != 10) {
-    Log("Invalid file ID - %s isn't a HSF file", strFile.c_str());
+      head.FILEVER != HSFILEVER || 
+      head.SCORECOUNT != 10) {
+    cb::error(cb::format(L"Invalid file ID - %s isn't a HSF file", filepath));
     return false;
   }
 
-  fp.Read(m_aScore, sizeof(CScore), 10);
+  file.read(cb::byteptr(&m_aScore[0]), sizeof(CScore) * 10);
 
   unsigned	uMagicNum = 0;
   unsigned	uMagicNumCmp = 0, i, j;
@@ -63,10 +68,11 @@ bool CHighScore::LoadScores(std::string strFile) {
     for (j = 0; j < 7; j++)
       uMagicNumCmp += unsigned(m_aScore[i].m_acName[j]);
   }
-  fp.Read(&uMagicNum, sizeof(unsigned));
+
+  file.read(cb::byteptr(uMagicNum), sizeof(unsigned));
 
   if (uMagicNum != (unsigned)(~uMagicNumCmp)) {
-    Log("Invalid Check Sum - file corrupted, NULLing table");
+    cb::error(L"Invalid Check Sum - file corrupted, NULLing table");
     memset(m_aScore, 0, sizeof(CScore) * 10);
     return true;
   }
@@ -74,21 +80,23 @@ bool CHighScore::LoadScores(std::string strFile) {
   return true;
 }
 
-bool CHighScore::SaveScores(std::string strFile) {
-  if (strFile.empty())
+bool CHighScore::SaveScores(const cb::string& filepath) {
+  if(filepath.empty()) {
     return false;
+  }
 
-  CFile fp;
-  if (!fp.Open(strFile, "wb"))
+  cb::ofstream file(filepath, std::ios::out | std::ios::trunc | std::ios::binary);
+  if(!file.is_open()) {
     return false;
+  }
 
   HSHEADER head;
   strncpy_s(head.FILEID, 4, HSFILEID, 3);
   head.FILEVER = HSFILEVER;
   head.SCORECOUNT = 10;
 
-  fp.Write(&head, sizeof(HSHEADER));
-  fp.Write(m_aScore, sizeof(CScore), 10);
+  file.write(cb::byteptr(head), sizeof(HSHEADER));
+  file.write(cb::byteptr(&m_aScore[0]), sizeof(CScore) * 10);
 
   unsigned uMagicNum = 0, i, j;
   for (i = 0; i < 10; i++) {
@@ -97,7 +105,7 @@ bool CHighScore::SaveScores(std::string strFile) {
       uMagicNum += unsigned(m_aScore[i].m_acName[j]);
   }
   uMagicNum = unsigned(~uMagicNum);
-  fp.Write(&uMagicNum, sizeof(unsigned));
+  file.write(cb::byteptr(uMagicNum), sizeof(unsigned));
 
   return true;
 }

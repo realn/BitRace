@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GUI.h"
-#include "../Common/FGXFile.h"
+#include <CBIO/Defines.h>
 
 class CIntro {
 private:
@@ -29,14 +29,14 @@ private:
   std::string m_strText2;
   std::string m_strText3;
 
-  bool LoadTexture(std::string file);
+  const bool LoadTexture(const cb::string& filepath);
   void RenderLogo(unsigned index);
 
 public:
   CIntro();
   ~CIntro();
 
-  bool Init(std::string strLogosFile);
+  const bool Init(const cb::string& logosFilepath);
   void Free();
 
   void Engine(float fDT);

@@ -1,6 +1,5 @@
 #include "Game.h"
 
-#pragma comment(lib, "Common.lib")
 #pragma comment(lib, "SDL2.lib")
 #pragma comment(lib, "SDL2main.lib")
 #pragma comment(lib, "opengl32.lib")
@@ -31,12 +30,19 @@ CGame::CGame() :
   m_uBlurTexture(0),
   m_uBlurTexSize(64)
 {
+  mLogFile.open(L"game.log", std::ios::out | std::ios::trunc);
+  mLogger.AddStream(&mLogFile);
+
+  cb::CLogger::SetInstance(&mLogger);
+
   SDL_Init(0);
 }
 
 CGame::~CGame() {
   Free();
   SDL_Quit();
+
+  cb::CLogger::SetInstance(nullptr);
 }
 
 int CGame::MainLoop() {

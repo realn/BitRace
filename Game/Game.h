@@ -1,22 +1,17 @@
 #pragma once
 
-#define DIRECTINPUT_VERSION 0x0800
 #define GAME_NAME "BitRace"
 #define GAME_FULLNAME "CodeRulers BitRace v1.0a"
 #define GAME_DI_BUFSIZE 32
 #define	GAME_BLEND_TEX_SIZE	64
 
-#define GLEW_STATIC
-#include <GL/glew.h>
-//#include <GL/wglew.h>
-
-#include "../Common/Log.h"
-
 #include <SDL.h>
+
 #include <glm/glm.hpp>
 
-#include "../Common/Files.h"
-#include "../Common/IniFiles.h"
+#include <CBLog/Logger.h>
+#include <CBIO/File.h>
+
 #include "RaceTrack.h"
 #include "GUI.h"
 #include "Intro.h"
@@ -24,144 +19,147 @@
 
 class CGame {
 private:
-	SDL_Window*   m_pWindow;
-	SDL_GLContext m_pGLContext;
+  std::wofstream mLogFile;
+  cb::CLogger mLogger;
 
-	CGUI		        m_GUI;
-	CGUIMenuManager	m_MenuMng;
-	CRaceTrack		m_RaceTrack;
-	CSpace			m_Space;
-	CRacer			m_Racer;
-	CIntro			m_Intro;
-	CHighScore		m_HS;
+  SDL_Window*   m_pWindow;
+  SDL_GLContext m_pGLContext;
 
-	Uint8 m_KeyState[SDL_NUM_SCANCODES];
-	Uint8 m_KeyStatePrev[SDL_NUM_SCANCODES];
+  CGUI		        m_GUI;
+  CGUIMenuManager	m_MenuMng;
+  CRaceTrack		m_RaceTrack;
+  CSpace			m_Space;
+  CRacer			m_Racer;
+  CIntro			m_Intro;
+  CHighScore		m_HS;
 
-	Uint32  m_MouseButtonState;
-	Uint32  m_MouseButtonStatePrev;
-	glm::ivec2  m_MousePos;
-	glm::ivec2  m_MousePosPrev;
+  Uint8 m_KeyState[SDL_NUM_SCANCODES];
+  Uint8 m_KeyStatePrev[SDL_NUM_SCANCODES];
 
-	bool			m_bShutdown;
-	bool			m_bGamePause;
-	bool			m_bTakeScreen;
-	__int64			m_iLastTick;
-	__int64			m_iFreq;
-	float			m_fDT;
-	float			m_fBlurTexAlpha;
-	unsigned int	m_uBlurTexture;
-	unsigned int	m_uBlurTexSize;
-	std::string		m_strConfigFile;
+  Uint32  m_MouseButtonState;
+  Uint32  m_MouseButtonStatePrev;
+  glm::ivec2  m_MousePos;
+  glm::ivec2  m_MousePosPrev;
+
+  bool			m_bShutdown;
+  bool			m_bGamePause;
+  bool			m_bTakeScreen;
+  __int64			m_iLastTick;
+  __int64			m_iFreq;
+  float			m_fDT;
+  float			m_fBlurTexAlpha;
+  unsigned int	m_uBlurTexture;
+  unsigned int	m_uBlurTexSize;
+  cb::string		m_strConfigFile;
 
 
-	enum MENU_ID {
-		MENU_MAIN = 0,
-		MENU_HIGH,
-		MENU_OPTIONS
-	};
-	enum MENUITEM_ID {
-		MI_NEWGAME = 0,
-		MI_HIGH,
-		MI_OPTIONS,
-		MI_EXIT,
-		MI_GOBACK,
-		MI_RETURN,
+  enum MENU_ID {
+    MENU_MAIN = 0,
+    MENU_HIGH,
+    MENU_OPTIONS
+  };
+  enum MENUITEM_ID {
+    MI_NEWGAME = 0,
+    MI_HIGH,
+    MI_OPTIONS,
+    MI_EXIT,
+    MI_GOBACK,
+    MI_RETURN,
 
-		MI_RESOLUTION,
-		MI_FULLSCREEN,
-		MI_SMOOTHSHADE,
-		MI_SMOOTHLINE,
-		MI_FPSCOUNTER,
-		MI_VSYNC,
-		MI_OPWARNING,
+    MI_RESOLUTION,
+    MI_FULLSCREEN,
+    MI_SMOOTHSHADE,
+    MI_SMOOTHLINE,
+    MI_FPSCOUNTER,
+    MI_VSYNC,
+    MI_OPWARNING,
 
-		MI_HS1,
-		MI_HS2,
-		MI_HS3,
-		MI_HS4,
-		MI_HS5,
-		MI_HS6,
-		MI_HS7,
-		MI_HS8,
-		MI_HS9,
-		MI_HS10,
-		MI_HSRESET
-	};
-	enum GAME_STATE {
-		GS_INTRO = 0,
-		GS_MENU,
-		GS_GAME,
-		GS_HIGH
-	};
-	unsigned m_uGameState;
+    MI_HS1,
+    MI_HS2,
+    MI_HS3,
+    MI_HS4,
+    MI_HS5,
+    MI_HS6,
+    MI_HS7,
+    MI_HS8,
+    MI_HS9,
+    MI_HS10,
+    MI_HSRESET
+  };
+  enum GAME_STATE {
+    GS_INTRO = 0,
+    GS_MENU,
+    GS_GAME,
+    GS_HIGH
+  };
+  unsigned m_uGameState;
 
-	struct	SCREENPARAMS {
-		unsigned	uWidth;
-		unsigned	uHeight;
-		unsigned	uColorBits;
-		unsigned	uRefreshRate;
+  struct	SCREENPARAMS {
+    unsigned	uWidth;
+    unsigned	uHeight;
+    unsigned	uColorBits;
+    unsigned	uRefreshRate;
 
-		unsigned	uDevID;
+    unsigned	uDevID;
 
-		bool	bSmoothLines;
-		bool	bSmoothShade;
-		bool	bFullscreen;
-		bool	bFPSCount;
-		bool	bVSync;
-		bool	bBlur;
+    bool	bSmoothLines;
+    bool	bSmoothShade;
+    bool	bFullscreen;
+    bool	bFPSCount;
+    bool	bVSync;
+    bool	bBlur;
 
-		const glm::vec2 GetSize() const;
-		const float GetAspectRatio() const;
-	}	ScrParam;
+    const glm::vec2 GetSize() const;
+    const float GetAspectRatio() const;
+  }	ScrParam;
 
-	SDL_DisplayMode m_ModeOryginal;
-	std::vector<SDL_DisplayMode> m_ModeList;
+  SDL_DisplayMode m_ModeOryginal;
+  std::vector<SDL_DisplayMode> m_ModeList;
 
 public:
-	CGame();
-	~CGame();
+  CGame();
+  ~CGame();
 
-	bool Init(std::string strCmdLine);
-	bool InitWindow(std::string strTitle);
-	bool InitRender();
-	bool InitInput();
-	bool InitOpenGL();
-	bool InitGame();
+  bool Init(std::string strCmdLine);
+  bool InitWindow(std::string strTitle);
+  bool InitRender();
+  bool InitInput();
+  bool InitOpenGL();
+  bool InitGame();
 
-	void Free();
-	void FreeWindow();
-	void FreeRender();
-	void FreeInput();
-	void FreeOpenGL();
-	void FreeGame();
+  void Free();
+  void FreeWindow();
+  void FreeRender();
+  void FreeInput();
+  void FreeOpenGL();
+  void FreeGame();
 
-	void Update();
-	void UpdateLogic(const float timeDelta);
-	void UpdateMenu(const float timeDelta);
-	void UpdateGame(const float timeDelta);
+  void Update();
+  void UpdateLogic(const float timeDelta);
+  void UpdateMenu(const float timeDelta);
+  void UpdateGame(const float timeDelta);
 
-	void Render();
-	void RenderGame();
-	void RenderGUI();
-	void RenderMenu();
-	void TakeScreenshot();
-	void ScanDispModes();
-	void ChangeDispMode();
+  void Render();
+  void RenderGame();
+  void RenderGUI();
+  void RenderMenu();
+  void TakeScreenshot();
+  void ScanDispModes();
+  void ChangeDispMode();
 
-	bool  IsKeyboardKeyDown(const SDL_Scancode code) const;
-	bool  IsKeyboardKeyPressed(const SDL_Scancode code) const;
-	bool  IsMouseButtonDown(const Uint32 button) const;
-	bool  IsMouseButtonPressed(const Uint32 button) const;
-	const glm::ivec2& GetMousePos() const;
-	const glm::ivec2  GetMousePosDelta() const;
+  bool  IsKeyboardKeyDown(const SDL_Scancode code) const;
+  bool  IsKeyboardKeyPressed(const SDL_Scancode code) const;
+  bool  IsMouseButtonDown(const Uint32 button) const;
+  bool  IsMouseButtonPressed(const Uint32 button) const;
+  const glm::ivec2& GetMousePos() const;
+  const glm::ivec2  GetMousePosDelta() const;
 
-	int MainLoop();
+  int MainLoop();
 
-	static float	s_fMaxDT;
+  static float	s_fMaxDT;
 
-	void UpdateKeyboard();
-	void UpdateMouse();
-	void UpdateTimer();
-	void UpdateHS();
+  void UpdateKeyboard();
+  void UpdateMouse();
+  void UpdateTimer();
+  void UpdateHS();
 };

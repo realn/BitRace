@@ -1,8 +1,6 @@
 #include "Intro.h"
-
-#include "../Common/Log.h"
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "FGXFile.h"
+#include "GLDefines.h"
 
 CIntro::CIntro() :
   m_IntroState(IS_STATE1),
@@ -20,8 +18,8 @@ CIntro::~CIntro() {
   Free();
 }
 
-bool CIntro::Init(std::string strLogosFile) {
-  if (!LoadTexture(strLogosFile))
+const bool CIntro::Init(const cb::string& logosFilepath) {
+  if (!LoadTexture(logosFilepath))
     return false;
   return true;
 }
@@ -257,12 +255,12 @@ bool CIntro::IsIntroEnded() {
   return m_bIntroEnd;
 }
 
-bool CIntro::LoadTexture(std::string filename) {
-  if (filename.empty())
+const bool CIntro::LoadTexture(const cb::string& filepath) {
+  if (filepath.empty())
     return false;
 
   CFGXFile imgFile;
-  if (!imgFile.Load(filename)) {
+  if (!imgFile.Load(filepath)) {
     return false;
   }
 
@@ -271,7 +269,7 @@ bool CIntro::LoadTexture(std::string filename) {
   }
 
   glm::ivec2 size = imgFile.GetSize();
-  const CFGXFile::CData& Data = imgFile.GetData();
+  const cb::bytevector& Data = imgFile.GetData();
 
   glGenTextures(1, &m_uLogosTex);
   glBindTexture(GL_TEXTURE_2D, m_uLogosTex);
@@ -286,7 +284,7 @@ bool CIntro::LoadTexture(std::string filename) {
   case 4: format = GL_RGBA;	break;
   };
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, &Data[0]);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, cb::vectorptr(Data));
   glGenerateMipmap(GL_TEXTURE_2D);
 
   glBindTexture(GL_TEXTURE_2D, 0);

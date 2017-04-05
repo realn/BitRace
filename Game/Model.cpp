@@ -1,7 +1,5 @@
 #include "Model.h"
-
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "GLDefines.h"
 
 CModel	g_Model[MODELTYPE_COUNT];
 

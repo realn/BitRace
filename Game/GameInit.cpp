@@ -1,51 +1,52 @@
+#include "stdafx.h"
 #include "Game.h"
-
-#include <GL/wglew.h>
+#include "IniFiles.h"
+#include "GLDefines.h"
 
 bool CGame::Init(std::string strCmdLine) {
-  Log_Init("main.log", "BIT_RACE_LOG");
-
-  m_strConfigFile = "config.ini";
+  m_strConfigFile = L"config.ini";
 
   CIniFile ini;
   ini.Open(m_strConfigFile);
 
-  ScrParam.uWidth = Uint32(ini.ReadInt("GRAPHIC", "uWidth", 640));
-  ScrParam.uHeight = Uint32(ini.ReadInt("GRAPHIC", "uHeight", 480));
-  ScrParam.uColorBits = Uint32(ini.ReadInt("GRAPHIC", "uColorBits", 32));
-  ScrParam.uRefreshRate = Uint32(ini.ReadInt("GRAPHIC", "uRefreshRate", 60));
-  ScrParam.bFullscreen = ini.ReadBool("GRAPHIC", "bFullscreen", true);
-  ScrParam.bSmoothShade = ini.ReadBool("GRAPHIC", "bSmoothShade", true);
-  ScrParam.bSmoothLines = ini.ReadBool("GRAPHIC", "bSmoothLines", true);
-  ScrParam.bFPSCount = ini.ReadBool("GRAPHIC", "bFPSCount", false);
-  ScrParam.bVSync = ini.ReadBool("GRAPHIC", "bVSync", true);
-  ScrParam.bBlur = ini.ReadBool("GRAPHIC", "bBlur", false);
-  m_uBlurTexSize = ini.ReadInt("GRAPHIC", "uBlurTexSize", 64);
-  m_fBlurTexAlpha = ini.ReadFloat("GRAPHIC", "fBlurTexAlpha", 0.3f);
+  ScrParam.uWidth = ini.Read(L"GRAPHIC", L"uWidth", 640u);
+  ScrParam.uHeight = ini.Read(L"GRAPHIC", L"uHeight", 480u);
+  ScrParam.uColorBits = ini.Read(L"GRAPHIC", L"uColorBits", 32u);
+  ScrParam.uRefreshRate = ini.Read(L"GRAPHIC", L"uRefreshRate", 60u);
+  ScrParam.bFullscreen = ini.Read(L"GRAPHIC", L"bFullscreen", true);
+  ScrParam.bSmoothShade = ini.Read(L"GRAPHIC", L"bSmoothShade", true);
+  ScrParam.bSmoothLines = ini.Read(L"GRAPHIC", L"bSmoothLines", true);
+  ScrParam.bFPSCount = ini.Read(L"GRAPHIC", L"bFPSCount", false);
+  ScrParam.bVSync = ini.Read(L"GRAPHIC", L"bVSync", true);
+  ScrParam.bBlur = ini.Read(L"GRAPHIC", L"bBlur", false);
+  m_uBlurTexSize = ini.Read(L"GRAPHIC", L"uBlurTexSize", 64);
+  m_fBlurTexAlpha = ini.Read(L"GRAPHIC", L"fBlurTexAlpha", 0.3f);
 
   ini.Close();
 
-  if (!this->InitWindow(GAME_FULLNAME)) {
-    Log_Error("Can't initialize window.");
+  if(!this->InitWindow(GAME_FULLNAME)) {
+    cb::error(L"Can't initialize window.");
     Free();
     return false;
   }
-  if (!this->InitRender()) {
-    Log_Error("Can't Initialize render.");
+  if(!this->InitRender()) {
+    cb::error(L"Can't Initialize render.");
     Free();
     return false;
   }
   if(!this->InitInput()) {
-    Log_Error("Can't initialize input.");
-  }
-
-  if (!this->InitOpenGL()) {
-    Log_Error("Can't Initialize OpenGL");
+    cb::error(L"Can't initialize input.");
     Free();
     return false;
   }
-  if (!this->InitGame()) {
-    Log_Error("Can't Initialize Final Game Settings");
+
+  if(!this->InitOpenGL()) {
+    cb::error(L"Can't Initialize OpenGL");
+    Free();
+    return false;
+  }
+  if(!this->InitGame()) {
+    cb::error(L"Can't Initialize Final Game Settings");
     Free();
     return false;
   }
@@ -55,7 +56,7 @@ bool CGame::Init(std::string strCmdLine) {
 
 bool CGame::InitWindow(std::string strTitle) {
   if(SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
-    Log_Error("Failed initializing SDL.");
+    cb::error(L"Failed initializing SDL.");
     return false;
   }
 
@@ -69,7 +70,7 @@ bool CGame::InitWindow(std::string strTitle) {
                                      int(ScrParam.uWidth), int(ScrParam.uHeight),
                                      winFlags);
   if(this->m_pWindow == nullptr) {
-    Log_Error("Failed to create window.");
+    cb::error(L"Failed to create window.");
     return false;
   }
 
@@ -78,7 +79,7 @@ bool CGame::InitWindow(std::string strTitle) {
 }
 
 bool CGame::InitRender() {
-  if (ScrParam.bFullscreen)
+  if(ScrParam.bFullscreen)
     ChangeDispMode();
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
@@ -88,7 +89,7 @@ bool CGame::InitRender() {
 
   this->m_pGLContext = SDL_GL_CreateContext(this->m_pWindow);
   if(this->m_pGLContext == nullptr) {
-    Log_Error("Failed to create OpenGL Context.");
+    cb::error(L"Failed to create OpenGL Context.");
     return false;
   }
 
@@ -114,7 +115,7 @@ bool  CGame::InitInput() {
 }
 
 bool CGame::InitOpenGL() {
-  if (glewInit() != GLEW_OK) {
+  if(glewInit() != GLEW_OK) {
     return false;
   }
 
@@ -124,7 +125,7 @@ bool CGame::InitOpenGL() {
   glClearDepth(1.0f);
   glClearStencil(0);
 
-  if (ScrParam.bSmoothShade)
+  if(ScrParam.bSmoothShade)
     glShadeModel(GL_SMOOTH);
   else glShadeModel(GL_FLAT);
   glDepthFunc(GL_LEQUAL);
@@ -135,7 +136,7 @@ bool CGame::InitOpenGL() {
 
   glEnable(GL_COLOR_MATERIAL);
   glEnable(GL_DEPTH_TEST);
-  if (ScrParam.bSmoothLines)
+  if(ScrParam.bSmoothLines)
     glEnable(GL_LINE_SMOOTH);
   else glDisable(GL_LINE_SMOOTH);
 
@@ -173,8 +174,7 @@ bool CGame::InitOpenGL() {
 }
 
 bool CGame::InitGame() {
-  char		szBuffer[1000];
-
+  char szBuffer[1000];
   this->m_iFreq = SDL_GetPerformanceFrequency();
   this->m_iLastTick = SDL_GetPerformanceCounter();
 
@@ -189,17 +189,17 @@ bool CGame::InitGame() {
   this->m_Racer.SetColor(0x90FF0000);
   this->m_RaceTrack.Init();
   this->m_RaceTrack.SetRacer(&m_Racer);
-  this->m_HS.LoadScores("score.hsf");
+  this->m_HS.LoadScores(L"score.hsf");
 
-  if (WGLEW_EXT_swap_control) {
-    if (ScrParam.bVSync)
-      wglSwapIntervalEXT(1);
-    else wglSwapIntervalEXT(0);
-  }
+  //if(WGLEW_EXT_swap_control) {
+  //  if(ScrParam.bVSync)
+  //    wglSwapIntervalEXT(1);
+  //  else wglSwapIntervalEXT(0);
+  //}
 
   m_MenuMng.SetSize(ScrParam.GetSize());
 
-	CGUIMenu* Menu = this->m_MenuMng.AddMenu(MENU_MAIN, "BitRace");
+  CGUIMenu* Menu = this->m_MenuMng.AddMenu(MENU_MAIN, "BitRace");
   Menu->AddMenuItem(MI_RETURN, "Return to Game", glm::vec2(40.0f, 70.0f), 0)->SetEnable(false);
   Menu->AddMenuItem(MI_NEWGAME, "New Game", glm::vec2(40.0f, 100.0f), 0);
   Menu->AddMenuItem(MI_HIGH, "High Scores", glm::vec2(40.0f, 130.0f), MENU_HIGH);
@@ -213,9 +213,9 @@ bool CGame::InitGame() {
   Menu->AddMenuItem(MI_SMOOTHLINE, (ScrParam.bSmoothLines) ? "Smooth Lines: Enabled" : "Smooth Lines: Disabled", glm::vec2(40.0f, 190.0f), 0);
   Menu->AddMenuItem(MI_FPSCOUNTER, (ScrParam.bFPSCount) ? "FPS Counter: Enabled" : "FPS Counter: Disabled", glm::vec2(40.0f, 220.0f), 0);
   Menu->AddMenuItem(MI_VSYNC, (ScrParam.bVSync) ? "VSync: Enabled" : "VSync: Disabled", glm::vec2(40.0f, 250.0f), 0);
-  if (WGLEW_EXT_swap_control) {
-    Menu->GetMenuItem(MI_VSYNC)->SetEnable(false);
-  }
+  //if(WGLEW_EXT_swap_control) {
+  //  Menu->GetMenuItem(MI_VSYNC)->SetEnable(false);
+  //}
   Menu->AddMenuItem(MI_OPWARNING, "WARNING: You must restart the game, to apply changes", glm::vec2(20.0f, 300.0f), 0)->SetEnable(false);
   Menu->AddMenuItem(MI_GOBACK, "Return to Main Menu", glm::vec2(40.0f, 330.0f), MENU_MAIN);
   Menu = this->m_MenuMng.AddMenu(MENU_HIGH, "High Scores");
@@ -234,7 +234,7 @@ bool CGame::InitGame() {
 
   UpdateHS();
 
-  m_Intro.Init("logos.fgx");
+  m_Intro.Init(L"logos.fgx");
 
   return true;
 }
@@ -243,22 +243,22 @@ void CGame::ScanDispModes() {
   SDL_DisplayMode	curDispMode;
   memset(&curDispMode, 0, sizeof(SDL_DisplayMode));
 
-  if (SDL_GetCurrentDisplayMode(0, &curDispMode) != 0)
+  if(SDL_GetCurrentDisplayMode(0, &curDispMode) != 0)
     return;
 
   int dispNum = SDL_GetNumDisplayModes(0);
-  for (int i = 0; i < dispNum; i++) {
+  for(int i = 0; i < dispNum; i++) {
     SDL_DisplayMode mode;
     memset(&mode, 0, sizeof(SDL_DisplayMode));
-    if (SDL_GetDisplayMode(0, i, &mode) != 0) {
+    if(SDL_GetDisplayMode(0, i, &mode) != 0) {
       continue;
     }
 
-    if (mode.format != curDispMode.format || mode.refresh_rate != curDispMode.refresh_rate) {
+    if(mode.format != curDispMode.format || mode.refresh_rate != curDispMode.refresh_rate) {
       continue;
     }
 
-    if (mode.w == curDispMode.w && mode.h == curDispMode.h) {
+    if(mode.w == curDispMode.w && mode.h == curDispMode.h) {
       ScrParam.uDevID = i;
     }
 
@@ -269,14 +269,15 @@ void CGame::ScanDispModes() {
 void CGame::ChangeDispMode() {
   SDL_DisplayMode mode;
 
-  if (SDL_GetCurrentDisplayMode(0, &mode) != 0)
+  if(SDL_GetCurrentDisplayMode(0, &mode) != 0)
     return;
 
   mode.w = ScrParam.uWidth;
   mode.h = ScrParam.uHeight;
 
-  if (SDL_SetWindowDisplayMode(this->m_pWindow, &mode) != 0) {
-    Log_Error("Can't change display settings to %ux%u", ScrParam.uWidth, ScrParam.uHeight);
+  if(SDL_SetWindowDisplayMode(this->m_pWindow, &mode) != 0) {
+    cb::error(cb::format(L"Can't change display settings to {0}x{1}",
+                         ScrParam.uWidth, ScrParam.uHeight));
     return;
   }
 }

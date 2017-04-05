@@ -1,11 +1,10 @@
 #pragma once
 
-#include "../Common/Files.h"
-
 #include <SDL.h>
 #include <glm/glm.hpp>
-#include <vector>
 #include <map>
+
+#include <CBIO/Defines.h>
 
 class CGame;
 
@@ -25,7 +24,7 @@ private:
   glm::vec2 m_Size;
   glm::vec2 m_Vertex[4];
 
-  bool LoadFontTexture(std::string filename);
+  bool LoadFontTexture(const cb::string& filename);
   bool InitFont();
 
 public:

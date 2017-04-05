@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "GLDefines.h"
 
 void CGame::Free() {
   this->FreeGame();
@@ -6,7 +7,6 @@ void CGame::Free() {
   this->FreeInput();
   this->FreeRender();
   this->FreeWindow();
-  Log_Free();
 }
 
 void CGame::FreeWindow() {

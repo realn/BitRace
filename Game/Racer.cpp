@@ -1,7 +1,5 @@
 #include "Racer.h"
-
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include "GLDefines.h"
 
 float CRacer::s_fConstHeight = 2.5f;
 float CRacer::s_fMaxBitRate = 100.0f;

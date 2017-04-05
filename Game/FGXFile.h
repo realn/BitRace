@@ -4,6 +4,8 @@
 #include <string>
 #include <glm/glm.hpp>
 
+#include <CBIO/Defines.h>
+
 #define FGX_FILEID	"FGX"
 #define FGX_VER10	100
 #define FGX_VERSION	100
@@ -19,19 +21,15 @@ struct FGXHEADER {
 };
 
 class CFGXFile {
-public:
-  typedef unsigned char Byte;
-  typedef std::vector<Byte> CData;
-
 private:
-  FGXHEADER m_Header;
-  CData     m_Data;
+  FGXHEADER mHeader;
+  cb::bytevector mData;
 
 public:
   CFGXFile();
   ~CFGXFile();
 
-  bool  Load(const std::string filename);
+  bool  Load(const cb::string filepath);
   void  Free();
 
   bool  IsLoaded() const;
@@ -40,5 +38,5 @@ public:
   const glm::ivec2  GetSize() const;
   const unsigned    GetImgDepth() const;
 
-  const CData&  GetData() const;
+  const cb::bytevector&  GetData() const;
 };

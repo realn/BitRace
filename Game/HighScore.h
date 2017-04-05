@@ -1,11 +1,9 @@
 #pragma once
 
-#include "GUI.h"
-#include "../Common/Files.h"
-#include <sstream>
-
+#include <CBStr/Defines.h>
 #include <SDL.h>
 
+class CGUI;
 class CGame;
 
 class CHighScore {
@@ -50,8 +48,8 @@ private:
 public:
   CHighScore();
 
-  bool	LoadScores(std::string strFile);
-  bool	SaveScores(std::string strFile);
+  bool	LoadScores(const cb::string& filepath);
+  bool	SaveScores(const cb::string& filepath);
 
   void	SetTempScore(unsigned uScore);
 

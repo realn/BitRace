@@ -1,10 +1,11 @@
 #include "Game.h"
+#include "GLDefines.h"
 
 void CGame::Render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
 
-  if (m_bGamePause) {
+  if(m_bGamePause) {
     //if (ScrParam.bBlur) {
     //  glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT);
     //  glViewport(0, 0, m_uBlurTexSize, m_uBlurTexSize);
@@ -42,9 +43,9 @@ void CGame::Render() {
   }
 
   RenderGame();
-	RenderGUI();
+  RenderGUI();
 
-  if (m_bTakeScreen) {
+  if(m_bTakeScreen) {
     this->TakeScreenshot();
     m_bTakeScreen = false;
   }
@@ -74,7 +75,7 @@ void CGame::RenderGame() {
 
 void CGame::RenderGUI() {
   m_GUI.Begin(ScrParam.GetSize());
-  switch (m_uGameState) {
+  switch(m_uGameState) {
   case GS_INTRO:
     m_Intro.RenderGUI(&m_GUI);
     break;
@@ -84,7 +85,7 @@ void CGame::RenderGUI() {
     break;
 
   case GS_GAME:
-    if (!m_MenuMng.GetCurrentMenu()->IsHidden())
+    if(!m_MenuMng.GetCurrentMenu()->IsHidden())
       RenderMenu();
     else m_RaceTrack.RenderGUI(&m_GUI);
     break;
@@ -93,7 +94,7 @@ void CGame::RenderGUI() {
     m_HS.RenderGUI(&m_GUI);
     break;
   };
-  if (ScrParam.bFPSCount && m_uGameState != GS_INTRO) {
+  if(ScrParam.bFPSCount && m_uGameState != GS_INTRO) {
     glColor3f(1.0f, 1.0f, 1.0f);
     m_GUI.Print(glm::vec2(530.0f, 5.0f), "FPS: %d", int(1.0f / (this->m_fDT != 0.0f ? this->m_fDT : 1.0f)));
   }
@@ -101,7 +102,7 @@ void CGame::RenderGUI() {
 }
 
 void CGame::RenderMenu() {
-  if (m_bGamePause) {
+  if(m_bGamePause) {
     m_GUI.RenderQuadFullScreen(ScrParam.GetSize(), glm::vec4(0.0f, 0.0f, 0.0f, 0.4f));
   }
   m_MenuMng.Render();

@@ -4,6 +4,9 @@
     <Filter Include="Game">
       <UniqueIdentifier>{5e23173a-7563-4bdc-a868-751316fc9a26}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphic">
+      <UniqueIdentifier>{96ebccb7-8bd2-4b30-9d6b-665c9f3d08c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GUI.cpp">
@@ -33,6 +36,8 @@
     <ClCompile Include="GameRender.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="FGXFile.cpp" />
+    <ClCompile Include="IniFiles.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -54,6 +59,13 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Game.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="FGXFile.h" />
+    <ClInclude Include="IniFiles.h" />
+    <ClInclude Include="MathHelper.h" />
+    <ClInclude Include="GLDefines.h">
+      <Filter>Graphic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="RaceTrack.h">

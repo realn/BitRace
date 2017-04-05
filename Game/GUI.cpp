@@ -1,7 +1,9 @@
 #include "GUI.h"
 #include "Game.h"
-#include "../Common/FGXFile.h"
-#include "../Common/MathHelper.h"
+#include "FGXFile.h"
+#include "GLDefines.h"
+#include "MathHelper.h"
+
 #include <stdarg.h>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -16,7 +18,7 @@ CGUI::~CGUI() {
   Free();
 }
 
-bool CGUI::LoadFontTexture(std::string filename) {
+bool CGUI::LoadFontTexture(const cb::string& filename) {
   CFGXFile imgFile;
   if (!imgFile.Load(filename)) {
     return false;
@@ -39,9 +41,9 @@ bool CGUI::LoadFontTexture(std::string filename) {
   case 3: format = GL_RGB;
   case 4: format = GL_RGBA;
   };
-  const CFGXFile::CData& Data = imgFile.GetData();
+  const cb::bytevector& Data = imgFile.GetData();
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, &Data[0]);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, cb::vectorptr(Data));
   //glGenerateMipmap(GL_TEXTURE_2D);
 
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -78,7 +80,7 @@ bool CGUI::InitFont() {
 }
 
 bool CGUI::Init() {
-  if (!LoadFontTexture("font.fgx"))
+  if (!LoadFontTexture(L"font.fgx"))
     return false;
   if (!InitFont())
     return false;
