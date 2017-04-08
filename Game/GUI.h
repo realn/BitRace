@@ -203,6 +203,7 @@ public:
   void Render();
 
   CGUIMenuItem* AddMenuItem(const Uint32 id, const std::string& name, const glm::vec2& pos, const Uint32 userDefId = 0);
+  CGUIMenuItem* AddCheckBox(const Uint32 id, const std::string& name, const bool check, const glm::vec2& pos, const Uint32 userDefId = 0);
   CGUIMenuItem* RemoveMenuItem(const Uint32 id, const bool deleteItem = false);
   CGUIMenuItem* GetMenuItem(const Uint32 id) const;
   void Clear(bool deleteItems = true);

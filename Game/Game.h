@@ -12,15 +12,23 @@
 #include <CBLog/Logger.h>
 #include <CBIO/File.h>
 
+#include "Config.h"
+
 #include "RaceTrack.h"
 #include "GUI.h"
 #include "Intro.h"
 #include "HighScore.h"
 
+class IFileSystem;
+
 class CGame {
 private:
   std::wofstream mLogFile;
   cb::CLogger mLogger;
+
+  IFileSystem* mpFileSystem;
+  CConfig mConfig;
+  cb::string mConfigFilePath;
 
   SDL_Window*   m_pWindow;
   SDL_GLContext m_pGLContext;
@@ -47,11 +55,7 @@ private:
   __int64			m_iLastTick;
   __int64			m_iFreq;
   float			m_fDT;
-  float			m_fBlurTexAlpha;
   unsigned int	m_uBlurTexture;
-  unsigned int	m_uBlurTexSize;
-  cb::string		m_strConfigFile;
-
 
   enum MENU_ID {
     MENU_MAIN = 0,
@@ -93,25 +97,6 @@ private:
     GS_HIGH
   };
   unsigned m_uGameState;
-
-  struct	SCREENPARAMS {
-    unsigned	uWidth;
-    unsigned	uHeight;
-    unsigned	uColorBits;
-    unsigned	uRefreshRate;
-
-    unsigned	uDevID;
-
-    bool	bSmoothLines;
-    bool	bSmoothShade;
-    bool	bFullscreen;
-    bool	bFPSCount;
-    bool	bVSync;
-    bool	bBlur;
-
-    const glm::vec2 GetSize() const;
-    const float GetAspectRatio() const;
-  }	ScrParam;
 
   SDL_DisplayMode m_ModeOryginal;
   std::vector<SDL_DisplayMode> m_ModeList;
@@ -162,4 +147,8 @@ public:
   void UpdateMouse();
   void UpdateTimer();
   void UpdateHS();
+
+private:
+  void SaveConfig();
+  void LoadConfig();
 };

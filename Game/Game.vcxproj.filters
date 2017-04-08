@@ -7,6 +7,9 @@
     <Filter Include="Graphic">
       <UniqueIdentifier>{96ebccb7-8bd2-4b30-9d6b-665c9f3d08c0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{320c526b-ad0d-4c8b-b852-02b30fc3d2ed}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GUI.cpp">
@@ -42,6 +45,18 @@
       <Filter>Graphic</Filter>
     </ClCompile>
     <ClCompile Include="GameFree.cpp" />
+    <ClCompile Include="XmlTypes.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Config.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="FileSystem.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicFileSystem.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -72,6 +87,18 @@
     </ClInclude>
     <ClInclude Include="Texture.h">
       <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlTypes.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSystem.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicFileSystem.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

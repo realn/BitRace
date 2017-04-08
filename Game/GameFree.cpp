@@ -23,7 +23,7 @@ void CGame::FreeRender() {
     this->m_pGLContext = nullptr;
   }
 
-  if (ScrParam.bFullscreen) {
+  if (mConfig.Screen.Fullscreen) {
     SDL_SetWindowDisplayMode(this->m_pWindow, &this->m_ModeOryginal);
   }
 

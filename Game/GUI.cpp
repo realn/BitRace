@@ -7,6 +7,7 @@
 
 #include <stdarg.h>
 #include <glm/gtc/type_ptr.hpp>
+#include "Config.h"
 
 CGUI::CGUI() {
   this->m_Vertex[0] = glm::vec2(0.0f, 16.0f);
@@ -542,6 +543,11 @@ CGUIMenuItem* CGUIMenu::AddMenuItem(const Uint32 id, const std::string& name, co
   CGUIMenuItem* pItem = new CGUIMenuItem(this, id, name, pos, userDefID);
   m_Items.push_back(pItem);
   return pItem;
+}
+
+CGUIMenuItem * CGUIMenu::AddCheckBox(const Uint32 id, const std::string & name, const bool check, const glm::vec2 & pos, const Uint32 userDefId) {
+  std::string text = ": " + std::string(check ? "Enabled" : "Disabled");
+  return AddMenuItem(id, name + text, pos, userDefId);
 }
 
 CGUIMenuItem* CGUIMenu::RemoveMenuItem(const Uint32 id, const bool deleteItem) {

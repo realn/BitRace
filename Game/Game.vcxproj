@@ -92,7 +92,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BasicFileSystem.cpp" />
+    <ClCompile Include="Config.cpp" />
     <ClCompile Include="FGXFile.cpp" />
+    <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameEngine.cpp" />
     <ClCompile Include="GameFree.cpp" />
@@ -111,9 +114,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="XmlTypes.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BasicFileSystem.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="FGXFile.h" />
+    <ClInclude Include="FileSystem.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GLDefines.h" />
     <ClInclude Include="GUI.h" />
@@ -125,6 +132,7 @@
     <ClInclude Include="Racer.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="XmlTypes.h" />
     <CustomBuild Include="RaceTrack.h" />
     <ClInclude Include="Space.h" />
   </ItemGroup>

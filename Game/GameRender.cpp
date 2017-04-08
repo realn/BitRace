@@ -75,7 +75,7 @@ void CGame::RenderGame() {
 }
 
 void CGame::RenderGUI() {
-  m_GUI.Begin(ScrParam.GetSize());
+  m_GUI.Begin(mConfig.Screen.GetSize());
   switch(m_uGameState) {
   case GS_INTRO:
     m_Intro.RenderGUI(&m_GUI);
@@ -95,7 +95,7 @@ void CGame::RenderGUI() {
     m_HS.RenderGUI(&m_GUI);
     break;
   };
-  if(ScrParam.bFPSCount && m_uGameState != GS_INTRO) {
+  if(mConfig.Diag.FPSCounter && m_uGameState != GS_INTRO) {
     glColor3f(1.0f, 1.0f, 1.0f);
     m_GUI.Print(glm::vec2(530.0f, 5.0f), "FPS: %d", int(1.0f / (this->m_fDT != 0.0f ? this->m_fDT : 1.0f)));
   }
@@ -104,7 +104,7 @@ void CGame::RenderGUI() {
 
 void CGame::RenderMenu() {
   if(m_bGamePause) {
-    m_GUI.RenderQuadFullScreen(ScrParam.GetSize(), glm::vec4(0.0f, 0.0f, 0.0f, 0.4f));
+    m_GUI.RenderQuadFullScreen(mConfig.Screen.GetSize(), glm::vec4(0.0f, 0.0f, 0.0f, 0.4f));
   }
   m_MenuMng.Render();
 }

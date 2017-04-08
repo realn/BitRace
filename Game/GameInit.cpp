@@ -4,25 +4,8 @@
 #include "GLDefines.h"
 
 bool CGame::Init(std::string strCmdLine) {
-  m_strConfigFile = L"config.ini";
-
-  CIniFile ini;
-  ini.Open(m_strConfigFile);
-
-  ScrParam.uWidth = ini.Read(L"GRAPHIC", L"uWidth", 640u);
-  ScrParam.uHeight = ini.Read(L"GRAPHIC", L"uHeight", 480u);
-  ScrParam.uColorBits = ini.Read(L"GRAPHIC", L"uColorBits", 32u);
-  ScrParam.uRefreshRate = ini.Read(L"GRAPHIC", L"uRefreshRate", 60u);
-  ScrParam.bFullscreen = ini.Read(L"GRAPHIC", L"bFullscreen", true);
-  ScrParam.bSmoothShade = ini.Read(L"GRAPHIC", L"bSmoothShade", true);
-  ScrParam.bSmoothLines = ini.Read(L"GRAPHIC", L"bSmoothLines", true);
-  ScrParam.bFPSCount = ini.Read(L"GRAPHIC", L"bFPSCount", false);
-  ScrParam.bVSync = ini.Read(L"GRAPHIC", L"bVSync", true);
-  ScrParam.bBlur = ini.Read(L"GRAPHIC", L"bBlur", false);
-  m_uBlurTexSize = ini.Read(L"GRAPHIC", L"uBlurTexSize", 64);
-  m_fBlurTexAlpha = ini.Read(L"GRAPHIC", L"fBlurTexAlpha", 0.3f);
-
-  ini.Close();
+  mConfigFilePath = L"main.cfg";
+  LoadConfig();
 
   if(!this->InitWindow(GAME_FULLNAME)) {
     cb::error(L"Can't initialize window.");
@@ -61,13 +44,14 @@ bool CGame::InitWindow(std::string strTitle) {
   }
 
   int winFlags = SDL_WINDOW_OPENGL;
-  if(ScrParam.bFullscreen) {
+  if(mConfig.Screen.Fullscreen) {
     winFlags |= SDL_WINDOW_FULLSCREEN;
     winFlags |= SDL_WINDOW_BORDERLESS;
   }
   this->m_pWindow = SDL_CreateWindow(strTitle.c_str(),
                                      SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                     int(ScrParam.uWidth), int(ScrParam.uHeight),
+                                     int(mConfig.Screen.Width), 
+                                     int(mConfig.Screen.Height),
                                      winFlags);
   if(this->m_pWindow == nullptr) {
     cb::error(L"Failed to create window.");
@@ -79,11 +63,11 @@ bool CGame::InitWindow(std::string strTitle) {
 }
 
 bool CGame::InitRender() {
-  if(ScrParam.bFullscreen)
+  if(mConfig.Screen.Fullscreen)
     ChangeDispMode();
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
-  SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, int(ScrParam.uColorBits));
+  SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, int(mConfig.Screen.ColorBits));
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
 
@@ -125,9 +109,11 @@ bool CGame::InitOpenGL() {
   glClearDepth(1.0f);
   glClearStencil(0);
 
-  if(ScrParam.bSmoothShade)
+  if(mConfig.Render.SmoothShade)
     glShadeModel(GL_SMOOTH);
-  else glShadeModel(GL_FLAT);
+  else 
+    glShadeModel(GL_FLAT);
+
   glDepthFunc(GL_LEQUAL);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -136,9 +122,10 @@ bool CGame::InitOpenGL() {
 
   glEnable(GL_COLOR_MATERIAL);
   glEnable(GL_DEPTH_TEST);
-  if(ScrParam.bSmoothLines)
+  if(mConfig.Render.SmoothLines)
     glEnable(GL_LINE_SMOOTH);
-  else glDisable(GL_LINE_SMOOTH);
+  else 
+    glDisable(GL_LINE_SMOOTH);
 
   glDisable(GL_TEXTURE_2D);
   glDisable(GL_LIGHTING);
@@ -150,7 +137,10 @@ bool CGame::InitOpenGL() {
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(50.0, double(ScrParam.uWidth) / double(ScrParam.uHeight), 1.0, 50000.0);
+  gluPerspective(50.0, 
+                 double(mConfig.Screen.Width) / 
+                 double(mConfig.Screen.Height), 
+                 1.0, 50000.0);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
@@ -167,7 +157,8 @@ bool CGame::InitOpenGL() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexImage2D(GL_TEXTURE_2D, 0, 4,
-               m_uBlurTexSize, m_uBlurTexSize,
+               mConfig.Render.BlurTexSize,
+               mConfig.Render.BlurTexSize,
                0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
   return true;
@@ -197,7 +188,7 @@ bool CGame::InitGame() {
   //  else wglSwapIntervalEXT(0);
   //}
 
-  m_MenuMng.SetSize(ScrParam.GetSize());
+  m_MenuMng.SetSize(mConfig.Screen.GetSize());
 
   CGUIMenu* Menu = this->m_MenuMng.AddMenu(MENU_MAIN, "BitRace");
   Menu->AddMenuItem(MI_RETURN, "Return to Game", glm::vec2(40.0f, 70.0f), 0)->SetEnable(false);
@@ -206,16 +197,21 @@ bool CGame::InitGame() {
   Menu->AddMenuItem(MI_OPTIONS, "Options", glm::vec2(40.0f, 160.0f), MENU_OPTIONS);
   Menu->AddMenuItem(MI_EXIT, "Exit Game", glm::vec2(40.0f, 190.0f), 0);
   Menu = this->m_MenuMng.AddMenu(MENU_OPTIONS, "Options");
-  sprintf_s(szBuffer, 1000, "Resolution: %d X %d", ScrParam.uWidth, ScrParam.uHeight);
-  Menu->AddMenuItem(MI_RESOLUTION, szBuffer, glm::vec2(40.0f, 100.0f), ScrParam.uDevID);
-  Menu->AddMenuItem(MI_FULLSCREEN, (ScrParam.bFullscreen) ? "Fullscreen: Enabled" : "FullScreen: Disabled", glm::vec2(40.0f, 130.0f), Uint32(ScrParam.bFullscreen));
-  Menu->AddMenuItem(MI_SMOOTHSHADE, (ScrParam.bSmoothShade) ? "Smooth Shading: Enabled" : "Smooth Shading: Disabled", glm::vec2(40.0f, 160.0f), 0);
-  Menu->AddMenuItem(MI_SMOOTHLINE, (ScrParam.bSmoothLines) ? "Smooth Lines: Enabled" : "Smooth Lines: Disabled", glm::vec2(40.0f, 190.0f), 0);
-  Menu->AddMenuItem(MI_FPSCOUNTER, (ScrParam.bFPSCount) ? "FPS Counter: Enabled" : "FPS Counter: Disabled", glm::vec2(40.0f, 220.0f), 0);
-  Menu->AddMenuItem(MI_VSYNC, (ScrParam.bVSync) ? "VSync: Enabled" : "VSync: Disabled", glm::vec2(40.0f, 250.0f), 0);
+  sprintf_s(szBuffer, 1000, "Resolution: %d X %d", 
+            mConfig.Screen.Width, mConfig.Screen.Height);
+
+  Menu->AddMenuItem(MI_RESOLUTION, szBuffer, glm::vec2(40.0f, 100.0f), mConfig.Screen.DevId);
+  
+  Menu->AddCheckBox(MI_FULLSCREEN, "Fullscreen", mConfig.Screen.Fullscreen, glm::vec2(40.0f, 130.0f));  
+  Menu->AddCheckBox(MI_SMOOTHSHADE, "Smooth Shading", mConfig.Render.SmoothShade, glm::vec2(40.0f, 160.0f), 0);
+  Menu->AddCheckBox(MI_SMOOTHLINE, "Smooth Lines", mConfig.Render.SmoothLines, glm::vec2(40.0f, 190.0f), 0);
+  Menu->AddCheckBox(MI_FPSCOUNTER, "FPS Counter", mConfig.Diag.FPSCounter, glm::vec2(40.0f, 220.0f), 0);
+  Menu->AddCheckBox(MI_VSYNC, "Vertical Sync", mConfig.Screen.VSync, glm::vec2(40.0f, 250.0f), 0);
+
   //if(WGLEW_EXT_swap_control) {
   //  Menu->GetMenuItem(MI_VSYNC)->SetEnable(false);
   //}
+
   Menu->AddMenuItem(MI_OPWARNING, "WARNING: You must restart the game, to apply changes", glm::vec2(20.0f, 300.0f), 0)->SetEnable(false);
   Menu->AddMenuItem(MI_GOBACK, "Return to Main Menu", glm::vec2(40.0f, 330.0f), MENU_MAIN);
   Menu = this->m_MenuMng.AddMenu(MENU_HIGH, "High Scores");
@@ -259,7 +255,7 @@ void CGame::ScanDispModes() {
     }
 
     if(mode.w == curDispMode.w && mode.h == curDispMode.h) {
-      ScrParam.uDevID = i;
+      mConfig.Screen.DevId = i;
     }
 
     this->m_ModeList.push_back(mode);
@@ -272,12 +268,13 @@ void CGame::ChangeDispMode() {
   if(SDL_GetCurrentDisplayMode(0, &mode) != 0)
     return;
 
-  mode.w = ScrParam.uWidth;
-  mode.h = ScrParam.uHeight;
+  mode.w = mConfig.Screen.Width;
+  mode.h = mConfig.Screen.Height;
 
   if(SDL_SetWindowDisplayMode(this->m_pWindow, &mode) != 0) {
     cb::error(cb::format(L"Can't change display settings to {0}x{1}",
-                         ScrParam.uWidth, ScrParam.uHeight));
+                         mConfig.Screen.Width, 
+                         mConfig.Screen.Height));
     return;
   }
 }
