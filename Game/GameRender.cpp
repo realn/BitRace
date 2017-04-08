@@ -97,7 +97,8 @@ void CGame::RenderGUI() {
   };
   if(mConfig.Diag.FPSCounter && m_uGameState != GS_INTRO) {
     glColor3f(1.0f, 1.0f, 1.0f);
-    m_GUI.Print(glm::vec2(530.0f, 5.0f), "FPS: %d", int(1.0f / (this->m_fDT != 0.0f ? this->m_fDT : 1.0f)));
+    int fps = (int)mTimer.GetFramesPerSecond();
+    m_GUI.Print(glm::vec2(530.0f, 5.0f), "FPS: %d", fps);
   }
   m_GUI.End();
 }

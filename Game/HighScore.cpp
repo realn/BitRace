@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "HighScore.h"
-#include "Game.h"
 #include "GUI.h"
 #include "GLDefines.h"
+#include "InputDevice.h"
 
 #include <CBIO/File.h>
 
@@ -126,9 +126,9 @@ void CHighScore::SetTempScore(unsigned uScore) {
   memset(m_bKeyDown, 0, sizeof(bool) * 256);
 }
 
-void CHighScore::Update(CGame* pGame, float fDT) {
+void CHighScore::Update(const CInputDeviceMap& input, float fDT) {
   for (unsigned key = 0; key < SDL_NUM_SCANCODES; key++) {
-    if (pGame->IsKeyboardKeyPressed((SDL_Scancode)key)) {
+    if (input.GetState(InputDevice::Keyboard, (Uint32)KeyboardType::KeyPress, key)) {
       this->ParseKey(key);
     }
   }

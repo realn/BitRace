@@ -57,6 +57,12 @@
     <ClCompile Include="BasicFileSystem.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="PerfTimer.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="InputDevice.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -98,6 +104,12 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="BasicFileSystem.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="PerfTimer.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="InputDevice.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,13 +1,12 @@
 #include "stdafx.h"
 #include "GUI.h"
-#include "Game.h"
 #include "FGXFile.h"
 #include "GLDefines.h"
 #include "MathHelper.h"
+#include "InputDevice.h"
 
 #include <stdarg.h>
 #include <glm/gtc/type_ptr.hpp>
-#include "Config.h"
 
 CGUI::CGUI() {
   this->m_Vertex[0] = glm::vec2(0.0f, 16.0f);
@@ -320,7 +319,7 @@ CGUIMenuItem::~CGUIMenuItem() {
   this->m_pMenu->GetScreen()->RemoveItem(m_pRectItem, true);
 }
 
-const bool CGUIMenuItem::Update(CGame* pGame, const float fDT) {
+const bool CGUIMenuItem::Update(const CInputDeviceMap& input, const float fDT) {
   if(!IsEnabled()) {
     this->m_pRectItem->SetVisible(false);
     this->m_pTextItem->SetVisible(false);
@@ -365,10 +364,13 @@ const bool CGUIMenuItem::Update(CGame* pGame, const float fDT) {
   this->m_pRectItem->SetColor(glm::vec4(glm::vec3(1.0f), this->m_FocusLight));
   this->m_pTextItem->SetColor(glm::vec4(glm::vec3(1.0f - this->m_FocusLight), 1.0f));
 
-  glm::vec2 vMousePos = glm::vec2(pGame->GetMousePos());
+  glm::vec2 vMousePos = glm::vec2(
+    input.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisPos, (Uint32)MouseAxisId::AxisX),
+    input.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisPos, (Uint32)MouseAxisId::AxisY)
+    ) * m_pMenu->GetScreen()->GetSize();
   if(this->m_pTextItem->Contains(vMousePos)) {
     this->SetFocus(true);
-    if(pGame->IsMouseButtonPressed(SDL_BUTTON_LEFT)) {
+    if(input.GetState(InputDevice::Mouse, (Uint32)MouseType::ButtonPress, SDL_BUTTON_LEFT)) {
       return true;
     }
   }
@@ -489,7 +491,7 @@ CGUIMenu::~CGUIMenu() {
   delete m_pScreen;
 }
 
-const bool CGUIMenu::Update(CGame* pGame, float timeDelta) {
+const bool CGUIMenu::Update(const CInputDeviceMap& input, float timeDelta) {
   if (IsShowing()) {
     m_Time += timeDelta;
     if (m_Time > 0.2f) {
@@ -521,7 +523,7 @@ const bool CGUIMenu::Update(CGame* pGame, float timeDelta) {
   }
 
   for(std::vector<CGUIMenuItem*>::iterator it = m_Items.begin(); it != m_Items.end(); it++) {
-    if((*it)->Update(pGame, timeDelta)) {
+    if((*it)->Update(input, timeDelta)) {
       m_ClickedID = (*it)->GetID();
       return true;
     }
@@ -693,8 +695,12 @@ const glm::vec2 & CGUIMenuManager::GetSize() const {
   return this->m_Size;
 }
 
-bool CGUIMenuManager::Update(CGame* pGame, float timeDelta) {
-  this->m_MousePos = pGame->GetMousePos();
+bool CGUIMenuManager::Update(const CInputDeviceMap& input, float timeDelta) {
+  this->m_MousePos = glm::vec2(
+    input.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisPos, (Uint32)MouseAxisId::AxisX),
+    input.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisPos, (Uint32)MouseAxisId::AxisY)
+  ) * m_Size;
+  
 
   if (m_MousePos.x < 0.0f)
     m_MousePos.x = 0.0f;
@@ -730,7 +736,7 @@ bool CGUIMenuManager::Update(CGame* pGame, float timeDelta) {
 
   Menu = this->GetCurrentMenu();
   if (Menu != NULL) {
-    if (Menu->Update(pGame, timeDelta)) {
+    if (Menu->Update(input, timeDelta)) {
       return true;
     }
   }

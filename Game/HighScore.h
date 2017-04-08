@@ -4,7 +4,7 @@
 #include <SDL.h>
 
 class CGUI;
-class CGame;
+class CInputDeviceMap;
 
 class CHighScore {
 public:
@@ -53,7 +53,7 @@ public:
 
   void	SetTempScore(unsigned uScore);
 
-  void	Update(CGame* pGame, float fDT);
+  void	Update(const CInputDeviceMap& input, float fDT);
   void	RenderGUI(CGUI* GUI);
 
   std::string GetName(unsigned uIndex);

@@ -86,14 +86,8 @@ bool CGame::InitRender() {
 bool  CGame::InitInput() {
   SDL_InitSubSystem(SDL_INIT_EVENTS);
 
-  memset(this->m_KeyState, 0, sizeof(Uint8) * SDL_NUM_SCANCODES);
-  memset(this->m_KeyStatePrev, 0, sizeof(Uint8) * SDL_NUM_SCANCODES);
-
-  this->m_MouseButtonState = 0;
-  this->m_MouseButtonStatePrev = 0;
-
-  this->m_MousePos = glm::ivec2(0);
-  this->m_MousePosPrev = glm::ivec2(0);
+  mIDevMap.AddDevice(InputDevice::Keyboard, new CKeyboardInputDevice());
+  mIDevMap.AddDevice(InputDevice::Mouse, new CMouseInputDevice(mConfig.Screen.GetSize()));
 
   return true;
 }
@@ -165,11 +159,13 @@ bool CGame::InitOpenGL() {
 }
 
 bool CGame::InitGame() {
-  char szBuffer[1000];
-  this->m_iFreq = SDL_GetPerformanceFrequency();
-  this->m_iLastTick = SDL_GetPerformanceCounter();
+  if(!mTimer.Init()) {
+    return false;
+  }
 
-  srand((Uint32)this->m_iLastTick);
+  char szBuffer[1000];
+
+  std::srand((Uint32)mTimer.GetLastTick());
 
 
   this->ScanDispModes();

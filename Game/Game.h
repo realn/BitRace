@@ -13,6 +13,8 @@
 #include <CBIO/File.h>
 
 #include "Config.h"
+#include "PerfTimer.h"
+#include "InputDevice.h"
 
 #include "RaceTrack.h"
 #include "GUI.h"
@@ -28,6 +30,9 @@ private:
 
   IFileSystem* mpFileSystem;
   CConfig mConfig;
+  CPerfTimer mTimer;
+  CInputDeviceMap mIDevMap;
+
   cb::string mConfigFilePath;
 
   SDL_Window*   m_pWindow;
@@ -41,20 +46,9 @@ private:
   CIntro			m_Intro;
   CHighScore		m_HS;
 
-  Uint8 m_KeyState[SDL_NUM_SCANCODES];
-  Uint8 m_KeyStatePrev[SDL_NUM_SCANCODES];
-
-  Uint32  m_MouseButtonState;
-  Uint32  m_MouseButtonStatePrev;
-  glm::ivec2  m_MousePos;
-  glm::ivec2  m_MousePosPrev;
-
   bool			m_bShutdown;
   bool			m_bGamePause;
   bool			m_bTakeScreen;
-  __int64			m_iLastTick;
-  __int64			m_iFreq;
-  float			m_fDT;
   unsigned int	m_uBlurTexture;
 
   enum MENU_ID {
@@ -132,20 +126,10 @@ public:
   void ScanDispModes();
   void ChangeDispMode();
 
-  bool  IsKeyboardKeyDown(const SDL_Scancode code) const;
-  bool  IsKeyboardKeyPressed(const SDL_Scancode code) const;
-  bool  IsMouseButtonDown(const Uint32 button) const;
-  bool  IsMouseButtonPressed(const Uint32 button) const;
-  const glm::ivec2& GetMousePos() const;
-  const glm::ivec2  GetMousePosDelta() const;
-
   int MainLoop();
 
   static float	s_fMaxDT;
 
-  void UpdateKeyboard();
-  void UpdateMouse();
-  void UpdateTimer();
   void UpdateHS();
 
 private:

@@ -6,7 +6,7 @@
 
 #include <CBIO/Defines.h>
 
-class CGame;
+class CInputDeviceMap;
 
 class CGUI {
 public:
@@ -152,7 +152,7 @@ public:
   CGUIMenuItem(CGUIMenu* pMenu, const Uint32 id, const std::string& name, const glm::vec2& pos, Uint32 userDefID);
   ~CGUIMenuItem();
 
-  const bool Update(CGame* pGame, const float fDT);
+  const bool Update(const CInputDeviceMap& input, const float fDT);
 
   const bool HasFocus() const;
   const bool IsEnabled() const;
@@ -199,7 +199,7 @@ public:
   CGUIMenu(CGUIMenuManager* pMenuMng, const Uint32 id, const std::string& title, const glm::vec2& size);
   ~CGUIMenu();
 
-  const bool Update(CGame* pGame, const float timeDelta);
+  const bool Update(const CInputDeviceMap& input, const float timeDelta);
   void Render();
 
   CGUIMenuItem* AddMenuItem(const Uint32 id, const std::string& name, const glm::vec2& pos, const Uint32 userDefId = 0);
@@ -246,7 +246,7 @@ public:
 
   const glm::vec2&  GetSize() const;
 
-  bool Update(CGame* pGame, float timeDelta);
+  bool Update(const CInputDeviceMap& input, float timeDelta);
   void Render();
 
   CGUI* GetGUI() const;
