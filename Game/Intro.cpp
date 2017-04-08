@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Intro.h"
 #include "FGXFile.h"
 #include "GLDefines.h"

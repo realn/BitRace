@@ -1,10 +1,5 @@
+#include "stdafx.h"
 #include "Game.h"
-
-#pragma comment(lib, "SDL2.lib")
-#pragma comment(lib, "SDL2main.lib")
-#pragma comment(lib, "opengl32.lib")
-#pragma comment(lib, "glu32.lib")
-#pragma comment(lib, "glew32s.lib")
 
 const glm::vec2 CGame::SCREENPARAMS::GetSize() const {
   return glm::vec2((float)uWidth, (float)uHeight);

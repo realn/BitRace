@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Game.h"
 #include "IniFiles.h"
 #include "GLDefines.h"

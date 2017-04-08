@@ -31,13 +31,17 @@
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="GameEngine.cpp" />
-    <ClCompile Include="GameFree.cpp" />
     <ClCompile Include="GameInit.cpp" />
     <ClCompile Include="GameRender.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="FGXFile.cpp" />
     <ClCompile Include="IniFiles.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="Texture.cpp">
+      <Filter>Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -64,6 +68,9 @@
     <ClInclude Include="IniFiles.h" />
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="GLDefines.h">
+      <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
       <Filter>Graphic</Filter>
     </ClInclude>
   </ItemGroup>

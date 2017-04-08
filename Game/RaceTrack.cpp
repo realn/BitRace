@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "RaceTrack.h"
 #include "GLDefines.h"
 
