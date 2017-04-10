@@ -2,283 +2,299 @@
 #include "Intro.h"
 #include "FGXFile.h"
 #include "GLDefines.h"
+#include "GUI.h"
 
-CIntro::CIntro() :
-  m_IntroState(IS_STATE1),
-  m_uLogosTex(0),
-  m_uCharCount(0),
-  m_fTime(0.0f),
-  m_bIntroEnd(false),
-  m_strText1("PRESENTS"),
-  m_strText2("A GAME BUILD WITH"),
-  m_strText3("TECHNOLOGY") {
+static const std::string INTRO_TEXT1 = "PRESENTS";
+static const std::string INTRO_TEXT2 = "A GAME BUILD WITH";
+static const std::string INTRO_TEXT3 = "TECHNOLOGY";
 
+CIntroProcess::CIntroProcess() :
+  mIntroState(IntroState::IS_STATE1),
+  mCharCount(0),
+  mTime(0.0f),
+  mIntroEnd(false){
 }
 
-CIntro::~CIntro() {
-  Free();
+CIntroProcess::~CIntroProcess() {
+  mIntroState = IntroState::IS_STATE1;
+  mTime = 0.0f;
 }
 
-const bool CIntro::Init(const cb::string& logosFilepath) {
-  if (!LoadTexture(logosFilepath))
+void CIntroProcess::Update(const float fDT) {
+  switch (mIntroState) {
+  case IntroState::IS_STATE1:
+    mTime += 0.5f * fDT;
+    if (mTime > 1.0f) {
+      mIntroState = IntroState::IS_STATE2;
+      mTime = 0.0f;
+    }
+    break;
+
+  case IntroState::IS_STATE2:
+    mTime += 1.0f * fDT;
+    if (mTime > 0.1f) {
+      if (mCharCount < unsigned(INTRO_TEXT1.length()))
+        mCharCount++;
+      else {
+        mIntroState = IntroState::IS_STATE3;
+        mCharCount = 0;
+      }
+      mTime = 0.0f;
+    }
+    break;
+
+  case IntroState::IS_STATE3:
+    mTime += 1.0f * fDT;
+    if (mTime > 3.0f) {
+      mIntroState = IntroState::IS_STATE4;
+      mTime = 0.0f;
+    }
+    break;
+
+  case IntroState::IS_STATE4:
+    mTime += 1.0f * fDT;
+    if (mTime > 0.1f) {
+      if (mCharCount < unsigned(INTRO_TEXT2.length()))
+        mCharCount++;
+      else {
+        mIntroState = IntroState::IS_STATE5;
+        mCharCount = 0;
+      }
+      mTime = 0.0f;
+    }
+    break;
+
+  case IntroState::IS_STATE5:
+    mTime += 1.0f * fDT;
+    if (mTime > 2.0f) {
+      mIntroState = IntroState::IS_STATE6;
+      mTime = 0.0f;
+    }
+    break;
+
+  case IntroState::IS_STATE6:
+    mTime += 1.0f * fDT;
+    if (mTime > 0.1f) {
+      if (mCharCount < unsigned(INTRO_TEXT3.length()))
+        mCharCount++;
+      else {
+        mIntroState = IntroState::IS_STATE7;
+        mCharCount = 0;
+      }
+      mTime = 0.0f;
+    }
+    break;
+
+  case IntroState::IS_STATE7:
+    mTime += 0.8f * fDT;
+    if (mTime > 1.0f) {
+      mIntroState = IntroState::IS_STATE8;
+      mTime = 0.0f;
+    }
+    break;
+
+  case IntroState::IS_STATE8:
+    mTime += 0.8f * fDT;
+    if (mTime > 1.0f) {
+      mIntroState = IntroState::IS_STATE9;
+      mTime = 0.0f;
+    }
+    break;
+
+  case IntroState::IS_STATE9:
+    mTime += 1.0f * fDT;
+    if (mTime > 1.0f) {
+      mIntroState = IntroState::IS_STATE10;
+      mTime = 0.0f;
+    }
+    break;
+
+  case IntroState::IS_STATE10:
+    mTime += 1.0f * fDT;
+    if (mTime > 1.0f) {
+      mIntroState = IntroState::IS_STATE11;
+      mTime = 0.0f;
+    }
+    break;
+
+  case IntroState::IS_STATE11:
+    mTime += 0.25f * fDT;
+    if (mTime > 1.0f) {
+      mIntroState = IntroState::IS_STATE12;
+      mTime = 0.0f;
+    }
+    break;
+
+  case IntroState::IS_STATE12:
+    mTime += 1.0f * fDT;
+    if (mTime > 2.0f) {
+      mIntroState = IntroState::IS_STATE13;
+      mTime = 0.0f;
+    }
+    break;
+
+  case IntroState::IS_STATE13:
+    mTime += 1.2f * fDT;
+    if (mTime > 1.0f) {
+      mIntroState = IntroState::IS_STATE1;
+      mTime = 0.0f;
+      mIntroEnd = true;
+    }
+    break;
+  };
+}
+
+const IntroState CIntroProcess::GetState() const {
+  return mIntroState;
+}
+
+const float CIntroProcess::GetTime() const {
+  return mTime;
+}
+
+const Uint32 CIntroProcess::GetCharNumber() const {
+  return mCharCount;
+}
+
+bool CIntroProcess::IsIntroEnded() {
+  return mIntroEnd;
+}
+
+CIntroView::CIntroView(CIntroProcess& intro) 
+  : mIntro(intro)
+  , mLogosTex(0)
+{}
+
+CIntroView::~CIntroView() {}
+
+const bool CIntroView::Init(const cb::string & logosFilePath) {
+  if(!LoadTexture(logosFilePath))
     return false;
   return true;
 }
 
-void CIntro::Free() {
-  if (glIsTexture(m_uLogosTex))
-    glDeleteTextures(1, &m_uLogosTex);
+void CIntroView::Free() {
+  if(glIsTexture(mLogosTex))
+    glDeleteTextures(1, &mLogosTex);
 
-  m_IntroState = 0;
-  m_uLogosTex = 0;
-  m_fTime = 0.0f;
+  mLogosTex = 0;
 }
 
-void CIntro::Engine(float fDT) {
-  switch (m_IntroState) {
-  case IS_STATE1:
-    m_fTime += 0.5f * fDT;
-    if (m_fTime > 1.0f) {
-      m_IntroState = IS_STATE2;
-      m_fTime = 0.0f;
-    }
-    break;
+void CIntroView::Render() const {}
 
-  case IS_STATE2:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 0.1f) {
-      if (m_uCharCount < unsigned(m_strText1.length()))
-        m_uCharCount++;
-      else {
-        m_IntroState = IS_STATE3;
-        m_uCharCount = 0;
-      }
-      m_fTime = 0.0f;
-    }
-    break;
-
-  case IS_STATE3:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 3.0f) {
-      m_IntroState = IS_STATE4;
-      m_fTime = 0.0f;
-    }
-    break;
-
-  case IS_STATE4:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 0.1f) {
-      if (m_uCharCount < unsigned(m_strText2.length()))
-        m_uCharCount++;
-      else {
-        m_IntroState = IS_STATE5;
-        m_uCharCount = 0;
-      }
-      m_fTime = 0.0f;
-    }
-    break;
-
-  case IS_STATE5:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 2.0f) {
-      m_IntroState = IS_STATE6;
-      m_fTime = 0.0f;
-    }
-    break;
-
-  case IS_STATE6:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 0.1f) {
-      if (m_uCharCount < unsigned(m_strText3.length()))
-        m_uCharCount++;
-      else {
-        m_IntroState = IS_STATE7;
-        m_uCharCount = 0;
-      }
-      m_fTime = 0.0f;
-    }
-    break;
-
-  case IS_STATE7:
-    m_fTime += 0.8f * fDT;
-    if (m_fTime > 1.0f) {
-      m_IntroState = IS_STATE8;
-      m_fTime = 0.0f;
-    }
-    break;
-
-  case IS_STATE8:
-    m_fTime += 0.8f * fDT;
-    if (m_fTime > 1.0f) {
-      m_IntroState = IS_STATE9;
-      m_fTime = 0.0f;
-    }
-    break;
-
-  case IS_STATE9:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 1.0f) {
-      m_IntroState = IS_STATE10;
-      m_fTime = 0.0f;
-    }
-    break;
-
-  case IS_STATE10:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 1.0f) {
-      m_IntroState = IS_STATE11;
-      m_fTime = 0.0f;
-    }
-    break;
-
-  case IS_STATE11:
-    m_fTime += 0.25f * fDT;
-    if (m_fTime > 1.0f) {
-      m_IntroState = IS_STATE12;
-      m_fTime = 0.0f;
-    }
-    break;
-
-  case IS_STATE12:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 2.0f) {
-      m_IntroState = IS_STATE13;
-      m_fTime = 0.0f;
-    }
-    break;
-
-  case IS_STATE13:
-    m_fTime += 1.2f * fDT;
-    if (m_fTime > 1.0f) {
-      m_IntroState = IS_STATE1;
-      m_fTime = 0.0f;
-      m_bIntroEnd = true;
-    }
-    break;
-  };
-}
-
-void CIntro::Render() {
-
-}
-
-void CIntro::RenderGUI(CGUI *GUI) {
-  switch (m_IntroState) {
-  case IS_STATE1:
-    glColor4f(1.0f, 1.0f, 1.0f, m_fTime);
+void CIntroView::RenderUI(CGUI& gui) const {
+  switch(mIntro.GetState()) {
+  case IntroState::IS_STATE1:
+    glColor4f(1.0f, 1.0f, 1.0f, mIntro.GetTime());
     RenderLogo(0);
     break;
 
-  case IS_STATE2:
+  case IntroState::IS_STATE2:
     glColor3f(1.0f, 1.0f, 1.0f);
     RenderLogo(0);
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(275.0f, 340.0f), m_strText1.substr(0, m_uCharCount) + "_");
+    gui.Print(glm::vec2(275.0f, 340.0f), INTRO_TEXT1.substr(0, mIntro.GetCharNumber()) + "_");
     break;
 
-  case IS_STATE3:
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f - (m_fTime - 2.0f));
+  case IntroState::IS_STATE3:
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f - (mIntro.GetTime() - 2.0f));
     RenderLogo(0);
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(275.0f, 340.0f), m_strText1);
+    gui.Print(glm::vec2(275.0f, 340.0f), INTRO_TEXT1);
     break;
 
-  case IS_STATE4:
+  case IntroState::IS_STATE4:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2.substr(0, m_uCharCount) + "_");
+    gui.Print(glm::vec2(230.0f, 120.0f), INTRO_TEXT2.substr(0, mIntro.GetCharNumber()) + "_");
     break;
 
-  case IS_STATE5:
-    glColor4f(1.0f, 1.0f, 1.0f, m_fTime);
+  case IntroState::IS_STATE5:
+    glColor4f(1.0f, 1.0f, 1.0f, mIntro.GetTime());
     RenderLogo(3);
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2);
+    gui.Print(glm::vec2(230.0f, 120.0f), INTRO_TEXT2);
     break;
 
-  case IS_STATE6:
+  case IntroState::IS_STATE6:
     glColor3f(1.0f, 1.0f, 1.0f);
     RenderLogo(3);
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2);
-    GUI->Print(glm::vec2(270.0f, 340.0f), m_strText3.substr(0, m_uCharCount) + "_");
+    gui.Print(glm::vec2(230.0f, 120.0f), INTRO_TEXT2);
+    gui.Print(glm::vec2(270.0f, 340.0f), INTRO_TEXT3.substr(0, mIntro.GetCharNumber()) + "_");
     break;
 
-  case IS_STATE7:
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f - m_fTime);
+  case IntroState::IS_STATE7:
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f - mIntro.GetTime());
     RenderLogo(3);
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2);
-    GUI->Print(glm::vec2(270.0f, 340.0f), m_strText3);
+    gui.Print(glm::vec2(230.0f, 120.0f), INTRO_TEXT2);
+    gui.Print(glm::vec2(270.0f, 340.0f), INTRO_TEXT3);
     break;
 
-  case IS_STATE8:
-    glColor4f(1.0f, 1.0f, 1.0f, m_fTime);
+  case IntroState::IS_STATE8:
+    glColor4f(1.0f, 1.0f, 1.0f, mIntro.GetTime());
     RenderLogo(2);
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2);
-    GUI->Print(glm::vec2(270.0f, 340.0f), m_strText3);
+    gui.Print(glm::vec2(230.0f, 120.0f), INTRO_TEXT2);
+    gui.Print(glm::vec2(270.0f, 340.0f), INTRO_TEXT3);
     break;
 
-  case IS_STATE9:
+  case IntroState::IS_STATE9:
     glColor3f(1.0f, 1.0f, 1.0f);
     RenderLogo(2);
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2);
-    GUI->Print(glm::vec2(270.0f, 340.0f), m_strText3);
+    gui.Print(glm::vec2(230.0f, 120.0f), INTRO_TEXT2);
+    gui.Print(glm::vec2(270.0f, 340.0f), INTRO_TEXT3);
     break;
 
-  case IS_STATE10:
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f - m_fTime);
+  case IntroState::IS_STATE10:
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f - mIntro.GetTime());
     RenderLogo(2);
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(230.0f, 120.0f), m_strText2);
-    GUI->Print(glm::vec2(270.0f, 340.0f), m_strText3);
+    gui.Print(glm::vec2(230.0f, 120.0f), INTRO_TEXT2);
+    gui.Print(glm::vec2(270.0f, 340.0f), INTRO_TEXT3);
     break;
 
-  case IS_STATE11:
-    glColor4f(1.0f, 1.0f, 1.0f, m_fTime);
+  case IntroState::IS_STATE11:
+    glColor4f(1.0f, 1.0f, 1.0f, mIntro.GetTime());
     RenderLogo(1);
     break;
 
-  case IS_STATE12:
+  case IntroState::IS_STATE12:
     glColor3f(1.0f, 1.0f, 1.0f);
     RenderLogo(1);
     break;
 
-  case IS_STATE13:
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f - m_fTime);
+  case IntroState::IS_STATE13:
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f - mIntro.GetTime());
     RenderLogo(1);
     break;
   };
 }
 
-bool CIntro::IsIntroEnded() {
-  return m_bIntroEnd;
-}
-
-const bool CIntro::LoadTexture(const cb::string& filepath) {
-  if (filepath.empty())
+const bool CIntroView::LoadTexture(const cb::string & filepath) {
+  if(filepath.empty())
     return false;
 
   CFGXFile imgFile;
-  if (!imgFile.Load(filepath)) {
+  if(!imgFile.Load(filepath)) {
     return false;
   }
 
-  if (!imgFile.IsValid()) {
+  if(!imgFile.IsValid()) {
     return false;
   }
 
   glm::ivec2 size = imgFile.GetSize();
   const cb::bytevector& Data = imgFile.GetData();
 
-  glGenTextures(1, &m_uLogosTex);
-  glBindTexture(GL_TEXTURE_2D, m_uLogosTex);
+  glGenTextures(1, &mLogosTex);
+  glBindTexture(GL_TEXTURE_2D, mLogosTex);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
   unsigned format = 0;
-  switch (imgFile.GetImgDepth()) {
+  switch(imgFile.GetImgDepth()) {
   case 1: format = GL_LUMINANCE8;	break;
   case 2: format = GL_LUMINANCE8_ALPHA8;	break;
   case 3: format = GL_RGB;	break;
@@ -292,11 +308,11 @@ const bool CIntro::LoadTexture(const cb::string& filepath) {
   return true;
 }
 
-void CIntro::RenderLogo(unsigned int index) {
+void CIntroView::RenderLogo(Uint32 index) const {
   glPushAttrib(GL_TEXTURE_BIT);
-  glBindTexture(GL_TEXTURE_2D, m_uLogosTex);
+  glBindTexture(GL_TEXTURE_2D, mLogosTex);
   glBegin(GL_QUADS);
-  switch (index) {
+  switch(index) {
   case 0:
     glTexCoord2f(0.0f, 0.5f);
     glVertex2i(200, 120);

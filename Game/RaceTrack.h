@@ -1,12 +1,20 @@
 #pragma once
 
+#include <SDL_types.h>
 #include <glm/glm.hpp>
+
+#include "GraphicView.h"
+#include "LogicProcess.h"
 
 #include "Space.h"
 #include "Racer.h"
-#include "GUI.h"
 
-class CRaceTrack {
+class CGUI;
+
+class CRaceTrack 
+  : public ILogicProcess
+  , public IGraphicView
+{
 public:
 
   class CShot {
@@ -104,9 +112,9 @@ private:
   void Engine_Track(float fDT);
   void Engine_GameOver(float fDT);
 
-  void Render_Intro();
-  void Render_Track();
-  void Render_GameOver();
+  void Render_Intro() const;
+  void Render_Track() const;
+  void Render_GameOver() const;
 
   void CheckDifLevel();
   void SetUpgScreen(float fTimeOut);
@@ -114,7 +122,7 @@ private:
   void GenRandomObject();
   void DeleteShot(size_t i);
   void Clear();
-  std::string GetDifLevelString();
+  const std::string GetDifLevelString() const;
   unsigned GetLevelModelType();
 public:
   enum DIF_LEVEL {
@@ -147,9 +155,9 @@ public:
   void SetRacer(CRacer* pRacer);
   void ResetGame();
 
-  void Render();
-  void RenderGUI(CGUI* GUI);
-  void Engine(float fDT);
+  void Render() const override;
+  void RenderUI(CGUI& gui) const override;
+  void Update(const float timeDelta);
 
   void FireWeapon();
   unsigned GetDifLevel();

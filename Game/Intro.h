@@ -1,47 +1,67 @@
 #pragma once
 
-#include "GUI.h"
+#include <SDL_types.h>
 #include <CBIO/Defines.h>
 
-class CIntro {
-private:
-  enum INTRO_STATE {
-    IS_STATE1 = 0,
-    IS_STATE2,
-    IS_STATE3,
-    IS_STATE4,
-    IS_STATE5,
-    IS_STATE6,
-    IS_STATE7,
-    IS_STATE8,
-    IS_STATE9,
-    IS_STATE10,
-    IS_STATE11,
-    IS_STATE12,
-    IS_STATE13
-  };
-  unsigned	m_IntroState;
-  unsigned	m_uLogosTex;
-  unsigned	m_uCharCount;
-  float	m_fTime;
-  bool	m_bIntroEnd;
-  std::string m_strText1;
-  std::string m_strText2;
-  std::string m_strText3;
+#include "LogicProcess.h"
+#include "GraphicView.h"
 
-  const bool LoadTexture(const cb::string& filepath);
-  void RenderLogo(unsigned index);
+class CGUI;
+
+enum class IntroState {
+  IS_STATE1 = 0,
+  IS_STATE2,
+  IS_STATE3,
+  IS_STATE4,
+  IS_STATE5,
+  IS_STATE6,
+  IS_STATE7,
+  IS_STATE8,
+  IS_STATE9,
+  IS_STATE10,
+  IS_STATE11,
+  IS_STATE12,
+  IS_STATE13
+};
+
+class CIntroProcess
+  : public ILogicProcess {
+private:
+  IntroState	mIntroState;
+  unsigned	mCharCount;
+  float	mTime;
+  bool	mIntroEnd;
 
 public:
-  CIntro();
-  ~CIntro();
+  CIntroProcess();
+  ~CIntroProcess();
 
-  const bool Init(const cb::string& logosFilepath);
-  void Free();
+  void Update(const float timeDelta) override;
 
-  void Engine(float fDT);
-  void Render();
-  void RenderGUI(CGUI* GUI);
+  const IntroState GetState() const;
+  const float GetTime() const;
+  const Uint32 GetCharNumber() const;
 
   bool IsIntroEnded();
+};
+
+class CIntroView
+  : public IGraphicView {
+private:
+  CIntroProcess& mIntro;
+  unsigned	mLogosTex;
+
+public:
+  CIntroView(CIntroProcess& intro);
+  ~CIntroView();
+
+  const bool Init(const cb::string& logosFilePath);
+  void Free();
+
+  void Render() const override;
+  void RenderUI(CGUI& gui) const override;
+
+private:
+  const bool LoadTexture(const cb::string& filepath);
+  void RenderLogo(Uint32 index) const;
 };

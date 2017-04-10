@@ -3,6 +3,7 @@
 #include "GUI.h"
 #include "GLDefines.h"
 #include "InputDevice.h"
+#include "Menu.h"
 
 #include <CBIO/File.h>
 
@@ -23,27 +24,30 @@ CHighScore::CScore::CScore() : m_uScore(0) {
 
 //============================================
 
-CHighScore::CHighScore() :
-  m_uTempScore(0),
-  m_uCurPos(0),
-  m_uHSS(HSS_STATE1),
-  m_uCharCount(0),
-  m_strTempName(""),
-  m_strText1("YOUR SCORE: "),
-  m_strText2("YOU ARE ON POSITION "),
-  m_strText3("ENTER YOUR NAME: "),
-  m_fTime(0.0f),
-  m_bCanWrite(false),
-  m_bIsEnd(false) {
+CHighScore::CHighScore(const CInputDeviceMap& input)
+  : mInput(input)
+  , m_uTempScore(0)
+  , m_uCurPos(0)
+  , m_uHSS(HSS_STATE1)
+  , m_uCharCount(0)
+  , m_strTempName("")
+  , m_strText1("YOUR SCORE: ")
+  , m_strText2("YOU ARE ON POSITION ")
+  , m_strText3("ENTER YOUR NAME: ")
+  , m_fTime(0.0f)
+  , m_bCanWrite(false)
+  , m_bIsEnd(false) {
   memset(m_bKeyDown, 0, sizeof(bool) * 256);
 }
 
+CHighScore::~CHighScore() {}
+
 bool CHighScore::LoadScores(const cb::string& filepath) {
-  if (filepath.empty())
+  if(filepath.empty())
     return false;
 
   cb::ifstream file(filepath, std::ios::out | std::ios::binary);
-  if (!file.is_open()) {
+  if(!file.is_open()) {
     cb::error(cb::format(L"Can't find HighScores file {0}, NULLing table", filepath));
     memset(m_aScore, 0, sizeof(CScore) * 10);
     return true;
@@ -52,9 +56,9 @@ bool CHighScore::LoadScores(const cb::string& filepath) {
 
   file.read(cb::byteptr(head), sizeof(HSHEADER));
 
-  if (strncmp(head.FILEID, HSFILEID, 3) != 0 ||
-      head.FILEVER != HSFILEVER || 
-      head.SCORECOUNT != 10) {
+  if(strncmp(head.FILEID, HSFILEID, 3) != 0 ||
+     head.FILEVER != HSFILEVER ||
+     head.SCORECOUNT != 10) {
     cb::error(cb::format(L"Invalid file ID - %s isn't a HSF file", filepath));
     return false;
   }
@@ -63,15 +67,15 @@ bool CHighScore::LoadScores(const cb::string& filepath) {
 
   unsigned	uMagicNum = 0;
   unsigned	uMagicNumCmp = 0, i, j;
-  for (i = 0; i < 10; i++) {
+  for(i = 0; i < 10; i++) {
     uMagicNumCmp += m_aScore[i].m_uScore;
-    for (j = 0; j < 7; j++)
+    for(j = 0; j < 7; j++)
       uMagicNumCmp += unsigned(m_aScore[i].m_acName[j]);
   }
 
   file.read(cb::byteptr(uMagicNum), sizeof(unsigned));
 
-  if (uMagicNum != (unsigned)(~uMagicNumCmp)) {
+  if(uMagicNum != (unsigned)(~uMagicNumCmp)) {
     cb::error(L"Invalid Check Sum - file corrupted, NULLing table");
     memset(m_aScore, 0, sizeof(CScore) * 10);
     return true;
@@ -99,9 +103,9 @@ bool CHighScore::SaveScores(const cb::string& filepath) {
   file.write(cb::byteptr(&m_aScore[0]), sizeof(CScore) * 10);
 
   unsigned uMagicNum = 0, i, j;
-  for (i = 0; i < 10; i++) {
+  for(i = 0; i < 10; i++) {
     uMagicNum += m_aScore[i].m_uScore;
-    for (j = 0; j < 7; j++)
+    for(j = 0; j < 7; j++)
       uMagicNum += unsigned(m_aScore[i].m_acName[j]);
   }
   uMagicNum = unsigned(~uMagicNum);
@@ -126,19 +130,19 @@ void CHighScore::SetTempScore(unsigned uScore) {
   memset(m_bKeyDown, 0, sizeof(bool) * 256);
 }
 
-void CHighScore::Update(const CInputDeviceMap& input, float fDT) {
-  for (unsigned key = 0; key < SDL_NUM_SCANCODES; key++) {
-    if (input.GetState(InputDevice::Keyboard, (Uint32)KeyboardType::KeyPress, key)) {
+void CHighScore::Update(const float timeDelta) {
+  for(unsigned key = 0; key < SDL_NUM_SCANCODES; key++) {
+    if(mInput.GetState(InputDevice::Keyboard, (Uint32)KeyboardType::KeyPress, key)) {
       this->ParseKey(key);
     }
   }
 
   std::stringstream ss;
-  switch (m_uHSS) {
+  switch(m_uHSS) {
   case HSS_STATE1:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 0.1f) {
-      if (m_uCharCount < m_strText1.length())
+    m_fTime += 1.0f * timeDelta;
+    if(m_fTime > 0.1f) {
+      if(m_uCharCount < m_strText1.length())
         m_uCharCount++;
       else {
         m_uHSS = HSS_STATE2;
@@ -149,8 +153,8 @@ void CHighScore::Update(const CInputDeviceMap& input, float fDT) {
     break;
 
   case HSS_STATE2:
-    m_fTime += float(m_uTempScore) * 0.3f * fDT;
-    if (m_fTime >= float(m_uTempScore)) {
+    m_fTime += float(m_uTempScore) * 0.3f * timeDelta;
+    if(m_fTime >= float(m_uTempScore)) {
       m_fTime = 0.0f;
       ss << m_uTempScore;
       m_strText1 += ss.str();
@@ -159,11 +163,11 @@ void CHighScore::Update(const CInputDeviceMap& input, float fDT) {
     break;
 
   case HSS_STATE3:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 2.0f) {
-      if (CheckScore()) {
+    m_fTime += 1.0f * timeDelta;
+    if(m_fTime > 2.0f) {
+      if(CheckScore()) {
         ss << (m_uHSPos + 1);
-        switch (m_uHSPos) {
+        switch(m_uHSPos) {
         case 0:
           m_strText2 = "OMG! YOU ARE ON FIRST PLACE!"; break;
         case 1:
@@ -185,9 +189,9 @@ void CHighScore::Update(const CInputDeviceMap& input, float fDT) {
     break;
 
   case HSS_STATE4:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 0.1f) {
-      if (m_uCharCount < m_strText2.length())
+    m_fTime += 1.0f * timeDelta;
+    if(m_fTime > 0.1f) {
+      if(m_uCharCount < m_strText2.length())
         m_uCharCount++;
       else {
         m_uHSS = HSS_STATE5;
@@ -198,19 +202,19 @@ void CHighScore::Update(const CInputDeviceMap& input, float fDT) {
     break;
 
   case HSS_STATE5:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 2.0f) {
+    m_fTime += 1.0f * timeDelta;
+    if(m_fTime > 2.0f) {
       m_fTime = 0.0f;
-      if (m_bCanWrite)
+      if(m_bCanWrite)
         m_uHSS = HSS_STATE6;
       else m_bIsEnd = true;
     }
     break;
 
   case HSS_STATE6:
-    m_fTime += 1.0f * fDT;
-    if (m_fTime > 0.1f) {
-      if (m_uCharCount < m_strText3.length())
+    m_fTime += 1.0f * timeDelta;
+    if(m_fTime > 0.1f) {
+      if(m_uCharCount < m_strText3.length())
         m_uCharCount++;
       else {
         m_uHSS = HSS_STATE7;
@@ -230,49 +234,51 @@ void CHighScore::Update(const CInputDeviceMap& input, float fDT) {
   };
 }
 
-void CHighScore::RenderGUI(CGUI *GUI) {
+void CHighScore::Render() const {}
+
+void CHighScore::RenderUI(CGUI& gui) const {
   std::stringstream ss;
-  switch (m_uHSS) {
+  switch(m_uHSS) {
   case HSS_STATE1:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1.substr(0, m_uCharCount) + "_");
+    gui.Print(glm::vec2(200.0f, 200.0f), m_strText1.substr(0, m_uCharCount) + "_");
     break;
 
   case HSS_STATE2:
     ss << unsigned(floor(m_fTime));
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1 + ss.str() + "_");
+    gui.Print(glm::vec2(200.0f, 200.0f), m_strText1 + ss.str() + "_");
     break;
 
   case HSS_STATE3:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1);
+    gui.Print(glm::vec2(200.0f, 200.0f), m_strText1);
     break;
 
   case HSS_STATE4:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1);
-    GUI->Print(glm::vec2(200.0f, 220.0f), m_strText2.substr(0, m_uCharCount) + "_");
+    gui.Print(glm::vec2(200.0f, 200.0f), m_strText1);
+    gui.Print(glm::vec2(200.0f, 220.0f), m_strText2.substr(0, m_uCharCount) + "_");
     break;
 
   case HSS_STATE5:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1);
-    GUI->Print(glm::vec2(200.0f, 220.0f), m_strText2);
+    gui.Print(glm::vec2(200.0f, 200.0f), m_strText1);
+    gui.Print(glm::vec2(200.0f, 220.0f), m_strText2);
     break;
 
   case HSS_STATE6:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1);
-    GUI->Print(glm::vec2(200.0f, 220.0f), m_strText2);
-    GUI->Print(glm::vec2(200.0f, 240.0f), m_strText3.substr(0, m_uCharCount) + "_");
+    gui.Print(glm::vec2(200.0f, 200.0f), m_strText1);
+    gui.Print(glm::vec2(200.0f, 220.0f), m_strText2);
+    gui.Print(glm::vec2(200.0f, 240.0f), m_strText3.substr(0, m_uCharCount) + "_");
     break;
 
   case HSS_STATE7:
     glColor3f(0.0f, 1.0f, 0.0f);
-    GUI->Print(glm::vec2(200.0f, 200.0f), m_strText1);
-    GUI->Print(glm::vec2(200.0f, 220.0f), m_strText2);
-    GUI->Print(glm::vec2(200.0f, 240.0f), m_strText3 + m_strTempName + "_");
+    gui.Print(glm::vec2(200.0f, 200.0f), m_strText1);
+    gui.Print(glm::vec2(200.0f, 220.0f), m_strText2);
+    gui.Print(glm::vec2(200.0f, 240.0f), m_strText3 + m_strTempName + "_");
     break;
   }
 }
@@ -282,22 +288,22 @@ bool CHighScore::IsEnded() {
 }
 
 void CHighScore::ParseKey(unsigned key) {
-  if (!m_bCanWrite || m_uHSS != HSS_STATE7)
+  if(!m_bCanWrite || m_uHSS != HSS_STATE7)
     return;
 
-  if (key == SDL_SCANCODE_RETURN && m_strTempName.length() > 0) {
+  if(key == SDL_SCANCODE_RETURN && m_strTempName.length() > 0) {
     strncpy_s(m_aScore[m_uHSPos].m_acName, 7, m_strTempName.c_str(), 6);
     m_uHSS = HSS_STATE8;
     m_bCanWrite = false;
     return;
   }
-  if (key == SDL_SCANCODE_BACKSPACE) {
-    if (m_strTempName.length() > 0)
+  if(key == SDL_SCANCODE_BACKSPACE) {
+    if(m_strTempName.length() > 0)
       m_strTempName = m_strTempName.substr(0, m_strTempName.length() - 1);
   }
 
-  if (m_strTempName.length() < 6) {
-    switch (key) {
+  if(m_strTempName.length() < 6) {
+    switch(key) {
     case SDL_SCANCODE_0: m_strTempName += "0"; break;
     case SDL_SCANCODE_1: m_strTempName += "1"; break;
     case SDL_SCANCODE_2: m_strTempName += "2"; break;
@@ -343,22 +349,22 @@ void CHighScore::ParseKey(unsigned key) {
 }
 
 bool CHighScore::CheckScore() {
-  if (m_uTempScore == 0)
+  if(m_uTempScore == 0)
     return false;
 
   int i;
   bool ok = false;
-  for (i = 0; i < 10; i++) {
-    if (m_uTempScore > m_aScore[i].m_uScore) {
+  for(i = 0; i < 10; i++) {
+    if(m_uTempScore > m_aScore[i].m_uScore) {
       m_uHSPos = unsigned(i);
       ok = true;
       break;
     }
   }
-  if (!ok)
+  if(!ok)
     return false;
 
-  for (i = 8; i >= int(m_uHSPos); i--) {
+  for(i = 8; i >= int(m_uHSPos); i--) {
     strncpy_s(m_aScore[i + 1].m_acName, 7, m_aScore[i].m_acName, 6);
     m_aScore[i + 1].m_uScore = m_aScore[i].m_uScore;
   }
@@ -367,16 +373,35 @@ bool CHighScore::CheckScore() {
   return true;
 }
 
-std::string CHighScore::GetName(unsigned uIndex) {
-  if (uIndex >= 10)
+std::string CHighScore::GetName(unsigned uIndex) const {
+  if(uIndex >= 10)
     return "";
   return m_aScore[uIndex].m_acName;
 }
 
-unsigned CHighScore::GetScore(unsigned uIndex) {
-  if (uIndex >= 10)
+unsigned CHighScore::GetScore(unsigned uIndex) const {
+  if(uIndex >= 10)
     return 0;
   return m_aScore[uIndex].m_uScore;
+}
+
+void CHighScore::FillHSMenu(CGUIMenuManager & menuMng) const {
+  CGUIMenu* Menu = menuMng.GetMenu(CMenuProcess::MENU_HIGH);
+  std::string strName;
+  Uint32 uScore, i;
+  char szBuffer[1000];
+  for(i = 0; i < 10; i++) {
+    CGUIMenuItem* HSMI = Menu->GetMenuItem(CMenuProcess::MI_HS1 + i);
+    if(HSMI == NULL)
+      continue;
+    strName = GetName(i);
+    uScore = GetScore(i);
+    if(strName.empty())
+      sprintf_s(szBuffer, 1000, "%u. --EMPTY SCORE--", i + 1);
+    else sprintf_s(szBuffer, 1000, "%u. %s - %u", i + 1, strName.c_str(), uScore);
+
+    HSMI->SetName(szBuffer);
+  }
 }
 
 void CHighScore::ResetAllScores() {

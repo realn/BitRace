@@ -1,12 +1,18 @@
 #pragma once
 
+#include <SDL_types.h>
 #include <CBStr/Defines.h>
-#include <SDL.h>
+
+#include "GraphicView.h"
+#include "LogicProcess.h"
 
 class CGUI;
 class CInputDeviceMap;
+class CGUIMenuManager;
 
-class CHighScore {
+class CHighScore
+  : public ILogicProcess
+  , public IGraphicView {
 public:
   class CScore {
   public:
@@ -16,6 +22,7 @@ public:
     CScore();
   };
 private:
+  const CInputDeviceMap& mInput;
   CScore	m_aScore[10];
   unsigned	m_uTempScore;
   unsigned	m_uCurPos;
@@ -46,18 +53,22 @@ private:
   };
 
 public:
-  CHighScore();
+  CHighScore(const CInputDeviceMap& input);
+  virtual ~CHighScore();
 
   bool	LoadScores(const cb::string& filepath);
   bool	SaveScores(const cb::string& filepath);
 
   void	SetTempScore(unsigned uScore);
 
-  void	Update(const CInputDeviceMap& input, float fDT);
-  void	RenderGUI(CGUI* GUI);
+  void	Update(const float timeDelta) override;
+  void  Render() const override;
+  void	RenderUI(CGUI& gui) const override;
 
-  std::string GetName(unsigned uIndex);
-  unsigned	GetScore(unsigned uIndex);
+  std::string GetName(unsigned uIndex) const;
+  unsigned	GetScore(unsigned uIndex) const;
+
+  void FillHSMenu(CGUIMenuManager& menuMng) const;
 
   bool	IsEnded();
   void	ResetAllScores();

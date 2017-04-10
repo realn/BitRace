@@ -83,7 +83,7 @@ bool CSpace::Generate(float fWidth, float fHeight, unsigned int uCountX, unsigne
   return true;
 };
 
-void CSpace::Render(glm::vec3 vColor) {
+void CSpace::Render(glm::vec3 vColor) const {
   if(m_afVertex.size() == 0 || m_auIndex.size() == 0)
     return;
 

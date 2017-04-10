@@ -33,9 +33,6 @@
     <ClCompile Include="Space.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="GameEngine.cpp" />
-    <ClCompile Include="GameInit.cpp" />
-    <ClCompile Include="GameRender.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="FGXFile.cpp" />
@@ -44,7 +41,6 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Graphic</Filter>
     </ClCompile>
-    <ClCompile Include="GameFree.cpp" />
     <ClCompile Include="XmlTypes.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -62,6 +58,15 @@
     </ClCompile>
     <ClCompile Include="InputDevice.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Menu.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicView.cpp">
+      <Filter>Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicProcess.cpp">
+      <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -111,6 +116,15 @@
     </ClInclude>
     <ClInclude Include="InputDevice.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Menu.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicView.h">
+      <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicProcess.h">
+      <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
