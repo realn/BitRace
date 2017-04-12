@@ -6,6 +6,8 @@ CGame::CGame()
   : mpFileSystem(NULL)
   , m_pWindow(NULL)
   , m_pGLContext(NULL)
+  , mUIFont()
+  , mUIText(mUIFont)
   , m_GUI()
   , mIntroProcess()
   , mMenuProcess(m_GUI, mIDevMap)
@@ -132,6 +134,11 @@ bool CGame::InitOpenGL() {
 
   m_GUI.Init();
 
+  if(!mUIText.Init(L"font.fgx")) {
+    cb::error(L"Failed to initialize UI Text.");
+    return false;
+  }
+
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClearDepth(1.0f);
   glClearStencil(0);
@@ -163,21 +170,25 @@ bool CGame::InitOpenGL() {
   glPointSize(1.0f);
 
   glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(50.0,
-                 double(mConfig.Screen.Width) /
-                 double(mConfig.Screen.Height),
-                 1.0, 50000.0);
+  glm::mat4 projMatrix = glm::perspectiveFov(glm::radians(50.0f),
+                                             float(mConfig.Screen.Width),
+                                             float(mConfig.Screen.Height),
+                                             1.0f, 50000.0f);
+  glLoadMatrixf(glm::value_ptr(projMatrix));
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  m_GUI.Begin(glm::vec2(640.0f, 480.0f));
+  //m_GUI.Begin(glm::vec2(640.0f, 480.0f));
+  //glColor3f(1.0f, 1.0f, 1.0f);
+  //m_GUI.Print(glm::vec2(100.0f, 200.0f), "Please wait, loading game...");
+  //m_GUI.End();
+  mUIText.Bind(mConfig.Screen.GetSize());
   glColor3f(1.0f, 1.0f, 1.0f);
-  m_GUI.Print(glm::vec2(100.0f, 200.0f), "Please wait, loading game...");
-  m_GUI.End();
-
+  mUIText.Render(glm::vec2(100.0f, 200.f), L"Please wait, loadng game...");
+  mUIText.UnBind();
   SDL_GL_SwapWindow(this->m_pWindow);
+  //_sleep(1000);
 
   glGenTextures(1, &m_uBlurTexture);
   glBindTexture(GL_TEXTURE_2D, m_uBlurTexture);

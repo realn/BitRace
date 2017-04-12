@@ -83,19 +83,21 @@ bool CSpace::Generate(float fWidth, float fHeight, unsigned int uCountX, unsigne
   return true;
 };
 
-void CSpace::Render(glm::vec3 vColor) const {
+void CSpace::Render(const glm::mat4& transform, const glm::vec3& color) const {
   if(m_afVertex.size() == 0 || m_auIndex.size() == 0)
     return;
 
+  glLoadMatrixf(glm::value_ptr(transform));
+
   glEnableClientState(GL_VERTEX_ARRAY);
-  glColor3fv(glm::value_ptr(vColor));
+  glColor3fv(glm::value_ptr(color));
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uVBOVertex);
   glVertexPointer(3, GL_FLOAT, 0, NULL);
   glDrawElements(GL_LINES, (GLsizei)m_auIndex.size(), GL_UNSIGNED_SHORT, &m_auIndex[0]);
   glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 
   glEnable(GL_BLEND);
-  glColor4f(vColor.x, vColor.y, vColor.z, 0.2f);
+  glColor4f(color.x, color.y, color.z, 0.2f);
   glVertexPointer(3, GL_FLOAT, 0, m_afQuadVertex);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, m_auQuadIndex);
   glDisable(GL_BLEND);

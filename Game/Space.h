@@ -18,5 +18,5 @@ public:
 
   void Free();
   bool Generate(float fWidth, float fHeight, unsigned int uCountX, unsigned int uCountY, float fY);
-  void Render(glm::vec3 vColor) const;
+  void Render(const glm::mat4& transform, const glm::vec3& color) const;
 };

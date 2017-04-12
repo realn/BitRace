@@ -2,6 +2,7 @@
 #include "RaceTrack.h"
 #include "GLDefines.h"
 #include "GUI.h"
+#include "MeshFunctions.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/vector_angle.hpp>
@@ -148,28 +149,34 @@ bool CRaceTrack::CEntity::Engine(float fDT, float fRacerPosX, CRaceTrack::CShot 
   return false;
 }
 
-void CRaceTrack::CEntity::Render() {
+void CRaceTrack::CEntity::Render(const glm::mat4& transform) const {
   if(m_bCanDelete)
     return;
 
-  glPushMatrix();
-
-  glTranslatef(m_vPos.x, 3.0f, m_vPos.y);
+  glm::vec3 rotVec(1.0f, 0.0f, 0.0f);
+  float rotAngle = 0.0f;
   switch(this->m_uModelType) {
   case CModel::MT_BOMB:
-    glRotatef(-m_fTemp, 0.0f, 1.0f, 0.0f);
+    rotAngle = m_fTemp;
+    rotVec = glm::vec3(0.0f, -1.0f, 0.0f);
     break;
   case CModel::MT_HACK:
-    glRotatef(m_fTemp, 0.0f, 1.0f, 0.0f);
+    rotAngle = m_fTemp;
+    rotVec = glm::vec3(0.0f, 1.0f, 0.0f);
     break;
   case CModel::MT_HACK2:
-    glRotatef(m_fTemp, 0.0f, 1.0f, 0.0f);
+    rotAngle = m_fTemp;
+    rotVec = glm::vec3(0.0f, 1.0f, 0.0f);
     break;
   }
-  glColor3fv(glm::value_ptr(m_vColor));
-  m_Model->Render();
 
-  glPopMatrix();
+  glm::mat4 mat = transform *
+    glm::translate(glm::vec3(m_vPos.x, 3.0f, m_vPos.y)) *
+    glm::rotate(glm::radians(m_fTemp), rotVec);
+
+  glColor3fv(glm::value_ptr(m_vColor));
+  glLoadMatrixf(glm::value_ptr(mat));
+  m_Model->Render();
 }
 
 float CRaceTrack::CEntity::GetHealth() {
@@ -260,15 +267,13 @@ void CRaceTrack::Free() {
 }
 
 void CRaceTrack::Render() const {
+  glm::mat4 transform(1.0f);
   switch(m_uTrackState) {
   case TS_NONE:
     return;
-  case TS_INTRO:
-    Render_Intro();	return;
-  case TS_GAME:
-    Render_Track(); return;
-  case TS_GAMEOVER:
-    Render_GameOver(); return;
+  case TS_INTRO:  Render_Intro(transform);	return;
+  case TS_GAME:   Render_Track(transform); return;
+  case TS_GAMEOVER: Render_GameOver(transform); return;
   };
 }
 
@@ -342,87 +347,89 @@ void CRaceTrack::Engine_Intro(float fDT) {
   }
 }
 
-void CRaceTrack::Render_Intro() const {
+void CRaceTrack::Render_Intro(const glm::mat4& transform) const {
   switch(m_unsignedroState) {
   case IS_STATE1:
-    glColor3f(0.0f, 1.0f, 0.0f);
-    glBegin(GL_POINTS);
-    glVertex3i(0, 0, -3);
-    glEnd();
+    {
+      glLoadMatrixf(glm::value_ptr(transform));
+      glColor3f(0.0f, 1.0f, 0.0f);
+
+      vec3vector vlist = {glm::vec3(0.0f, 0.0f, -3.0f)};
+      RenderVectorList(GL_POINTS, vlist);
+    }
     break;
+
   case IS_STATE2:
-    glColor3f(0.0f, 1.0f, 0.0f);
-    glBegin(GL_LINES);
-    glVertex3f(m_fIntroTime * 3.0f, 0.0f, -3.0f);
-    glVertex3f(-m_fIntroTime * 3.0f, 0.0f, -3.0f);
-    glEnd();
+    {
+      glLoadMatrixf(glm::value_ptr(transform));
+      glColor3f(0.0f, 1.0f, 0.0f);
+
+      vec3vector vlist = {
+        glm::vec3(m_fIntroTime * 3.0f, 0.0f, -3.0f),
+        glm::vec3(-m_fIntroTime * 3.0f, 0.0f, -3.0f)
+      };
+      RenderVectorList(GL_LINES, vlist);
+    }
     break;
+
   case IS_STATE3:
-    glColor3f(0.0f, 1.0f, 0.0f);
-    glPushMatrix();
-    glTranslatef(0.0f, 0.0f, this->m_vMove.y);
+    {
+      glm::mat4 baseMat = transform *
+        glm::translate(glm::vec3(0.0f, 0.0f, this->m_vMove.y));
 
-    glPushMatrix();
-    glTranslatef(0.0f, 20.0f * m_fIntroTime / 2.0f, 0.0f);
-    m_SpaceSky.Render(glm::vec3(0.0f, 1.0f, 0.0f));
-    glPopMatrix();
+      glm::mat4 mat = baseMat *
+        glm::translate(glm::vec3(0.0f, 20.0f * m_fIntroTime / 2.0f, 0.0f));
+      m_SpaceSky.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
 
-    glPushMatrix();
-    glTranslatef(0.0f, -20.0f * m_fIntroTime / 2.0f, 0.0f);
-    m_SpaceGround.Render(glm::vec3(0.0f, 1.0f, 0.0f));
-    glPopMatrix();
-    glPopMatrix();
+      mat = baseMat *
+        glm::translate(glm::vec3(0.0f, -20.0f * m_fIntroTime / 2.0f, 0.0f));
+      m_SpaceGround.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
+    }
     break;
+
   case IS_STATE4:
-    glPushMatrix();
-    glTranslatef(0.0f, 12.0f * m_fIntroTime / 3.0f, 0.0f);
-    glRotatef(15.0f * m_fIntroTime / 3.0f, 1.0f, 0.0f, 0.0f);
+    {
+      glm::mat4 baseMat = transform *
+        glm::translate(glm::vec3(0.0f, 12.0f * m_fIntroTime / 3.0f, 0.0f)) *
+        glm::rotate(glm::radians(15.0f * m_fIntroTime / 3.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
+        glm::translate(glm::vec3(0.0f, 0.0f, this->m_vMove.y));
 
-    glPushMatrix();
-    glTranslatef(0.0f, 0.0f, this->m_vMove.y);
+      glm::mat4 mat = baseMat *
+        glm::translate(glm::vec3(0.0f, 20.0f, 0.0f));
+      m_SpaceSky.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
 
-    glPushMatrix();
-    glTranslatef(0.0f, 20.0f, 0.0f);
-    this->m_SpaceSky.Render(glm::vec3(0.0f, 1.0f, 0.0f));
-    glPopMatrix();
-
-    glPushMatrix();
-    glTranslatef(0.0f, -20.0f, 0.0f);
-    this->m_SpaceGround.Render(glm::vec3(0.0f, 1.0f, 0.0f));
-    glPopMatrix();
-
-    glPopMatrix();
-
-    glPopMatrix();
+      mat = baseMat *
+        glm::translate(glm::vec3(0.0f, -20.0f, 0.0f));
+      m_SpaceGround.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
+    }
     break;
+
   case IS_ENDSTATE:
-    glPushMatrix();
-    glTranslatef(0.0f, 12.0f, -4.0f);
-    glTranslatef(0.0f, 0.0f, -8.0f * m_fIntroTime / 2.0f);
-    glRotatef(15.0f, 1.0f, 0.0f, 0.0f);
+    {
+      glm::mat4 baseMat = transform *
+        glm::translate(glm::vec3(0.0f, 12.0f, -4.0f)) *
+        glm::translate(glm::vec3(0.0f, 0.0f, -8.0f * m_fIntroTime / 2.0f)) *
+        glm::rotate(glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-    glPushMatrix();
-    glTranslatef(0.0f, 0.0f, this->m_vMove.y);
+      glm::mat4 moveMat = baseMat *
+        glm::translate(glm::vec3(0.0f, 0.0f, m_vMove.y));
 
-    glPushMatrix();
-    glTranslatef(0.0f, 20.0f, 0.0f);
-    this->m_SpaceSky.Render(glm::vec3(0.0f, 1.0f, 0.0f));
-    glPopMatrix();
+      glm::mat4 skyMat = moveMat *
+        glm::translate(glm::vec3(0.0f, 20.0f, 0.0f));
+      m_SpaceSky.Render(skyMat, glm::vec3(0.0f, 1.0f, 0.0f));
 
-    glPushMatrix();
-    glTranslatef(0.0f, -20.0f, 0.0f);
-    this->m_SpaceGround.Render(glm::vec3(0.0f, 1.0f, 0.0f));
-    glPopMatrix();
+      glm::mat4 groundMat = moveMat *
+        glm::translate(glm::vec3(0.0f, -20.0f, 0.0f));
+      m_SpaceGround.Render(groundMat, glm::vec3(0.0f, 1.0f, 0.0f));
 
-    glPopMatrix();
-
-    glTranslatef(0.0f, -20.0f, 0.0f);
-    m_pRacer->Render();
-
-    glPopMatrix();
+      glm::mat4 racerMat = baseMat *
+        glm::translate(glm::vec3(0.0f, -20.0f, 0.0f));
+      m_pRacer->Render(racerMat);
+    }
     break;
+
   case IS_SKIP:
-    this->Render_Track();
+    this->Render_Track(transform);
     return;
   };
 }
@@ -458,40 +465,33 @@ void CRaceTrack::Engine_Track(float fDT) {
     m_uTrackState = TS_GAMEOVER;
 }
 
-void CRaceTrack::Render_Track() const {
+void CRaceTrack::Render_Track(const glm::mat4& transform) const {
   glPushMatrix();
 
-  glTranslatef(0.0f, 12.0f, -12.0f);
-  glRotatef(15.0f, 1.0f, 0.0f, 0.0f);
+  glm::mat4 mat = transform *
+    glm::translate(glm::vec3(0.0f, 12.0f, -12.0f)) *
+    glm::rotate(glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-  glPushMatrix();
-  glTranslatef(this->m_vMove.x, 0.0f, this->m_vMove.y);
-  glTranslatef(0.0f, 20.0f, 0.0f);
-  this->m_SpaceSky.Render(glm::vec3(0.0f, 1.0f, 0.0f));
-  glTranslatef(0.0f, -40.0f, 0.0f);
-  this->m_SpaceGround.Render(glm::vec3(0.0f, 1.0f, 0.0f));
-  glPopMatrix();
+  {
+    glm::mat4 spaceMat = mat *
+      glm::translate(glm::vec3(m_vMove.x, 0.0f, m_vMove.y)) *
+      glm::translate(glm::vec3(0.0f, 20.0f, 0.0f));
+    m_SpaceSky.Render(spaceMat, glm::vec3(0.0f, 1.0f, 0.0f));
 
-  glTranslatef(0.0f, -20.0f, 0.0f);
-  if(m_pRacer != NULL)
-    m_pRacer->Render();
-
-  glTranslatef(-m_fMoveX, 3.0f, 0.0);
-  if(this->m_aShotList.size() > 0) {
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, &this->m_avShotRenderList[0]);
-    glColorPointer(3, GL_FLOAT, 0, &this->m_avShotRenderColorList[0]);
-
-    glDrawArrays(GL_LINES, 0, (GLsizei)this->m_aShotList.size() * 2);
-
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
+    spaceMat *= glm::translate(glm::vec3(0.0f, -40.0f, 0.0f));
+    m_SpaceGround.Render(spaceMat, glm::vec3(0.0f, 1.0f, 0.0f));
   }
+
+  mat *= glm::translate(glm::vec3(0.0f, -20.0f, 0.0f));
+  if(m_pRacer != NULL)
+    m_pRacer->Render(mat);
+
+  mat *= glm::translate(glm::vec3(-m_fMoveX, 3.0f, 0.0));
+  RenderProjectiles(mat);
 
   size_t i;
   for(i = 0; i < this->m_aEntityList.size(); ++i)
-    this->m_aEntityList[i]->Render();
+    this->m_aEntityList[i]->Render(mat);
 
   glPopMatrix();
 }
@@ -515,9 +515,9 @@ void CRaceTrack::Engine_GameOver(float fDT) {
   }
 }
 
-void CRaceTrack::Render_GameOver() const {
+void CRaceTrack::Render_GameOver(const glm::mat4& transform) const {
   if(m_fGameOverTime < 1.0f)
-    this->Render_Track();
+    this->Render_Track(transform);
 }
 
 void CRaceTrack::SetRacer(CRacer *pRacer) {
@@ -890,4 +890,19 @@ bool CRaceTrack::IsGameOver() {
 
 bool CRaceTrack::IsGameRuning() {
   return m_bGameRuning;
+}
+
+void CRaceTrack::RenderProjectiles(const glm::mat4 & transform) const {
+  glLoadMatrixf(glm::value_ptr(transform));
+  if(this->m_aShotList.size() > 0) {
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 0, &this->m_avShotRenderList[0]);
+    glColorPointer(3, GL_FLOAT, 0, &this->m_avShotRenderColorList[0]);
+
+    glDrawArrays(GL_LINES, 0, (GLsizei)this->m_aShotList.size() * 2);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+  }
 }

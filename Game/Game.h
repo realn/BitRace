@@ -21,6 +21,7 @@
 #include "Intro.h"
 #include "Menu.h"
 #include "HighScore.h"
+#include "UIFont.h"
 
 class IFileSystem;
 class ILogicProcess;
@@ -47,6 +48,8 @@ private:
   SDL_Window*   m_pWindow;
   SDL_GLContext m_pGLContext;
 
+  CUIFont mUIFont;
+  CUIText mUIText;
   CGUI		        m_GUI;
 
   CIntroProcess mIntroProcess;

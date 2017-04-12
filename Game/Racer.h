@@ -33,5 +33,5 @@ public:
   CModel* GetModel();
 
   void Engine(float fDT);
-  void Render();
+  void Render(const glm::mat4& transform);
 };

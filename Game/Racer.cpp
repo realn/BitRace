@@ -81,10 +81,14 @@ void CRacer::Engine(float fDT) {
   this->m_vVec.x = -this->m_Speed.x * (this->m_fRotation / this->s_fMaxRotation) * fDT;
 }
 
-void CRacer::Render() {
+void CRacer::Render(const glm::mat4& transform) {
+  glm::mat4 mat =
+    transform *
+    glm::translate(glm::vec3(0.0f, s_fConstHeight, 0.0f)) *
+    glm::rotate(glm::radians(m_fRotation), glm::vec3(0.0f, 0.0f, 1.0f));
+
   glPushMatrix();
-  glTranslatef(0.0f, s_fConstHeight, 0.0f);
-  glRotatef(m_fRotation, 0.0f, 0.0f, 1.0f);
+  glLoadMatrixf(glm::value_ptr(mat));
   glColor4ubv((GLubyte*)&m_dwColor);
   m_cModel->Render();
   glPopMatrix();

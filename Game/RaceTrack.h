@@ -11,10 +11,9 @@
 
 class CGUI;
 
-class CRaceTrack 
+class CRaceTrack
   : public ILogicProcess
-  , public IGraphicView
-{
+  , public IGraphicView {
 public:
 
   class CShot {
@@ -55,7 +54,7 @@ public:
     };
     CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec3 vColor, unsigned uModelType);
     bool	Engine(float fDT, float fRacerPosX, CShot** aShotList, const unsigned uShotCount);
-    void	Render();
+    void	Render(const glm::mat4& transform) const;
     float	GetValue();
     float	GetHealth();
     unsigned	GetType();
@@ -112,9 +111,9 @@ private:
   void Engine_Track(float fDT);
   void Engine_GameOver(float fDT);
 
-  void Render_Intro() const;
-  void Render_Track() const;
-  void Render_GameOver() const;
+  void Render_Intro(const glm::mat4& transform) const;
+  void Render_Track(const glm::mat4& transform) const;
+  void Render_GameOver(const glm::mat4& transform) const;
 
   void CheckDifLevel();
   void SetUpgScreen(float fTimeOut);
@@ -167,4 +166,7 @@ public:
   void SkipIntro();
   bool IsGameOver();
   bool IsGameRuning();
+
+private:
+  void RenderProjectiles(const glm::mat4& transform) const;
 };

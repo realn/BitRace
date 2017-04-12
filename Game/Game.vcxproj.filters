@@ -68,6 +68,15 @@
     <ClCompile Include="LogicProcess.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="UIFont.cpp">
+      <Filter>Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="UIMenu.cpp">
+      <Filter>Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshFunctions.cpp">
+      <Filter>Graphic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -125,6 +134,15 @@
     </ClInclude>
     <ClInclude Include="LogicProcess.h">
       <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="UIFont.h">
+      <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="UIMenu.h">
+      <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshFunctions.h">
+      <Filter>Graphic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
