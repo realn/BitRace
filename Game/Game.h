@@ -42,7 +42,6 @@ private:
   ILogicProcess* mpProcess;
   IGraphicView* mpView;
 
-
   cb::string mConfigFilePath;
 
   SDL_Window*   m_pWindow;
@@ -66,6 +65,8 @@ private:
   bool			m_bGamePause;
   bool			m_bTakeScreen;
   unsigned int	m_uBlurTexture;
+
+  glm::mat4 mProjMatrix;
 
   enum GAME_STATE {
     GS_INTRO = 0,

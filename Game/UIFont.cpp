@@ -52,7 +52,8 @@ const glm::vec2 CUIFont::GetSize(const cb::string & text) const {
 
 CUIText::CUIText(CUIFont& font)
   : mFont(font)
-  , mTexture(0) {
+  , mTexture(0)
+  , mColor(1.0f) {
   this->m_Vertex[0] = glm::vec2(0.0f, 16.0f);
   this->m_Vertex[1] = glm::vec2(16.0f, 16.0f);
   this->m_Vertex[2] = glm::vec2(16.0f, 0.0f);
@@ -141,6 +142,18 @@ void CUIText::UnBind() {
   glPopAttrib();
 }
 
+void CUIText::SetColor(const glm::vec4 & color) {
+  mColor = color;
+}
+
+void CUIText::SetColor(const glm::vec3 & color) {
+  SetColor(glm::vec4(color, 1.0f));
+}
+
+void CUIText::SetColor(const float r, const float g, const float b, const float a) {
+  SetColor(glm::vec4(r, g, b, a));
+}
+
 void CUIText::Render(const glm::vec2& pos, const cb::string& text) const {
   if(!IsInited()) {
     cb::error(L"Unitialized UI Text, cannot render.");
@@ -171,7 +184,6 @@ void CUIText::Render(const glm::vec2& pos, const cb::string& text) const {
     textPos += fontChar.Adv;
   }
 
-  glPushMatrix();
   glLoadMatrixf(glm::value_ptr(mProjMatrix));
 
   glVertexPointer(2, GL_FLOAT, 0, &vertList[0]);
@@ -180,13 +192,11 @@ void CUIText::Render(const glm::vec2& pos, const cb::string& text) const {
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-  //glm::vec4 color(1.0f);
-  //glColor4fv(glm::value_ptr(color));
+  glColor4fv(glm::value_ptr(mColor));
   glDrawArrays(GL_QUADS, 0, vertList.size());
 
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  glPopMatrix();
 }
 
 void CUIText::RenderQuad(const glm::vec2 & pos, const glm::vec2 & size, const glm::vec4 & color, const Uint32 texId) {

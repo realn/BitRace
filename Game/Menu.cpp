@@ -109,9 +109,9 @@ const bool CMenuView::Init(const glm::uvec2 & screenSize) {
   return true;
 }
 
-void CMenuView::Render() const {
+void CMenuView::Render(const glm::mat4& transform) const {
   if(mMenuProcess.IsPauseMenu()) {
-    mRaceTrack.Render();
+    mRaceTrack.Render(transform);
   }
 }
 

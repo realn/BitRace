@@ -2,6 +2,7 @@
 #define __BITRACE_GRAPHICView_H__
 
 #include <SDL_types.h>
+#include <glm/fwd.hpp>
 
 class CGUI;
 
@@ -11,7 +12,7 @@ protected:
 public:
   virtual ~IGraphicView();
 
-  virtual void Render() const = 0;
+  virtual void Render(const glm::mat4& transform) const = 0;
   virtual void RenderUI(CGUI& gui) const = 0;
 };
 

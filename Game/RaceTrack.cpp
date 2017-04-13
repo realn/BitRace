@@ -266,8 +266,7 @@ void CRaceTrack::Free() {
   Clear();
 }
 
-void CRaceTrack::Render() const {
-  glm::mat4 transform(1.0f);
+void CRaceTrack::Render(const glm::mat4& transform) const {
   switch(m_uTrackState) {
   case TS_NONE:
     return;
@@ -466,8 +465,6 @@ void CRaceTrack::Engine_Track(float fDT) {
 }
 
 void CRaceTrack::Render_Track(const glm::mat4& transform) const {
-  glPushMatrix();
-
   glm::mat4 mat = transform *
     glm::translate(glm::vec3(0.0f, 12.0f, -12.0f)) *
     glm::rotate(glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -492,8 +489,6 @@ void CRaceTrack::Render_Track(const glm::mat4& transform) const {
   size_t i;
   for(i = 0; i < this->m_aEntityList.size(); ++i)
     this->m_aEntityList[i]->Render(mat);
-
-  glPopMatrix();
 }
 
 void CRaceTrack::Engine_GameOver(float fDT) {

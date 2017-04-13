@@ -100,7 +100,7 @@ public:
   const bool Init(const glm::uvec2& screenSize);
 
   // Inherited via IGraphicView
-  virtual void Render() const override;
+  virtual void Render(const glm::mat4& transform) const override;
   virtual void RenderUI(CGUI & gui) const override;
 };
 

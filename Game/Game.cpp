@@ -169,26 +169,17 @@ bool CGame::InitOpenGL() {
   glLineWidth(2.0f);
   glPointSize(1.0f);
 
-  glMatrixMode(GL_PROJECTION);
-  glm::mat4 projMatrix = glm::perspectiveFov(glm::radians(50.0f),
-                                             float(mConfig.Screen.Width),
-                                             float(mConfig.Screen.Height),
-                                             1.0f, 50000.0f);
-  glLoadMatrixf(glm::value_ptr(projMatrix));
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
+  mProjMatrix = glm::perspectiveFov(glm::radians(50.0f),
+                                    float(mConfig.Screen.Width),
+                                    float(mConfig.Screen.Height),
+                                    1.0f, 50000.0f);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  //m_GUI.Begin(glm::vec2(640.0f, 480.0f));
-  //glColor3f(1.0f, 1.0f, 1.0f);
-  //m_GUI.Print(glm::vec2(100.0f, 200.0f), "Please wait, loading game...");
-  //m_GUI.End();
   mUIText.Bind(mConfig.Screen.GetSize());
-  glColor3f(1.0f, 1.0f, 1.0f);
+  mUIText.SetColor(1.0f, 1.0f, 1.0f);
   mUIText.Render(glm::vec2(100.0f, 200.f), L"Please wait, loadng game...");
   mUIText.UnBind();
   SDL_GL_SwapWindow(this->m_pWindow);
-  //_sleep(1000);
 
   glGenTextures(1, &m_uBlurTexture);
   glBindTexture(GL_TEXTURE_2D, m_uBlurTexture);
@@ -634,20 +625,20 @@ void CGame::Render() {
 void CGame::RenderGame() {
   switch(m_uGameState) {
   case GS_INTRO:
-    mIntroView.Render();
+    mIntroView.Render(mProjMatrix);
     break;
 
   case GS_MENU:
     if(m_bGamePause)
-      m_RaceTrack.Render();
+      m_RaceTrack.Render(mProjMatrix);
     break;
 
   case GS_GAME:
-    m_RaceTrack.Render();
+    m_RaceTrack.Render(mProjMatrix);
     break;
 
   case GS_HIGH:
-    mHS.Render();
+    mHS.Render(mProjMatrix);
     break;
 
   default:

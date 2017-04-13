@@ -58,7 +58,7 @@ public:
   const bool Init(const cb::string& logosFilePath);
   void Free();
 
-  void Render() const override;
+  void Render(const glm::mat4& transform) const override;
   void RenderUI(CGUI& gui) const override;
 
 private:

@@ -180,7 +180,7 @@ void CIntroView::Free() {
   mLogosTex = 0;
 }
 
-void CIntroView::Render() const {}
+void CIntroView::Render(const glm::mat4& transform) const {}
 
 void CIntroView::RenderUI(CGUI& gui) const {
   switch(mIntro.GetState()) {

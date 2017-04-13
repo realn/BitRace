@@ -234,7 +234,7 @@ void CHighScore::Update(const float timeDelta) {
   };
 }
 
-void CHighScore::Render() const {}
+void CHighScore::Render(const glm::mat4& transform) const {}
 
 void CHighScore::RenderUI(CGUI& gui) const {
   std::stringstream ss;

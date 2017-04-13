@@ -154,7 +154,7 @@ public:
   void SetRacer(CRacer* pRacer);
   void ResetGame();
 
-  void Render() const override;
+  void Render(const glm::mat4& transform) const override;
   void RenderUI(CGUI& gui) const override;
   void Update(const float timeDelta);
 

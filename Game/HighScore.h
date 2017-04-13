@@ -62,7 +62,7 @@ public:
   void	SetTempScore(unsigned uScore);
 
   void	Update(const float timeDelta) override;
-  void  Render() const override;
+  void  Render(const glm::mat4& transform) const override;
   void	RenderUI(CGUI& gui) const override;
 
   std::string GetName(unsigned uIndex) const;

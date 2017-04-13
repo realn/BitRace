@@ -36,6 +36,7 @@ private:
   Uint32 mTexture;
   glm::vec2 m_Vertex[4];
   glm::mat4 mProjMatrix;
+  glm::vec4 mColor;
 
   bool LoadFontTexture(const cb::string& filename);
 
@@ -51,6 +52,9 @@ public:
   void Bind(const glm::vec2& size);
   void UnBind();
 
+  void SetColor(const glm::vec4& color);
+  void SetColor(const glm::vec3& color);
+  void SetColor(const float r, const float g, const float b, const float a = 1.0f);
   void Render(const glm::vec2& pos, const cb::string& text) const;
 
   void RenderQuad(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const Uint32 texId = 0);
