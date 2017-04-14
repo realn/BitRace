@@ -20,6 +20,7 @@
 #include "GUI.h"
 #include "Intro.h"
 #include "Menu.h"
+#include "Game.h"
 #include "HighScore.h"
 #include "UIFont.h"
 
@@ -53,13 +54,13 @@ private:
 
   CIntroProcess mIntroProcess;
   CMenuProcess mMenuProcess;
-  CRaceTrack		m_RaceTrack;
+  CGameProcess mGameProcess;
   CSpace			m_Space;
-  CRacer			m_Racer;
   CHighScore		mHS;
 
   CIntroView mIntroView;
   CMenuView mMenuView;
+  CGameView mGameView;
 
   float mFrameTime;
   float mFrameStepTime;

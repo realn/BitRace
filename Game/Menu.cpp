@@ -98,9 +98,8 @@ void CMenuProcess::Update(const float timeDelta) {
   else down = false;
 }
 
-CMenuView::CMenuView(CMenuProcess& menuProcess, CRaceTrack& raceTrack)
-  : mMenuProcess(menuProcess)
-  , mRaceTrack(raceTrack) {}
+CMenuView::CMenuView(CMenuProcess& menuProcess)
+  : mMenuProcess(menuProcess) {}
 
 CMenuView::~CMenuView() {}
 
@@ -111,7 +110,7 @@ const bool CMenuView::Init(const glm::uvec2 & screenSize) {
 
 void CMenuView::Render(const glm::mat4& transform) const {
   if(mMenuProcess.IsPauseMenu()) {
-    mRaceTrack.Render(transform);
+    //mRaceTrack.Render(transform);
   }
 }
 

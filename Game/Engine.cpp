@@ -11,8 +11,10 @@ CEngine::CEngine()
   , m_GUI()
   , mIntroProcess()
   , mMenuProcess(m_GUI, mIDevMap)
+  , mGameProcess(mConfig, mIDevMap)
   , mIntroView(mIntroProcess)
-  , mMenuView(mMenuProcess, m_RaceTrack)
+  , mMenuView(mMenuProcess)
+  , mGameView(mGameProcess)
   , mHS(mIDevMap)
   , mFrameTime(0.0f)
   , mFrameStepTime(0.01f)
@@ -207,10 +209,7 @@ bool CEngine::InitGame() {
 
   CModel::InitModels();
 
-  this->m_Racer.Init(CModel::MT_HTTP20);
-  this->m_Racer.SetColor(0x90FF0000);
-  this->m_RaceTrack.Init();
-  this->m_RaceTrack.SetRacer(&m_Racer);
+  mGameProcess.Init();
   this->mHS.LoadScores(L"score.hsf");
 
   //if(WGLEW_EXT_swap_control) {
@@ -273,8 +272,7 @@ void CEngine::FreeOpenGL() {
 
 void CEngine::FreeGame() {
   mMenuProcess.RemoveObserver(this);
-  m_RaceTrack.Free();
-  m_Racer.Free();
+  mGameProcess.Free();
   m_GUI.Free();
   mIntroView.Free();
   CModel::FreeModels();
@@ -364,7 +362,7 @@ const CEngine::GAME_STATE CEngine::GetNextState() const {
   case GS_MENU:   return GS_MENU;
   case GS_GAME:   
     {
-      if(m_RaceTrack.IsGameOver())
+      if(mGameProcess.IsGameOver())
         return GS_HIGH;
       else
         return GS_MENU;
@@ -413,7 +411,7 @@ void CEngine::UpdateLogic(const float timeDelta) {
       mMenuProcess.Update(timeDelta);
     }
     else
-      this->UpdateGame(timeDelta);
+      mGameProcess.Update(timeDelta);
     break;
 
   case GS_HIGH:
@@ -445,30 +443,6 @@ void CEngine::UpdateLogic(const float timeDelta) {
 }
 
 void CEngine::UpdateGame(const float timeDelta) {
-  static bool down = false;
-  if(m_RaceTrack.IsGameRuning()) {
-    float xdelta = mIDevMap.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisDelta, (Uint32)MouseAxisId::AxisX) * mConfig.Screen.Width;
-    this->m_Racer.ModRotation(xdelta);
-    if(mIDevMap.GetState(InputDevice::Mouse, (Uint32)MouseType::ButtonPress, SDL_BUTTON_LEFT)) {
-      this->m_RaceTrack.FireWeapon();
-    }
-  }
-  if(m_RaceTrack.IsGameOver()) {
-    mMenuProcess.GetMenuManager().ForceSwitchToMenu(CMenuProcess::MENU_MAIN);
-    mMenuProcess.GetMenuManager().GetMenu(CMenuProcess::MENU_MAIN)->GetMenuItem(CMenuProcess::MI_RETURN)->SetEnable(false);
-    mHS.SetTempScore(m_RaceTrack.GetPoints());
-    m_uGameState = GS_HIGH;
-    return;
-  }
-
-  if(mIDevMap.GetState(InputDevice::Keyboard, (Uint32)KeyboardType::KeyPress, SDL_SCANCODE_ESCAPE)) {
-    mMenuProcess.GetMenuManager().ForceSwitchToMenu(CMenuProcess::MENU_MAIN);
-    mMenuProcess.GetMenuManager().GetMenu(CMenuProcess::MENU_MAIN)->GetMenuItem(CMenuProcess::MI_RETURN)->SetEnable(true);
-    m_uGameState = GS_MENU;
-    return;
-  }
-
-  m_RaceTrack.Update(timeDelta);
 }
 
 void CEngine::MenuItemAction(CGUIMenuManager& menuMng, CGUIMenu& menu, CGUIMenuItem& item) {
@@ -480,7 +454,7 @@ void CEngine::MenuItemAction(CGUIMenuManager& menuMng, CGUIMenu& menu, CGUIMenuI
     break;
 
   case CMenuProcess::MI_NEWGAME:
-    m_RaceTrack.ResetGame();
+    mGameProcess.ResetGame();
     m_bGamePause = true;
     m_uGameState = GS_GAME;
     break;
@@ -647,12 +621,11 @@ void CEngine::RenderGame() {
     break;
 
   case GS_MENU:
-    if(m_bGamePause)
-      m_RaceTrack.Render(mProjMatrix);
+    mMenuView.Render(mProjMatrix);
     break;
 
   case GS_GAME:
-    m_RaceTrack.Render(mProjMatrix);
+    mGameView.Render(mProjMatrix);
     break;
 
   case GS_HIGH:
@@ -676,7 +649,7 @@ void CEngine::RenderGUI() {
     break;
 
   case GS_GAME:
-    m_RaceTrack.RenderUI(m_GUI);
+    mGameView.RenderUI(m_GUI);
     break;
 
   case GS_HIGH:

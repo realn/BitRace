@@ -90,11 +90,11 @@ class CMenuView
 {
 private:
   CMenuProcess& mMenuProcess;
-  CRaceTrack& mRaceTrack;
+  //CRaceTrack& mRaceTrack;
   glm::uvec2 mScreenSize;
 
 public:
-  CMenuView(CMenuProcess& menuProcess, CRaceTrack& raceTrack);
+  CMenuView(CMenuProcess& menuProcess);
   virtual ~CMenuView();
 
   const bool Init(const glm::uvec2& screenSize);

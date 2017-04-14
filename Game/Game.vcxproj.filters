@@ -77,6 +77,9 @@
       <Filter>Graphic</Filter>
     </ClCompile>
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="Game.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -144,6 +147,9 @@
       <Filter>Graphic</Filter>
     </ClInclude>
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="Game.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="RaceTrack.h">
