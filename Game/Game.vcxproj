@@ -98,6 +98,7 @@
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GraphicBuffer.cpp" />
     <ClCompile Include="GraphicView.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="HighScore.cpp" />
@@ -129,6 +130,7 @@
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GLDefines.h" />
+    <ClInclude Include="GraphicBuffer.h" />
     <ClInclude Include="GraphicView.h" />
     <ClInclude Include="GUI.h" />
     <ClInclude Include="HighScore.h" />

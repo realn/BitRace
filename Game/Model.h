@@ -33,7 +33,9 @@ public:
     MT_DL_PART2 = 10,
     MT_BOMB = 11,
     MT_HACK = 12,
-    MT_HACK2 = 13
+    MT_HACK2 = 13,
+
+    MODELTYPE_NUMBER
   };
 
   CModel();

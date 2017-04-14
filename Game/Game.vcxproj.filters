@@ -21,9 +21,6 @@
     <ClCompile Include="Intro.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="Model.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="Racer.cpp">
       <Filter>Game</Filter>
     </ClCompile>
@@ -80,6 +77,12 @@
     <ClCompile Include="Game.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicBuffer.cpp">
+      <Filter>Graphic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -89,9 +92,6 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Intro.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Model.h">
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Racer.h">
@@ -149,6 +149,12 @@
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Game.h">
       <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicBuffer.h">
+      <Filter>Graphic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
