@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "Game.h"
+#include "Engine.h"
 #include "BasicFileSystem.h"
 
-CGame::CGame()
+CEngine::CEngine()
   : mpFileSystem(NULL)
   , m_pWindow(NULL)
   , m_pGLContext(NULL)
@@ -14,6 +14,8 @@ CGame::CGame()
   , mIntroView(mIntroProcess)
   , mMenuView(mMenuProcess, m_RaceTrack)
   , mHS(mIDevMap)
+  , mFrameTime(0.0f)
+  , mFrameStepTime(0.01f)
   , m_bShutdown(false)
   , m_bGamePause(false)
   , m_bTakeScreen(false)
@@ -29,7 +31,7 @@ CGame::CGame()
   mpFileSystem = new CBasicFileSystem();
 }
 
-CGame::~CGame() {
+CEngine::~CEngine() {
   Free();
   SDL_Quit();
 
@@ -38,7 +40,7 @@ CGame::~CGame() {
   delete mpFileSystem;
 }
 
-bool CGame::Init(std::string strCmdLine) {
+bool CEngine::Init(std::string strCmdLine) {
   mConfigFilePath = L"main.cfg";
   LoadConfig();
 
@@ -73,7 +75,7 @@ bool CGame::Init(std::string strCmdLine) {
   return true;
 }
 
-bool CGame::InitWindow(std::string strTitle) {
+bool CEngine::InitWindow(std::string strTitle) {
   if(SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
     cb::error(L"Failed initializing SDL.");
     return false;
@@ -98,7 +100,7 @@ bool CGame::InitWindow(std::string strTitle) {
   return true;
 }
 
-bool CGame::InitRender() {
+bool CEngine::InitRender() {
   if(mConfig.Screen.Fullscreen)
     ChangeDispMode();
 
@@ -119,7 +121,7 @@ bool CGame::InitRender() {
   return true;
 }
 
-bool  CGame::InitInput() {
+bool  CEngine::InitInput() {
   SDL_InitSubSystem(SDL_INIT_EVENTS);
 
   mIDevMap.AddDevice(InputDevice::Keyboard, new CKeyboardInputDevice());
@@ -128,7 +130,7 @@ bool  CGame::InitInput() {
   return true;
 }
 
-bool CGame::InitOpenGL() {
+bool CEngine::InitOpenGL() {
   if(glewInit() != GLEW_OK) {
     return false;
   }
@@ -194,7 +196,7 @@ bool CGame::InitOpenGL() {
   return true;
 }
 
-bool CGame::InitGame() {
+bool CEngine::InitGame() {
   if(!mTimer.Init()) {
     return false;
   }
@@ -231,7 +233,7 @@ bool CGame::InitGame() {
   return true;
 }
 
-void CGame::Free() {
+void CEngine::Free() {
   this->FreeGame();
   this->FreeOpenGL();
   this->FreeInput();
@@ -239,14 +241,14 @@ void CGame::Free() {
   this->FreeWindow();
 }
 
-void CGame::FreeWindow() {
+void CEngine::FreeWindow() {
   if(this->m_pWindow) {
     SDL_DestroyWindow(this->m_pWindow);
     this->m_pWindow = nullptr;
   }
 }
 
-void CGame::FreeRender() {
+void CEngine::FreeRender() {
   if(this->m_pGLContext) {
     SDL_GL_DeleteContext(this->m_pGLContext);
     this->m_pGLContext = nullptr;
@@ -259,17 +261,17 @@ void CGame::FreeRender() {
   SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
-void CGame::FreeInput() {
+void CEngine::FreeInput() {
   SDL_QuitSubSystem(SDL_INIT_EVENTS);
 }
 
-void CGame::FreeOpenGL() {
+void CEngine::FreeOpenGL() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   if(glIsTexture(m_uBlurTexture))
     glDeleteTextures(1, &m_uBlurTexture);
 }
 
-void CGame::FreeGame() {
+void CEngine::FreeGame() {
   mMenuProcess.RemoveObserver(this);
   m_RaceTrack.Free();
   m_Racer.Free();
@@ -278,7 +280,7 @@ void CGame::FreeGame() {
   CModel::FreeModels();
 }
 
-void CGame::ScanDispModes() {
+void CEngine::ScanDispModes() {
   SDL_DisplayMode	curDispMode;
   memset(&curDispMode, 0, sizeof(SDL_DisplayMode));
 
@@ -305,7 +307,7 @@ void CGame::ScanDispModes() {
   }
 }
 
-void CGame::ChangeDispMode() {
+void CEngine::ChangeDispMode() {
   SDL_DisplayMode mode;
 
   if(SDL_GetCurrentDisplayMode(0, &mode) != 0)
@@ -323,7 +325,7 @@ void CGame::ChangeDispMode() {
 }
 
 
-int CGame::MainLoop() {
+int CEngine::MainLoop() {
   SDL_Event event;
 
   while(!m_bShutdown) {
@@ -341,14 +343,14 @@ int CGame::MainLoop() {
   return 0;
 }
 
-void CGame::SaveConfig() {
+void CEngine::SaveConfig() {
   cb::info(cb::format(L"Saving config file to path {0}.", mConfigFilePath));
   if(!mConfig.Write(*mpFileSystem, mConfigFilePath)) {
     cb::error(L"Failed to save config file.");
   }
 }
 
-void CGame::LoadConfig() {
+void CEngine::LoadConfig() {
   cb::info(cb::format(L"Loading config file from path {0}.", mConfigFilePath));
   if(!mConfig.Read(*mpFileSystem, mConfigFilePath)) {
     cb::error(L"Failed to load config file, reseting fo default.");
@@ -356,24 +358,39 @@ void CGame::LoadConfig() {
   }
 }
 
-float CGame::s_fMaxDT = 0.02f;
+const CEngine::GAME_STATE CEngine::GetNextState() const {
+  switch(m_uGameState) {
+  case GS_INTRO:  return GS_MENU;
+  case GS_MENU:   return GS_MENU;
+  case GS_GAME:   
+    {
+      if(m_RaceTrack.IsGameOver())
+        return GS_HIGH;
+      else
+        return GS_MENU;
+    }
+  case GS_HIGH: return GS_MENU;
 
-void CGame::Update() {
-  mTimer.Update();
-
-  float timeDelta = mTimer.GetTimeDelta();
-  while(timeDelta > this->s_fMaxDT) {
-    mIDevMap.Update(timeDelta);
-
-    this->UpdateLogic(this->s_fMaxDT);
-    timeDelta -= this->s_fMaxDT;
+  default:
+    return GS_INTRO;
   }
-
-  mIDevMap.Update(timeDelta);
-  this->UpdateLogic(timeDelta);
 }
 
-void CGame::UpdateLogic(const float timeDelta) {
+float CEngine::s_fMaxDT = 0.02f;
+
+void CEngine::Update() {
+  mTimer.Update();
+
+  mFrameTime += mTimer.GetTimeDelta();
+  while(mFrameTime > mFrameStepTime) {
+    mIDevMap.Update(mFrameStepTime);
+    UpdateLogic(mFrameStepTime);
+
+    mFrameTime -= mFrameStepTime;
+  }
+}
+
+void CEngine::UpdateLogic(const float timeDelta) {
   static bool down2 = false;
   switch(m_uGameState) {
   case GS_INTRO:
@@ -427,7 +444,7 @@ void CGame::UpdateLogic(const float timeDelta) {
   }
 }
 
-void CGame::UpdateGame(const float timeDelta) {
+void CEngine::UpdateGame(const float timeDelta) {
   static bool down = false;
   if(m_RaceTrack.IsGameRuning()) {
     float xdelta = mIDevMap.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisDelta, (Uint32)MouseAxisId::AxisX) * mConfig.Screen.Width;
@@ -454,7 +471,7 @@ void CGame::UpdateGame(const float timeDelta) {
   m_RaceTrack.Update(timeDelta);
 }
 
-void CGame::MenuItemAction(CGUIMenuManager& menuMng, CGUIMenu& menu, CGUIMenuItem& item) {
+void CEngine::MenuItemAction(CGUIMenuManager& menuMng, CGUIMenu& menu, CGUIMenuItem& item) {
   Uint32 id = 0;
   char szBuffer[1000];
   switch(menu.GetClickedID()) {
@@ -567,11 +584,11 @@ void CGame::MenuItemAction(CGUIMenuManager& menuMng, CGUIMenu& menu, CGUIMenuIte
   };
 }
 
-void CGame::UpdateHS() {
+void CEngine::UpdateHS() {
   mHS.FillHSMenu(mMenuProcess.GetMenuManager());
 }
 
-void CGame::Render() {
+void CEngine::Render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
 
@@ -623,7 +640,7 @@ void CGame::Render() {
   SDL_GL_SwapWindow(this->m_pWindow);
 }
 
-void CGame::RenderGame() {
+void CEngine::RenderGame() {
   switch(m_uGameState) {
   case GS_INTRO:
     mIntroView.Render(mProjMatrix);
@@ -647,7 +664,7 @@ void CGame::RenderGame() {
   }
 }
 
-void CGame::RenderGUI() {
+void CEngine::RenderGUI() {
   m_GUI.Begin(mConfig.Screen.GetSize());
   switch(m_uGameState) {
   case GS_INTRO:
@@ -674,9 +691,9 @@ void CGame::RenderGUI() {
   m_GUI.End();
 }
 
-void CGame::RenderMenu() {}
+void CEngine::RenderMenu() {}
 
-void CGame::TakeScreenshot() {
+void CEngine::TakeScreenshot() {
   //std::vector<BYTE> Buffer;
   //Buffer.resize(ScrParam.uWidth * ScrParam.uHeight * 4);
   //glReadPixels(0, 0, ScrParam.uWidth, ScrParam.uHeight, GL_BGRA, GL_UNSIGNED_BYTE, &Buffer[0]);

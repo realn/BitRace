@@ -879,7 +879,7 @@ void CRaceTrack::SkipIntro() {
   m_unsignedroState = IS_SKIP;
 }
 
-bool CRaceTrack::IsGameOver() {
+bool CRaceTrack::IsGameOver() const {
   return m_bGameOver;
 }
 

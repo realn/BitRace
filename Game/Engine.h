@@ -27,7 +27,7 @@ class IFileSystem;
 class ILogicProcess;
 class IGraphicView;
 
-class CGame 
+class CEngine 
   : public IMenuEventObserver
 {
 private:
@@ -61,6 +61,8 @@ private:
   CIntroView mIntroView;
   CMenuView mMenuView;
 
+  float mFrameTime;
+  float mFrameStepTime;
   bool			m_bShutdown;
   bool			m_bGamePause;
   bool			m_bTakeScreen;
@@ -72,7 +74,8 @@ private:
     GS_INTRO = 0,
     GS_MENU,
     GS_GAME,
-    GS_HIGH
+    GS_HIGH,
+    GS_EXIT
   };
   unsigned m_uGameState;
 
@@ -80,8 +83,8 @@ private:
   std::vector<SDL_DisplayMode> m_ModeList;
 
 public:
-  CGame();
-  ~CGame();
+  CEngine();
+  ~CEngine();
 
   bool Init(std::string strCmdLine);
   bool InitWindow(std::string strTitle);
@@ -119,4 +122,6 @@ public:
 private:
   void SaveConfig();
   void LoadConfig();
+
+  const GAME_STATE GetNextState() const;
 };

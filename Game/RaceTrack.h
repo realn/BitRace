@@ -164,7 +164,7 @@ public:
   unsigned GetPoints();
   void SetPoints(unsigned uPoints);
   void SkipIntro();
-  bool IsGameOver();
+  bool IsGameOver() const;
   bool IsGameRuning();
 
 private:

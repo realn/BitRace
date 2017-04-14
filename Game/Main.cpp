@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "Game.h"
+#include "Engine.h"
 
 int __stdcall WinMain(void* hInstance, void* hPrevInstance, char* lpCmdLine, int nShowCmd) {
-  CGame Game;
+  CEngine Game;
 
   if (!Game.Init(lpCmdLine))
     return -1;
