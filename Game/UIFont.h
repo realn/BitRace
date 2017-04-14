@@ -6,6 +6,8 @@
 #include <map>
 #include <CBStr/Defines.h>
 
+class CTexture;
+
 class CUIFont {
 public:
   class CChar {
@@ -33,7 +35,7 @@ public:
 class CUIText {
 private:
   CUIFont& mFont;
-  Uint32 mTexture;
+  CTexture* mTexture;
   glm::vec2 m_Vertex[4];
   glm::mat4 mProjMatrix;
   glm::vec4 mColor;

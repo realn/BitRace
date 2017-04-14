@@ -69,6 +69,7 @@ bool CGame::Init(std::string strCmdLine) {
     return false;
   }
 
+  mTimer.Update();
   return true;
 }
 

@@ -7,6 +7,7 @@
 #include "GraphicView.h"
 
 class CGUI;
+class CTexture;
 
 enum class IntroState {
   IS_STATE1 = 0,
@@ -49,7 +50,7 @@ class CIntroView
   : public IGraphicView {
 private:
   CIntroProcess& mIntro;
-  unsigned	mLogosTex;
+  CTexture* mLogosTexture;
 
 public:
   CIntroView(CIntroProcess& intro);

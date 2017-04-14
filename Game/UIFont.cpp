@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "UIFont.h"
 #include "FGXFile.h"
+#include "Texture.h"
 
 typedef std::vector<glm::vec2> vec2vector;
 
@@ -52,14 +53,13 @@ const glm::vec2 CUIFont::GetSize(const cb::string & text) const {
 
 CUIText::CUIText(CUIFont& font)
   : mFont(font)
-  , mTexture(0)
-  , mColor(1.0f) {
+  , mTexture(nullptr)
+  , mColor(1.0f) 
+{
   this->m_Vertex[0] = glm::vec2(0.0f, 16.0f);
   this->m_Vertex[1] = glm::vec2(16.0f, 16.0f);
   this->m_Vertex[2] = glm::vec2(16.0f, 0.0f);
   this->m_Vertex[3] = glm::vec2(0.0f, 0.0f);
-
-
 }
 
 CUIText::~CUIText() {
@@ -76,11 +76,6 @@ bool CUIText::LoadFontTexture(const cb::string& filename) {
     return false;
   }
 
-  glGenTextures(1, &mTexture);
-  glBindTexture(GL_TEXTURE_2D, mTexture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
   glm::ivec2 size = imgFile.GetSize();
   Uint32 format = 0;
   switch(imgFile.GetImgDepth()) {
@@ -91,10 +86,8 @@ bool CUIText::LoadFontTexture(const cb::string& filename) {
   };
   const cb::bytevector& Data = imgFile.GetData();
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, cb::vectorptr(Data));
-  //glGenerateMipmap(GL_TEXTURE_2D);
-
-  glBindTexture(GL_TEXTURE_2D, 0);
+  mTexture = new CTexture(GL_TEXTURE_2D, size, GL_RGBA);
+  mTexture->Load(format, imgFile.GetData());
   return true;
 }
 
@@ -108,14 +101,12 @@ const bool CUIText::Init(const cb::string& fontTextureFilepath) {
 }
 
 void CUIText::Free() {
-  if(glIsTexture(mTexture)) {
-    glDeleteTextures(1, &mTexture);
-    mTexture = 0;
-  }
+  delete mTexture;
+  mTexture = nullptr;
 }
 
 const bool CUIText::IsInited() const {
-  return mTexture != 0;
+  return mTexture != nullptr;
 }
 
 void CUIText::Bind(const glm::vec2& size) {
@@ -132,7 +123,7 @@ void CUIText::Bind(const glm::vec2& size) {
   glEnable(GL_TEXTURE_2D);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  glBindTexture(GL_TEXTURE_2D, mTexture);
+  mTexture->Bind();
 }
 
 void CUIText::UnBind() {
@@ -235,7 +226,7 @@ void CUIText::RenderQuad(const glm::vec2 & pos, const glm::vec2 & size, const gl
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, ind);
 
   if(texId) {
-    glBindTexture(GL_TEXTURE_2D, mTexture);
+    //glBindTexture(GL_TEXTURE_2D, mTexture);
   }
   else
     glEnable(GL_TEXTURE_2D);

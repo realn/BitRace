@@ -3,6 +3,8 @@
 #include "FGXFile.h"
 #include "GLDefines.h"
 #include "GUI.h"
+#include "Texture.h"
+#include "MeshFunctions.h"
 
 static const std::string INTRO_TEXT1 = "PRESENTS";
 static const std::string INTRO_TEXT2 = "A GAME BUILD WITH";
@@ -162,7 +164,7 @@ bool CIntroProcess::IsIntroEnded() {
 
 CIntroView::CIntroView(CIntroProcess& intro) 
   : mIntro(intro)
-  , mLogosTex(0)
+  , mLogosTexture(nullptr)
 {}
 
 CIntroView::~CIntroView() {}
@@ -174,10 +176,8 @@ const bool CIntroView::Init(const cb::string & logosFilePath) {
 }
 
 void CIntroView::Free() {
-  if(glIsTexture(mLogosTex))
-    glDeleteTextures(1, &mLogosTex);
-
-  mLogosTex = 0;
+  delete mLogosTexture;
+  mLogosTexture = nullptr;
 }
 
 void CIntroView::Render(const glm::mat4& transform) const {}
@@ -288,11 +288,6 @@ const bool CIntroView::LoadTexture(const cb::string & filepath) {
   glm::ivec2 size = imgFile.GetSize();
   const cb::bytevector& Data = imgFile.GetData();
 
-  glGenTextures(1, &mLogosTex);
-  glBindTexture(GL_TEXTURE_2D, mLogosTex);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
   unsigned format = 0;
   switch(imgFile.GetImgDepth()) {
   case 1: format = GL_LUMINANCE8;	break;
@@ -301,62 +296,40 @@ const bool CIntroView::LoadTexture(const cb::string & filepath) {
   case 4: format = GL_RGBA;	break;
   };
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, format, GL_UNSIGNED_BYTE, cb::vectorptr(Data));
-  glGenerateMipmap(GL_TEXTURE_2D);
+  mLogosTexture = new CTexture(GL_TEXTURE_2D, size, GL_RGBA);
+  mLogosTexture->Load(format, Data);
 
-  glBindTexture(GL_TEXTURE_2D, 0);
   return true;
 }
 
 void CIntroView::RenderLogo(Uint32 index) const {
   glPushAttrib(GL_TEXTURE_BIT);
-  glBindTexture(GL_TEXTURE_2D, mLogosTex);
-  glBegin(GL_QUADS);
+  mLogosTexture->Bind();
+  glDisable(GL_CULL_FACE);
   switch(index) {
   case 0:
-    glTexCoord2f(0.0f, 0.5f);
-    glVertex2i(200, 120);
-    glTexCoord2f(0.5f, 0.5f);
-    glVertex2i(440, 120);
-    glTexCoord2f(0.5f, 0.0f);
-    glVertex2i(440, 360);
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex2i(200, 360);
+    RenderTexQuad(glm::vec2(200.0f, 120.0f),
+                  glm::vec2(240.0f, 240.0f),
+                  glm::vec2(0.0f), glm::vec2(0.5f));
     break;
 
   case 1:
-    glTexCoord2f(0.5f, 0.5f);
-    glVertex2i(120, 40);
-    glTexCoord2f(1.0f, 0.5f);
-    glVertex2i(520, 40);
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex2i(520, 440);
-    glTexCoord2f(0.5f, 0.0f);
-    glVertex2i(120, 440);
+    RenderTexQuad(glm::vec2(120.0f, 40.0f),
+                  glm::vec2(400.0f, 240.0f),
+                  glm::vec2(0.5f, 0.0f), glm::vec2(0.5f));
     break;
 
   case 2:
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex2i(200, 120);
-    glTexCoord2f(0.5f, 1.0f);
-    glVertex2i(440, 120);
-    glTexCoord2f(0.5f, 0.5f);
-    glVertex2i(440, 360);
-    glTexCoord2f(0.0f, 0.5f);
-    glVertex2i(200, 360);
+    RenderTexQuad(glm::vec2(200.0f, 120.0f),
+                  glm::vec2(240.0f, 240.0f),
+                  glm::vec2(0.0f, 0.5f), glm::vec2(0.5f));
     break;
 
   case 3:
-    glTexCoord2f(0.5f, 1.0f);
-    glVertex2i(200, 120);
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex2i(440, 120);
-    glTexCoord2f(1.0f, 0.5f);
-    glVertex2i(440, 360);
-    glTexCoord2f(0.5f, 0.5f);
-    glVertex2i(200, 360);
+    RenderTexQuad(glm::vec2(200.0f, 120.0f),
+                  glm::vec2(240.0f, 240.0f),
+                  glm::vec2(0.5f), glm::vec2(0.5f));
     break;
   };
-  glEnd();
   glPopAttrib();
 }

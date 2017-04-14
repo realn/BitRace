@@ -4,6 +4,7 @@
 #include "GLDefines.h"
 #include "MathHelper.h"
 #include "InputDevice.h"
+#include "MeshFunctions.h"
 
 #include <stdarg.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -750,14 +751,15 @@ void CGUIMenuManager::Render() {
 
   Menu->Render();
 
+  vec3vector vlist = {
+    glm::vec3(m_MousePos, 0.0f),
+    glm::vec3(m_MousePos + glm::vec2(20.0f, 10.0f), 0.0),
+    glm::vec3(m_MousePos + glm::vec2(10.0f, 20.0f), 0.0)
+  };
   m_pGUI->Begin(this->m_Size);
   glDisable(GL_TEXTURE_2D);
   glColor3f(0.0f, 1.0f, 0.0f);
-  glBegin(GL_TRIANGLES);
-  glVertex2f(m_MousePos.x, m_MousePos.y);
-  glVertex2f(m_MousePos.x + 20.0f, m_MousePos.y + 10.0f);
-  glVertex2f(m_MousePos.x + 10.0f, m_MousePos.y + 20.0f);
-  glEnd();
+  RenderVectorList(GL_TRIANGLES, vlist);
   glEnable(GL_TEXTURE_2D);
   m_pGUI->End();
 }
