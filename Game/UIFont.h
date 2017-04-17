@@ -34,16 +34,15 @@ public:
 
 class CUIText {
 private:
-  CUIFont& mFont;
   CTexture* mTexture;
   glm::vec2 m_Vertex[4];
   glm::mat4 mProjMatrix;
   glm::vec4 mColor;
 
-  bool LoadFontTexture(const cb::string& filename);
+  const bool LoadFontTexture(const cb::string& filename);
 
 public:
-  CUIText(CUIFont& font);
+  CUIText(const glm::vec2& charSize = glm::vec2(16.0f, 16.0f));
   ~CUIText();
 
   const bool Init(const cb::string& fontTextureFilepath);
@@ -57,15 +56,13 @@ public:
   void SetColor(const glm::vec4& color);
   void SetColor(const glm::vec3& color);
   void SetColor(const float r, const float g, const float b, const float a = 1.0f);
-  void Render(const glm::vec2& pos, const cb::string& text) const;
+  void Render(const CUIFont& font, const glm::vec2& pos, const cb::string& text) const;
 
   void RenderQuad(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const Uint32 texId = 0);
   void RenderQuadLines(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color);
   void RenderQuadFullScreen(const glm::vec2& size, const glm::vec4& color, const Uint32 texId = 0);
   void RenderProgressBar(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const float progress);
 };
-
-
 
 
 #endif // !__BITRACE_UIFONT_H__

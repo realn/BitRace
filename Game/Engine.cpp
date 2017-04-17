@@ -7,7 +7,7 @@ CEngine::CEngine()
   , m_pWindow(NULL)
   , m_pGLContext(NULL)
   , mUIFont()
-  , mUIText(mUIFont)
+  , mUIText()
   , m_GUI()
   , mIntroProcess()
   , mMenuProcess(m_GUI, mIDevMap)
@@ -182,7 +182,7 @@ bool CEngine::InitOpenGL() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   mUIText.Bind(mConfig.Screen.GetSize());
   mUIText.SetColor(1.0f, 1.0f, 1.0f);
-  mUIText.Render(glm::vec2(100.0f, 200.f), L"Please wait, loadng game...");
+  mUIText.Render(mUIFont, glm::vec2(100.0f, 200.f), L"Please wait, loading game...");
   mUIText.UnBind();
   SDL_GL_SwapWindow(this->m_pWindow);
 

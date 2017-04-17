@@ -51,14 +51,13 @@ const glm::vec2 CUIFont::GetSize(const cb::string & text) const {
 
 
 
-CUIText::CUIText(CUIFont& font)
-  : mFont(font)
-  , mTexture(nullptr)
+CUIText::CUIText(const glm::vec2& charSize)
+  : mTexture(nullptr)
   , mColor(1.0f) 
 {
-  this->m_Vertex[0] = glm::vec2(0.0f, 16.0f);
-  this->m_Vertex[1] = glm::vec2(16.0f, 16.0f);
-  this->m_Vertex[2] = glm::vec2(16.0f, 0.0f);
+  this->m_Vertex[0] = glm::vec2(0.0f, charSize.y);
+  this->m_Vertex[1] = glm::vec2(charSize.x, charSize.y);
+  this->m_Vertex[2] = glm::vec2(charSize.x, 0.0f);
   this->m_Vertex[3] = glm::vec2(0.0f, 0.0f);
 }
 
@@ -66,7 +65,7 @@ CUIText::~CUIText() {
   Free();
 }
 
-bool CUIText::LoadFontTexture(const cb::string& filename) {
+const bool CUIText::LoadFontTexture(const cb::string& filename) {
   CFGXFile imgFile;
   if(!imgFile.Load(filename)) {
     return false;
@@ -145,7 +144,7 @@ void CUIText::SetColor(const float r, const float g, const float b, const float 
   SetColor(glm::vec4(r, g, b, a));
 }
 
-void CUIText::Render(const glm::vec2& pos, const cb::string& text) const {
+void CUIText::Render(const CUIFont& font, const glm::vec2& pos, const cb::string& text) const {
   if(!IsInited()) {
     cb::error(L"Unitialized UI Text, cannot render.");
     return;
@@ -153,8 +152,6 @@ void CUIText::Render(const glm::vec2& pos, const cb::string& text) const {
   if(text.empty()) {
     return;
   }
-
-  //glm::mat4 posMatrix = glm::translate(glm::mat4(), glm::vec3(pos, 0.0f));
 
 
   std::vector<glm::vec2> vertList;
@@ -165,7 +162,7 @@ void CUIText::Render(const glm::vec2& pos, const cb::string& text) const {
 
   glm::vec2 textPos = pos;
   for(size_t i = 0; i < text.length(); i++) {
-    const CUIFont::CChar& fontChar = mFont.GetChar(text[i]);
+    const CUIFont::CChar& fontChar = font.GetChar(text[i]);
 
     for(size_t j = 0; j < 4; j++) {
       vertList[i * 4 + j] = this->m_Vertex[j] + textPos;
