@@ -24,13 +24,13 @@ private:
   Uint32 mId;
   Uint32 mTarget;
   Uint32 mFormat;
-  glm::vec2 mSize;
+  glm::uvec2 mSize;
   CTextureParams mParams;
   mutable bool mParamsChanged;
 
 public:
   CTexture(const Uint32 target, 
-           const glm::vec2& size, 
+           const glm::uvec2& size, 
            const Uint32 format, 
            const CTextureParams& parms = CTextureParams());
   ~CTexture();

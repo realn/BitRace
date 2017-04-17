@@ -52,43 +52,43 @@ bool CRaceTrack::CShot::GetCanDelete() {
 }
 
 //===========================================
-CRaceTrack::CEntity::CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec3 vColor, unsigned uModelType) :
-  m_vPos(vPos), m_vVec(vVec), m_vColor(vColor), m_fTemp(0.0f), m_uModelType(uModelType), m_bCanDelete(false), m_Model(NULL) {
-  if(uModelType < 9) {
+CRaceTrack::CEntity::CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec3 vColor, const ModelType modelType) :
+  m_vPos(vPos), m_vVec(vVec), m_vColor(vColor), m_fTemp(0.0f), mModelType(modelType), m_bCanDelete(false), m_Model(NULL) {
+  if((Uint32)mModelType < 9) {
     this->m_uType = ET_NONE;
     return;
   }
-  switch(uModelType) {
+  switch(mModelType) {
   default:
     this->m_uType = ET_NONE;
     return;
-  case CModel::MT_DL_PART:
+  case ModelType::MT_DL_PART:
     this->m_fHealth = 1.0f;
     this->m_fValue = 100.0f;
     this->m_uType = ET_BONUS;
     break;
-  case CModel::MT_DL_PART2:
+  case ModelType::MT_DL_PART2:
     this->m_fHealth = 1.0f;
     this->m_fValue = 1000.0f;
     this->m_uType = ET_BONUS;
     break;
-  case CModel::MT_BOMB:
+  case ModelType::MT_BOMB:
     this->m_fHealth = 20.0f;
     this->m_fValue = 15.0f;
     this->m_uType = ET_ENEMY;
     break;
-  case CModel::MT_HACK:
+  case ModelType::MT_HACK:
     this->m_fHealth = 30.0f;
     this->m_fValue = 30.0f;
     this->m_uType = ET_ENEMY;
     break;
-  case CModel::MT_HACK2:
+  case ModelType::MT_HACK2:
     this->m_fHealth = 50.0f;
     this->m_fValue = 50.0f;
     this->m_uType = ET_ENEMY;
     break;
   };
-  this->m_Model = CModel::GetModel(uModelType);
+  this->m_Model = CModelRepository::Instance.GetModel(mModelType);
 }
 
 bool CRaceTrack::CEntity::Engine(float fDT, float fRacerPosX, CRaceTrack::CShot **aShotList, const unsigned uShotCount) {
@@ -100,7 +100,7 @@ bool CRaceTrack::CEntity::Engine(float fDT, float fRacerPosX, CRaceTrack::CShot 
   for(i = 0; i < uShotCount; i++) {
     if(aShotList[i]->GetCanDelete())
       continue;
-    if(m_uModelType != CModel::MT_BOMB && glm::distance(this->m_vPos, aShotList[i]->GetPos()) < 1.4f) {
+    if(mModelType != ModelType::MT_BOMB && glm::distance(this->m_vPos, aShotList[i]->GetPos()) < 1.4f) {
       this->m_fHealth -= aShotList[i]->GetDamage();
       aShotList[i]->SetCanDelete(true);
       continue;
@@ -108,7 +108,7 @@ bool CRaceTrack::CEntity::Engine(float fDT, float fRacerPosX, CRaceTrack::CShot 
   }
   if(m_fHealth <= 0.0f) {
     this->SetCanDelete(true);
-    if(this->m_uModelType != CModel::MT_DL_PART || this->m_uModelType != CModel::MT_DL_PART2)
+    if(mModelType != ModelType::MT_DL_PART || mModelType != ModelType::MT_DL_PART2)
       return true;
     else return false;
   }
@@ -120,11 +120,11 @@ bool CRaceTrack::CEntity::Engine(float fDT, float fRacerPosX, CRaceTrack::CShot 
     this->m_fTemp += fDT;
     break;
   case ET_ENEMY:
-    switch(this->m_uModelType) {
-    case CModel::MT_BOMB:
+    switch((ModelType)mModelType) {
+    case ModelType::MT_BOMB:
       this->m_fTemp += 70.0f * fDT;
       break;
-    case CModel::MT_HACK:
+    case ModelType::MT_HACK:
       this->m_fTemp += fDT;
       if(m_fTemp > 0.4f) {
         m_fTemp = 0.0f;
@@ -135,7 +135,7 @@ bool CRaceTrack::CEntity::Engine(float fDT, float fRacerPosX, CRaceTrack::CShot 
         this->m_vVec *= 30.0f;
       }
       break;
-    case CModel::MT_HACK2:
+    case ModelType::MT_HACK2:
       glm::vec2 vRPos = glm::vec2(fRacerPosX, 0.0f);
       this->m_vVec = glm::normalize(vRPos - this->m_vPos);
       this->m_fTemp = glm::degrees(glm::orientedAngle(m_vVec, glm::vec2(0.0f, 1.0f)));
@@ -155,16 +155,16 @@ void CRaceTrack::CEntity::Render(const glm::mat4& transform) const {
 
   glm::vec3 rotVec(1.0f, 0.0f, 0.0f);
   float rotAngle = 0.0f;
-  switch(this->m_uModelType) {
-  case CModel::MT_BOMB:
+  switch(mModelType) {
+  case ModelType::MT_BOMB:
     rotAngle = m_fTemp;
     rotVec = glm::vec3(0.0f, -1.0f, 0.0f);
     break;
-  case CModel::MT_HACK:
+  case ModelType::MT_HACK:
     rotAngle = m_fTemp;
     rotVec = glm::vec3(0.0f, 1.0f, 0.0f);
     break;
-  case CModel::MT_HACK2:
+  case ModelType::MT_HACK2:
     rotAngle = m_fTemp;
     rotVec = glm::vec3(0.0f, 1.0f, 0.0f);
     break;
@@ -176,7 +176,7 @@ void CRaceTrack::CEntity::Render(const glm::mat4& transform) const {
 
   glColor3fv(glm::value_ptr(m_vColor));
   glLoadMatrixf(glm::value_ptr(mat));
-  m_Model->Render();
+  m_Model->Render(glm::vec4(m_vColor, 1.0f), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 float CRaceTrack::CEntity::GetHealth() {
@@ -187,8 +187,8 @@ bool CRaceTrack::CEntity::GetCanDelete() {
   return m_bCanDelete;
 }
 
-unsigned CRaceTrack::CEntity::GetModelType() {
-  return m_uModelType;
+const ModelType CRaceTrack::CEntity::GetModelType() const {
+  return mModelType;
 }
 
 unsigned CRaceTrack::CEntity::GetType() {
@@ -621,29 +621,29 @@ const glm::vec2 CRaceTrack::CreateEntityPosition() {
   return glm::vec2(randF / 100.0f * 30.0f + m_fMoveX + (100.0f * this->m_pRacer->GetVec().x), -80.0f);
 }
 
-void CRaceTrack::AddEntity(const glm::vec2& vec, const glm::vec3& color, const CModel::MODEL_TYPE type) {
+void CRaceTrack::AddEntity(const glm::vec2& vec, const glm::vec3& color, const ModelType type) {
   CEntity* pEntity = new CEntity(this->CreateEntityPosition(), vec, color, type);
   this->m_aEntityList.push_back(pEntity);
 }
 
 void CRaceTrack::AddEntity_DL() {
-  this->AddEntity(glm::vec2(0.0f, 50.0f), glm::vec3(1.0f, 1.0f, 0.0f), CModel::MT_DL_PART);
+  this->AddEntity(glm::vec2(0.0f, 50.0f), glm::vec3(1.0f, 1.0f, 0.0f), ModelType::MT_DL_PART);
 }
 
 void CRaceTrack::AddEntity_DL2() {
-  this->AddEntity(glm::vec2(0.0f, 40.0f), glm::vec3(1.0f, 1.0f, 0.0f), CModel::MT_DL_PART2);
+  this->AddEntity(glm::vec2(0.0f, 40.0f), glm::vec3(1.0f, 1.0f, 0.0f), ModelType::MT_DL_PART2);
 }
 
 void CRaceTrack::AddEntity_BOMB() {
-  this->AddEntity(glm::vec2(0.0f, 50.0f), glm::vec3(1.0f, 0.0f, 1.0f), CModel::MT_BOMB);
+  this->AddEntity(glm::vec2(0.0f, 50.0f), glm::vec3(1.0f, 0.0f, 1.0f), ModelType::MT_BOMB);
 }
 
 void CRaceTrack::AddEntity_HACK() {
-  this->AddEntity(glm::vec2(0.0f, 30.0f), glm::vec3(0.5f, 0.2f, 0.8f), CModel::MT_HACK);
+  this->AddEntity(glm::vec2(0.0f, 30.0f), glm::vec3(0.5f, 0.2f, 0.8f), ModelType::MT_HACK);
 }
 
 void CRaceTrack::AddEntity_HACK2() {
-  this->AddEntity(glm::vec2(0.0f, 50.0f), glm::vec3(1.0f, 0.0f, 0.0f), CModel::MT_HACK2);
+  this->AddEntity(glm::vec2(0.0f, 50.0f), glm::vec3(1.0f, 0.0f, 0.0f), ModelType::MT_HACK2);
 }
 
 void CRaceTrack::GenRandomObject() {
@@ -721,10 +721,10 @@ void CRaceTrack::Engine_Entity(float fDT) {
     if(this->m_aShotList.size() != 0) {
       if(this->m_aEntityList[i]->Engine(fDT, m_fMoveX, &this->m_aShotList[0], (unsigned)this->m_aShotList.size())) {
         switch(this->m_aEntityList[i]->GetModelType()) {
-        case CModel::MT_HACK:
+        case ModelType::MT_HACK:
           m_uPoints += 500;
           break;
-        case CModel::MT_HACK2:
+        case ModelType::MT_HACK2:
           m_uPoints += 2000;
           if(m_uDifLevel == DL_HOLY_SHIT)
             this->m_pRacer->ModBitRate(1.0f);
@@ -745,14 +745,14 @@ void CRaceTrack::Engine_Entity(float fDT) {
     if(glm::distance(glm::vec3(m_fMoveX, 0.0f, 0.0f), vPos) < 2.0f) {
       this->m_aEntityList[i]->SetCanDelete(true);
       switch(this->m_aEntityList[i]->GetModelType()) {
-      case CModel::MT_BOMB:
-      case CModel::MT_HACK:
-      case CModel::MT_HACK2:
+      case ModelType::MT_BOMB:
+      case ModelType::MT_HACK:
+      case ModelType::MT_HACK2:
         this->m_pRacer->ModBitRate(-this->m_aEntityList[i]->GetValue());
         this->SetFSQ(0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
         break;
-      case CModel::MT_DL_PART:
-      case CModel::MT_DL_PART2:
+      case ModelType::MT_DL_PART:
+      case ModelType::MT_DL_PART2:
         this->m_uPoints += unsigned(this->m_aEntityList[i]->GetValue());
         this->m_pRacer->ModBitRate(20.0f);
         this->SetFSQ(0.8f, glm::vec3(0.0f, 1.0f, 0.0));
@@ -795,8 +795,8 @@ void CRaceTrack::ResetGame() {
   m_fFSQTime = 0.0f;
   m_fFSQTimeOut = 0.0f;
   m_uTrackState = TS_INTRO;
-  this->m_pRacer->Free();
-  this->m_pRacer->Init(CModel::MT_HTTP20);
+  m_pRacer->Free();
+  m_pRacer->Init((Uint32)ModelType::MT_HTTP20);
   Clear();
 }
 
@@ -813,9 +813,9 @@ void CRaceTrack::CheckDifLevel() {
   else m_uNeedPoints = m_uNeedPoints + m_uNeedPoints * 2;
   m_uFireCount += 1;
   m_fDamage += 1.5f;
-  if(m_pRacer->GetModel()->GetModelType() != this->GetLevelModelType()) {
+  if(m_pRacer->GetModel()->GetType() != this->GetLevelModelType()) {
     m_pRacer->Free();
-    m_pRacer->Init(this->GetLevelModelType());
+    m_pRacer->Init((Uint32)this->GetLevelModelType());
   }
   this->SetUpgScreen(10.0f);
 }
@@ -846,21 +846,21 @@ void CRaceTrack::SetPoints(unsigned uPoints) {
   m_uPoints = uPoints;
 }
 
-unsigned CRaceTrack::GetLevelModelType() {
+const ModelType CRaceTrack::GetLevelModelType() const {
   switch(m_uDifLevel) {
   case DL_VERY_EASY:
-    return CModel::MT_HTTP20;
+    return ModelType::MT_HTTP20;
   case DL_EASY:
-    return CModel::MT_P2PGNU2;
+    return ModelType::MT_P2PGNU2;
   case DL_MEDIUM:
-    return CModel::MT_P2PFT20;
+    return ModelType::MT_P2PFT20;
   case DL_HARD:
-    return CModel::MT_P2PEDK2K;
+    return ModelType::MT_P2PEDK2K;
   case DL_VERY_HARD:
   case DL_HOLY_SHIT:
-    return CModel::MT_P2PBT;
+    return ModelType::MT_P2PBT;
   };
-  return CModel::MT_HTTP20;
+  return ModelType::MT_HTTP20;
 }
 
 void CRaceTrack::SetFSQ(float fTimeOut, glm::vec3 vColor) {

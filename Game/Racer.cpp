@@ -30,36 +30,36 @@ void CRacer::Free() {
 bool CRacer::Init(unsigned uModelType) {
   Free();
 
-  switch (uModelType) {
-  case CModel::MT_HTTP10:
+  switch ((ModelType)uModelType) {
+  case ModelType::MT_HTTP10:
     this->m_Speed = glm::vec3(40.0f, 0.0f, 20.0f);
     break;
 
-  case CModel::MT_HTTP20:
+  case ModelType::MT_HTTP20:
     this->m_Speed = glm::vec3(40.0f, 0.0f, 25.0f);
     break;
 
-  case CModel::MT_P2PGNU:
+  case ModelType::MT_P2PGNU:
     this->m_Speed = glm::vec3(50.0f, 0.0f, 30.0f);
     break;
 
-  case CModel::MT_P2PGNU2:
+  case ModelType::MT_P2PGNU2:
     this->m_Speed = glm::vec3(50.0f, 0.0f, 35.0f);
     break;
 
-  case CModel::MT_P2PFT:
+  case ModelType::MT_P2PFT:
     this->m_Speed = glm::vec3(50.0f, 0.0f, 40.0f);
     break;
 
-  case CModel::MT_P2PFT20:
+  case ModelType::MT_P2PFT20:
     this->m_Speed = glm::vec3(55.0f, 0.0f, 50.0f);
     break;
 
-  case CModel::MT_P2PEDK2K:
+  case ModelType::MT_P2PEDK2K:
     this->m_Speed = glm::vec3(60.0f, 0.0f, 55.0f);
     break;
 
-  case CModel::MT_P2PBT:
+  case ModelType::MT_P2PBT:
     this->m_Speed = glm::vec3(70.0f, 0.0f, 70.0f);
     break;
 
@@ -67,7 +67,7 @@ bool CRacer::Init(unsigned uModelType) {
     return false;
   };
 
-  m_cModel = CModel::GetModel(uModelType);
+  m_cModel = CModelRepository::Instance.GetModel((ModelType)uModelType);
 
   return true;
 }
@@ -87,11 +87,8 @@ void CRacer::Render(const glm::mat4& transform) {
     glm::translate(glm::vec3(0.0f, s_fConstHeight, 0.0f)) *
     glm::rotate(glm::radians(m_fRotation), glm::vec3(0.0f, 0.0f, 1.0f));
 
-  glPushMatrix();
   glLoadMatrixf(glm::value_ptr(mat));
-  glColor4ubv((GLubyte*)&m_dwColor);
-  m_cModel->Render();
-  glPopMatrix();
+  m_cModel->Render(mColor, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 void CRacer::ModRotation(float fRotation) {
@@ -103,8 +100,8 @@ void CRacer::SetRotation(float fRotation) {
   m_fRotation = fRotation;
 }
 
-void CRacer::SetColor(unsigned dwColor) {
-  m_dwColor = dwColor;
+void CRacer::SetColor(const glm::vec4& color) {
+  mColor = color;
 }
 
 glm::vec3 CRacer::GetVec() const {

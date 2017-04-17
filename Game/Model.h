@@ -1,52 +1,82 @@
 #pragma once
 
 #include <vector>
+#include <SDL_types.h>
+#include "GraphicBuffer.h"
 
 #define	MODELTYPE_COUNT	14
 
-class CModel {
-private:
-  unsigned				m_uVBOVertex;
+enum class ModelType {
+  MT_NONE = 0,
+  MT_HTTP10 = 1,
+  MT_HTTP20 = 2,
+  MT_P2PGNU = 3,
+  MT_P2PGNU2 = 4,
+  MT_P2PFT = 5,
+  MT_P2PFT20 = 6,
+  MT_P2PEDK2K = 7,
+  MT_P2PBT = 8,
+  MT_DL_PART = 9,
+  MT_DL_PART2 = 10,
+  MT_BOMB = 11,
+  MT_HACK = 12,
+  MT_HACK2 = 13,
 
-  std::vector<float>	m_afVertex;
-  std::vector<unsigned>	m_auIndexTriangles;
-  std::vector<unsigned>	m_auIndexLines;
-  std::string			m_strModelName;
-  unsigned				m_uModelType;
+  MODELTYPE_NUMBER
+};
 
-  void AddVertex(float x, float y, float z);
-  void AddTriangle(unsigned v1, unsigned v2, unsigned v3);
+class CModelData {
+public:
+  typedef std::vector<glm::vec3> vec3vector;
+  typedef std::vector<Uint16> indvector;
+
+  vec3vector Vertices;
+  indvector TriangleIndices;
+  indvector LineIndices;
+  ModelType Type;
+
+  CModelData();
+
+  const bool Generate(const ModelType type);
+
+  void AddVertex(const float x, const float y, const float z);
+  void AddTriangle(const Uint16 v1, const Uint16 v2, const Uint16 v3);
   void CreateIndexLines();
+};
+
+class CModel {
+public:
+
+private:
+  CGraphicBuffer mVertexBuffer;
+  CGraphicBuffer mIndexBuffer;
+  ModelType mType;
+  Uint32 mTriangleIndicesNumber;
+  Uint32 mLineIndicesNumber;
 
 public:
-  enum MODEL_TYPE {
-    MT_NONE = 0,
-    MT_HTTP10 = 1,
-    MT_HTTP20 = 2,
-    MT_P2PGNU = 3,
-    MT_P2PGNU2 = 4,
-    MT_P2PFT = 5,
-    MT_P2PFT20 = 6,
-    MT_P2PEDK2K = 7,
-    MT_P2PBT = 8,
-    MT_DL_PART = 9,
-    MT_DL_PART2 = 10,
-    MT_BOMB = 11,
-    MT_HACK = 12,
-    MT_HACK2 = 13,
-
-    MODELTYPE_NUMBER
-  };
-
   CModel();
   ~CModel();
 
-  void Free();
-  bool Generate(unsigned uModelType);
-  void Render();
-  unsigned GetModelType();
+  const ModelType GetType() const;
 
-  static	bool	InitModels();
-  static	void	FreeModels();
-  static	CModel*	GetModel(unsigned uModelType);
+  const bool Load(CModelData& data);
+  void Free();
+
+  void Render(const glm::vec4& lineColor, const glm::vec4& triColor);
+};
+
+class CModelRepository {
+private:
+  typedef std::map<ModelType, CModel*> ModelMapT;
+
+  ModelMapT mModelMap;
+public:
+  CModelRepository();
+  ~CModelRepository();
+
+  CModel* GetModel(const ModelType type);
+  void Clear();
+
+  static CModelRepository Instance;
 };

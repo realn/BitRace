@@ -40,6 +40,7 @@ const Uint32 GetTexFilter(const Uint32 filter,
       return filter;
     }
   }
+  return GL_NEAREST;
 }
 
 CTextureParams::CTextureParams()
@@ -52,7 +53,7 @@ CTextureParams::CTextureParams()
 
 
 CTexture::CTexture(const Uint32 target, 
-                   const glm::vec2 & size, 
+                   const glm::uvec2 & size, 
                    const Uint32 format,
                    const CTextureParams& params)
   : mId(0)

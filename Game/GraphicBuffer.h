@@ -15,12 +15,14 @@ public:
   ~CGraphicBuffer();
 
   void Bind() const;
+  void UnBind() const;
 
   void Load(const Uint32 size, const void* pData);
   template<typename _Type>
   void Load(const std::vector<_Type>& data) {
     Load(sizeof(_Type) * data.size(), cb::vectorptr(data));
   }
+  void SubLoad(const Uint32 offset, const Uint32 size, const void* pData);
 
   static void UnBind(const CGraphicBuffer& buffer);
   static void UnBind(const Uint32 target);

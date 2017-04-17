@@ -44,7 +44,7 @@ public:
     float	m_fHealth;
     float	m_fTemp;
     unsigned	m_uType;
-    unsigned	m_uModelType;
+    ModelType	mModelType;
     bool	m_bCanDelete;
   public:
     enum ENTITY_TYPE {
@@ -52,13 +52,13 @@ public:
       ET_BONUS = 1,
       ET_ENEMY = 2
     };
-    CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec3 vColor, unsigned uModelType);
+    CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec3 vColor, const ModelType modelType);
     bool	Engine(float fDT, float fRacerPosX, CShot** aShotList, const unsigned uShotCount);
     void	Render(const glm::mat4& transform) const;
     float	GetValue();
     float	GetHealth();
     unsigned	GetType();
-    unsigned	GetModelType();
+    const ModelType	GetModelType() const;
     glm::vec2	GetPos();
     void SetCanDelete(bool bSet);
     bool GetCanDelete();
@@ -98,7 +98,7 @@ private:
 
   const glm::vec2 CreateEntityPosition();
 
-  void AddEntity(const glm::vec2& vec, const glm::vec3& color, const CModel::MODEL_TYPE type);
+  void AddEntity(const glm::vec2& vec, const glm::vec3& color, const ModelType type);
   void AddEntity_DL();
   void AddEntity_DL2();
   void AddEntity_BOMB();
@@ -122,7 +122,7 @@ private:
   void DeleteShot(size_t i);
   void Clear();
   const std::string GetDifLevelString() const;
-  unsigned GetLevelModelType();
+  const ModelType GetLevelModelType() const;
 public:
   enum DIF_LEVEL {
     DL_VERY_EASY = 0,

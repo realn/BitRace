@@ -2,33 +2,15 @@
 #include "Model.h"
 #include "GLDefines.h"
 
-CModel	g_Model[MODELTYPE_COUNT];
+CModelData::CModelData() {}
 
-CModel::CModel() : m_uModelType(0) {
-
-}
-
-CModel::~CModel() {
-  Free();
-}
-
-void CModel::Free() {
-  m_afVertex.clear();
-  m_auIndexTriangles.clear();
-  m_auIndexLines.clear();
-  m_strModelName = "";
-  m_uModelType = MT_NONE;
-  if (glIsBufferARB(m_uVBOVertex))
-    glDeleteBuffersARB(1, &m_uVBOVertex);
-}
-
-bool CModel::Generate(unsigned uModelType) {
-  switch (uModelType) {
+const bool CModelData::Generate(const ModelType type) {
+  switch(type) {
   default:
-  case MT_NONE:
+  case ModelType::MT_NONE:
     return false;
-  case MT_HTTP10:
-    this->m_strModelName = "HTTP v1.0";
+  case ModelType::MT_HTTP10:
+    //this->m_strModelName = "HTTP v1.0";
     AddVertex(0.0f, 0.0f, -4.0f);
     AddVertex(2.8f, 0.0f, 1.6f);
     AddVertex(-2.8f, 0.0f, 1.6f);
@@ -42,8 +24,8 @@ bool CModel::Generate(unsigned uModelType) {
     AddTriangle(3, 4, 2);
     AddTriangle(1, 2, 4);
     break;
-  case MT_HTTP20:
-    this->m_strModelName = "HTTP v2.0+";
+  case ModelType::MT_HTTP20:
+    //this->m_strModelName = "HTTP v2.0+";
     AddVertex(0.0f, 0.0f, -4.0f);
     AddVertex(2.4f, 0.0f, -0.8f);
     AddVertex(-2.4f, 0.0f, -0.8f);
@@ -63,8 +45,8 @@ bool CModel::Generate(unsigned uModelType) {
     AddTriangle(4, 5, 6);
     AddTriangle(5, 6, 3);
     break;
-  case MT_P2PGNU:
-    this->m_strModelName = "P2P Gnutella";
+  case ModelType::MT_P2PGNU:
+    //this->m_strModelName = "P2P Gnutella";
     AddVertex(0.0f, 1.2f, -3.6f);
     AddVertex(0.8f, 0.0f, -4.0f);
     AddVertex(-0.8f, 0.0f, -4.0f);
@@ -90,8 +72,8 @@ bool CModel::Generate(unsigned uModelType) {
     AddTriangle(5, 8, 6);
     AddTriangle(6, 7, 8);
     break;
-  case MT_P2PGNU2:
-    this->m_strModelName = "P2P Gnutella 2";
+  case ModelType::MT_P2PGNU2:
+    //this->m_strModelName = "P2P Gnutella 2";
     AddVertex(0.0f, 1.0f, -3.6f);
     AddVertex(0.8f, 0.4f, -4.0f);
     AddVertex(-0.8f, 0.4f, -4.0f);
@@ -117,8 +99,8 @@ bool CModel::Generate(unsigned uModelType) {
     AddTriangle(5, 8, 6);
     AddTriangle(6, 7, 8);
     break;
-  case MT_P2PFT:
-    this->m_strModelName = "P2P FastTrack";
+  case ModelType::MT_P2PFT:
+    //this->m_strModelName = "P2P FastTrack";
     AddVertex(0.0f, 0.0f, -4.0f);
     AddVertex(0.8f, 0.0f, -2.0f);
     AddVertex(-0.8f, 0.0f, -2.0f);
@@ -144,8 +126,8 @@ bool CModel::Generate(unsigned uModelType) {
     AddTriangle(3, 7, 8);
     AddTriangle(4, 7, 8);
     break;
-  case MT_P2PFT20:
-    this->m_strModelName = "P2P FastTrack v2.0";
+  case ModelType::MT_P2PFT20:
+    //this->m_strModelName = "P2P FastTrack v2.0";
     AddVertex(0.0f, 0.2f, -4.0f);
     AddVertex(0.8f, 0.0f, -2.0f);
     AddVertex(-0.8f, 0.0f, -2.0f);
@@ -171,8 +153,8 @@ bool CModel::Generate(unsigned uModelType) {
     AddTriangle(3, 7, 8);
     AddTriangle(4, 7, 8);
     break;
-  case MT_P2PEDK2K:
-    this->m_strModelName = "P2P eDonkey 2000";
+  case ModelType::MT_P2PEDK2K:
+    //this->m_strModelName = "P2P eDonkey 2000";
     AddVertex(0.0f, 0.8f, -4.0f);	// 0
     AddVertex(0.8f, 0.0f, -2.8f);	// 1
     AddVertex(-0.8f, 0.0f, -2.8f);// 2
@@ -207,8 +189,8 @@ bool CModel::Generate(unsigned uModelType) {
     AddTriangle(5, 7, 9);
     AddTriangle(6, 8, 10);
     break;
-  case MT_P2PBT:
-    this->m_strModelName = "P2P BitTorrent";
+  case ModelType::MT_P2PBT:
+    //this->m_strModelName = "P2P BitTorrent";
     AddVertex(0.0f, 0.4f, -3.2f);	// 0
     AddVertex(0.4f, 0.0f, -2.8f);	// 1
     AddVertex(-0.4f, 0.0f, -2.8f);// 2
@@ -243,8 +225,8 @@ bool CModel::Generate(unsigned uModelType) {
     AddTriangle(5, 7, 9);
     AddTriangle(6, 8, 10);
     break;
-  case MT_DL_PART:
-    this->m_strModelName = "DownLoad Part";
+  case ModelType::MT_DL_PART:
+    //this->m_strModelName = "DownLoad Part";
     AddVertex(2.0f, -2.0f, 2.0f);	// 0
     AddVertex(-2.0f, -2.0f, 2.0f);	// 1
     AddVertex(-2.0f, -2.0f, -2.0f);// 2
@@ -267,8 +249,8 @@ bool CModel::Generate(unsigned uModelType) {
     AddTriangle(1, 2, 6);
     AddTriangle(1, 6, 5);
     break;
-  case MT_DL_PART2:
-    this->m_strModelName = "BIG DownLoad Part";
+  case ModelType::MT_DL_PART2:
+    //this->m_strModelName = "BIG DownLoad Part";
     AddVertex(3.0f, -3.0f, 3.0f);	// 0
     AddVertex(-3.0f, -3.0f, 3.0f);	// 1
     AddVertex(-3.0f, -3.0f, -3.0f);// 2
@@ -291,8 +273,8 @@ bool CModel::Generate(unsigned uModelType) {
     AddTriangle(1, 2, 6);
     AddTriangle(1, 6, 5);
     break;
-  case MT_BOMB:
-    this->m_strModelName = "CRC Error Bomb";
+  case ModelType::MT_BOMB:
+    //this->m_strModelName = "CRC Error Bomb";
     AddVertex(0.0f, -2.5f, 0.0f);
     AddVertex(2.0f, 0.0f, 0.0f);
     AddVertex(0.0f, 0.0f, 1.33f);
@@ -306,8 +288,8 @@ bool CModel::Generate(unsigned uModelType) {
     AddTriangle(4, 2, 3);
     AddTriangle(4, 3, 1);
     break;
-  case MT_HACK:
-    this->m_strModelName = "H4X0R";
+  case ModelType::MT_HACK:
+    //this->m_strModelName = "H4X0R";
     AddVertex(0.0f, -0.5f, 3.0f);
     AddVertex(1.0f, -0.5f, 0.0f);
     AddVertex(-1.0f, -0.5f, 0.0);
@@ -318,8 +300,8 @@ bool CModel::Generate(unsigned uModelType) {
     AddTriangle(0, 3, 1);
     AddTriangle(1, 2, 3);
     break;
-  case MT_HACK2:
-    this->m_strModelName = "M3G4 H4X0R d00d!!!";
+  case ModelType::MT_HACK2:
+    //this->m_strModelName = "M3G4 H4X0R d00d!!!";
     AddVertex(0.0f, -1.0f, 4.0f);
     AddVertex(2.0f, -1.0f, 0.0f);
     AddVertex(-2.0f, -1.0f, 0.0);
@@ -332,78 +314,136 @@ bool CModel::Generate(unsigned uModelType) {
     break;
   };
 
-  this->m_uModelType = uModelType;
   CreateIndexLines();
 
-  glGenBuffersARB(1, &m_uVBOVertex);
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uVBOVertex);
-  glBufferDataARB(GL_ARRAY_BUFFER_ARB, m_afVertex.size() * sizeof(float), &m_afVertex[0], GL_STATIC_DRAW_ARB);
-
+  Type = type;
   return true;
 }
 
-void CModel::AddVertex(float x, float y, float z) {
-  m_afVertex.push_back(x);
-  m_afVertex.push_back(y);
-  m_afVertex.push_back(z);
+void CModelData::AddVertex(const float x, const float y, const float z) {
+  Vertices.push_back(glm::vec3(x, y, z));
 }
 
-void CModel::AddTriangle(unsigned v1, unsigned v2, unsigned v3) {
-  m_auIndexTriangles.push_back(v1);
-  m_auIndexTriangles.push_back(v2);
-  m_auIndexTriangles.push_back(v3);
+void CModelData::AddTriangle(const Uint16 v1, const Uint16 v2, const Uint16 v3) {
+  TriangleIndices.push_back(v1);
+  TriangleIndices.push_back(v2);
+  TriangleIndices.push_back(v3);
 }
 
-void CModel::CreateIndexLines() {
-  size_t i;
-  for (i = 0; i < m_auIndexTriangles.size(); i += 3) {
-    m_auIndexLines.push_back(m_auIndexTriangles[i]);
-    m_auIndexLines.push_back(m_auIndexTriangles[i + 1]);
-    m_auIndexLines.push_back(m_auIndexTriangles[i + 1]);
-    m_auIndexLines.push_back(m_auIndexTriangles[i + 2]);
-    m_auIndexLines.push_back(m_auIndexTriangles[i + 2]);
-    m_auIndexLines.push_back(m_auIndexTriangles[i]);
+void CModelData::CreateIndexLines() {
+  for(size_t i = 0; i < TriangleIndices.size(); i += 3) {
+    LineIndices.push_back(TriangleIndices[i + 0]);
+    LineIndices.push_back(TriangleIndices[i + 1]);
+
+    LineIndices.push_back(TriangleIndices[i + 1]);
+    LineIndices.push_back(TriangleIndices[i + 2]);
+
+    LineIndices.push_back(TriangleIndices[i + 2]);
+    LineIndices.push_back(TriangleIndices[i + 0]);
   }
 }
 
-void CModel::Render() {
-  if (m_afVertex.size() == 0 || m_auIndexTriangles.size() == 0 || m_auIndexLines.size() == 0)
-    return;
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, m_uVBOVertex);
-  glVertexPointer(3, GL_FLOAT, 0, NULL);
+CModel::CModel()
+  : mVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW)
+  , mIndexBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW)
+  , mType(ModelType::MT_NONE) 
+  , mLineIndicesNumber(0)
+  , mTriangleIndicesNumber(0)
+{
 
-  glPushAttrib(GL_CURRENT_BIT);
-  glColor3f(0.0f, 0.0f, 0.0f);
-  glDrawElements(GL_TRIANGLES, (GLsizei)m_auIndexTriangles.size(), GL_UNSIGNED_INT, &m_auIndexTriangles[0]);
-  glPopAttrib();
-  glDrawElements(GL_LINES, (GLsizei)m_auIndexLines.size(), GL_UNSIGNED_INT, &m_auIndexLines[0]);
-
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-  glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-unsigned CModel::GetModelType() {
-  return m_uModelType;
+CModel::~CModel() {
+  Free();
+}
+
+const ModelType CModel::GetType() const {
+  return mType;
+}
+
+const bool CModel::Load(CModelData & data) {
+  mVertexBuffer.Load(data.Vertices);
+
+  mLineIndicesNumber = data.LineIndices.size();
+  mTriangleIndicesNumber = data.TriangleIndices.size();
+
+  mIndexBuffer.Load(
+    sizeof(Uint16) * (mLineIndicesNumber + mTriangleIndicesNumber), nullptr);
+
+  mIndexBuffer.SubLoad(0,
+                       sizeof(Uint16) * mTriangleIndicesNumber,
+                       cb::vectorptr(data.TriangleIndices));
+  mIndexBuffer.SubLoad(sizeof(Uint16) * mTriangleIndicesNumber,
+                       sizeof(Uint16) * mLineIndicesNumber,
+                       cb::vectorptr(data.LineIndices));
+
+  mType = data.Type;
+  return true;
+}
+
+void CModel::Free() {
+  mTriangleIndicesNumber = 0;
+  mLineIndicesNumber = 0;
+  mType = ModelType::MT_NONE;
+}
+
+void CModel::Render(const glm::vec4& lineColor, const glm::vec4& triColor) {
+  mVertexBuffer.Bind();
+  mIndexBuffer.Bind();
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glVertexPointer(3, GL_FLOAT, 0, NULL);
+
+
+  glColor4fv(glm::value_ptr(triColor));
+  glDrawElements(GL_TRIANGLES,
+                 mTriangleIndicesNumber, 
+                 GL_UNSIGNED_SHORT, 
+                 nullptr);
+
+  glColor4fv(glm::value_ptr(lineColor));
+  glDrawElements(GL_LINES, 
+                 mLineIndicesNumber, 
+                 GL_UNSIGNED_SHORT, 
+                 reinterpret_cast<void*>(mTriangleIndicesNumber * sizeof(Uint16)));
+
+  glDisableClientState(GL_VERTEX_ARRAY);
+
+  mIndexBuffer.UnBind();
+  mVertexBuffer.UnBind();
 }
 
 //=================================================
 
-bool CModel::InitModels() {
-  for (unsigned i = 0; i < MODELTYPE_COUNT; i++)
-    g_Model[i].Generate(i);
+CModelRepository CModelRepository::Instance;
 
-  glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
+CModelRepository::CModelRepository() {}
 
-  return true;
+CModelRepository::~CModelRepository() {
+  Clear();
 }
 
-void CModel::FreeModels() {
-  for (unsigned i = 0; i < MODELTYPE_COUNT; i++)
-    g_Model[i].Free();
+CModel * CModelRepository::GetModel(ModelType type) {
+  ModelMapT::iterator it = mModelMap.find(type);
+  if(it != mModelMap.end()) {
+    return it->second;
+  }
+
+  CModelData data;
+  if(!data.Generate(type)) {
+    return nullptr;
+  }
+
+  CModel* pModel = new CModel();
+  pModel->Load(data);
+  mModelMap[type] = pModel;
+  return pModel;
 }
 
-CModel* CModel::GetModel(unsigned uModelType) {
-  if (uModelType > MODELTYPE_COUNT) return NULL;
-  return &g_Model[uModelType];
+void CModelRepository::Clear() {
+  for(ModelMapT::iterator it = mModelMap.begin(); it != mModelMap.end(); it++) {
+    delete it->second;
+  }
+  mModelMap.clear();
 }
+

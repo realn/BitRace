@@ -207,8 +207,6 @@ bool CEngine::InitGame() {
 
   this->ScanDispModes();
 
-  CModel::InitModels();
-
   mGameProcess.Init();
   this->mHS.LoadScores(L"score.hsf");
 
@@ -275,7 +273,7 @@ void CEngine::FreeGame() {
   mGameProcess.Free();
   m_GUI.Free();
   mIntroView.Free();
-  CModel::FreeModels();
+  CModelRepository::Instance.Clear();
 }
 
 void CEngine::ScanDispModes() {

@@ -11,7 +11,7 @@ private:
   float				  m_fBitRate;
   glm::vec3     m_Speed;
   glm::vec3				  m_vVec;
-  unsigned				m_dwColor;
+  glm::vec4 mColor;
 
 public:
   static float		s_fConstHeight;
@@ -26,7 +26,7 @@ public:
 
   void ModRotation(float fRotation);
   void SetRotation(float fRotation);
-  void SetColor(unsigned dwColor);
+  void SetColor(const glm::vec4& color);
   glm::vec3 GetVec() const;
   float GetBitRate() const;
   void ModBitRate(float fBitRate);

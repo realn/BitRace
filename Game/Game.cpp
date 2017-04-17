@@ -10,8 +10,8 @@ CGameProcess::CGameProcess(CConfig& config, CInputDeviceMap& inputDevMap)
 CGameProcess::~CGameProcess() {}
 
 const bool CGameProcess::Init() {
-  this->mRacer.Init(CModel::MT_HTTP20);
-  this->mRacer.SetColor(0x90FF0000);
+  this->mRacer.Init((Uint32)ModelType::MT_HTTP20);
+  this->mRacer.SetColor(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
   this->mRaceTrack.Init();
   this->mRaceTrack.SetRacer(&mRacer);
   return true;
