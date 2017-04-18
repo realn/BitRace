@@ -63,6 +63,10 @@ void CUIMenu::Clear() {
   mItems.clear();
 }
 
+const Uint32 CUIMenu::GetSize() const {
+  return mItems.size();
+}
+
 CUIMenu::iterator CUIMenu::Begin() {
   return mItems.begin();
 }
@@ -79,34 +83,67 @@ CUIMenu::const_iterator CUIMenu::End() const {
   return mItems.end();
 }
 
-CUIMenuView::CUIMenuView(const glm::vec2& size) 
-  : mSize(size)
-  , mMargin(20.0f, 20.0f)
+const CUIMenu::CItem & CUIMenu::Get(const Uint32 index) const {
+  return mItems[index];
+}
+
+CUIMenuView::CUIMenuView(const glm::vec2& screenSize) 
+  : mScreenSize(screenSize)
   , mItemColor(0.5f, 0.5f, 0.5f, 1.0f)
   , mItemHighLightColor(1.0f)
 {}
 
 void CUIMenuView::Render(const CUIFont & font, 
-                         CUIText & text, 
-                         const CUIMenu & menu) 
+                         const CUIText & text, 
+                         const CUIMenuLayout& layout,
+                         const CUIMenu & menu) const
 {
-  text.Bind(mSize);
-  text.SetColor(glm::vec4(1.0f));
+  CUITextContext ctx;
 
-  glm::vec2 pos = mMargin;
+  text.Bind();
 
-  text.Render(font, pos, menu.GetTitle());
+  glm::vec2 pos, size;
+  pos = layout.GetTitlePos(font, menu, size);
 
-  pos += glm::vec2(0.0f, 20.0f);
+  ctx.Scale = layout.TitleScale;
+  text.Render(font, pos * text.GetCharSize(), menu.GetTitle(), ctx);
 
-  for(CUIMenu::const_iterator it = menu.Begin(); it != menu.End(); it++) {
-    pos += glm::vec2(0.0f, 20.0f);
+  ctx.Scale = glm::vec2(1.0f);
 
-    glm::vec4 color = glm::mix(mItemColor, mItemHighLightColor, it->HLValue);
-    text.SetColor(color);
-    text.Render(font, pos, it->Text);
+  CUIMenuLayout::ItemVectorT items = layout.GetItems(font, menu);
+  for(CUIMenuLayout::ItemVectorT::iterator it = items.begin(); it != items.end(); it++) {
+    ctx.Color = glm::mix(mItemColor, mItemHighLightColor, it->pItem->HLValue);
+    text.Render(font, it->Pos * text.GetCharSize(), it->pItem->Text, ctx);
   }
 
   text.UnBind();
 }
 
+const glm::vec2 CUIMenuLayout::GetTitlePos(const CUIFont& font, const CUIMenu & menu, glm::vec2& titleSize) const {
+  titleSize = font.GetSize(menu.GetTitle()) * TitleScale;
+  return Margin;
+}
+
+const CUIMenuLayout::ItemVectorT CUIMenuLayout::GetItems(const CUIFont & font, const CUIMenu & menu) const {
+  glm::vec2 size;
+  glm::vec2 pos = GetTitlePos(font, menu, size);
+  pos += glm::vec2(0.0f, size.y);
+
+  ItemVectorT result;
+  for(CUIMenu::const_iterator it = menu.Begin(); it != menu.End(); it++) {
+    size = font.GetSize(it->Text);
+
+    pos += glm::vec2(0.0f, ItemPadding.y);
+
+    CItem item;
+    item.pItem = &(*it);
+    item.Pos = pos;
+    item.Size = size;
+
+    pos += glm::vec2(0.0f, size.y);
+
+    result.push_back(item);
+  }
+
+  return result;
+}

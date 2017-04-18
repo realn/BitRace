@@ -1,18 +1,20 @@
 #include "stdafx.h"
 #include "Engine.h"
 #include "BasicFileSystem.h"
-#include "UIMenu.h"
 #include "Model.h"
+#include "GraphicView.h"
+#include "LogicProcess.h"
+#include "Menu.h"
 
 CEngine::CEngine()
   : mpFileSystem(NULL)
   , mpWindow(NULL)
   , mpGLContext(NULL)
-  , mUIFont()
-  , mUIText()
   , mFrameTime(0.0f)
   , mFrameStepTime(0.01f)
-  , mRun(true) {
+  , mRun(true) 
+  , mState(0)
+{
 
   mLogFile.open(L"game.log", std::ios::out | std::ios::trunc);
   mLogger.AddStream(&mLogFile);
@@ -192,7 +194,19 @@ const bool CEngine::InitGame() {
   }
   std::srand((Uint32)mTimer.GetLastTick());
 
+  {
+    CMenuProcess* pProcess = new CMenuProcess(mIDevMap);
+    pProcess->Init();
 
+    mLogicProcessMap[1] = pProcess;
+
+    CMenuView* pView = new CMenuView(*pProcess, mConfig.Screen.GetSize());
+    pView->Init();
+
+    mGraphicViewMap[1] = pView;
+  }
+
+  mState = 1;
 
   return true;
 }
@@ -242,7 +256,14 @@ void CEngine::Update() {
   }
 }
 
-void CEngine::UpdateLogic(const float timeDelta) {}
+void CEngine::UpdateLogic(const float timeDelta) {
+  LogicProcessMapT::iterator it = mLogicProcessMap.find(mState);
+  if(it == mLogicProcessMap.end()) {
+    return;
+  }
+
+  it->second->Update(timeDelta);
+}
 
 void CEngine::Render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -252,4 +273,12 @@ void CEngine::Render() {
   SDL_GL_SwapWindow(mpWindow);
 }
 
-void CEngine::RenderFrame() {}
+void CEngine::RenderFrame() {
+  GraphicViewMapT::iterator it = mGraphicViewMap.find(mState);
+  if(it == mGraphicViewMap.end()) {
+    return;
+  }
+
+  it->second->RenderView();
+  it->second->RenderUI();
+}

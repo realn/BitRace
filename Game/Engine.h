@@ -40,15 +40,14 @@ private:
   SDL_Window*   mpWindow;
   SDL_GLContext mpGLContext;
 
-  CUIFont mUIFont;
-  CUIText mUIText;
-
   float mFrameTime;
   float mFrameStepTime;
   bool	mRun;
 
   LogicProcessMapT mLogicProcessMap;
   GraphicViewMapT mGraphicViewMap;
+
+  Uint32 mState;
 
 public:
   CEngine();

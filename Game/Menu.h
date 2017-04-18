@@ -3,83 +3,37 @@
 
 #include "GraphicView.h"
 #include "LogicProcess.h"
-#include "GUI.h"
 
-class CRaceTrack;
+#include "UIFont.h"
+#include "UIMenu.h"
+
 class CInputDeviceMap;
-class CConfig;
-
-class IMenuEventObserver {
-protected:
-  IMenuEventObserver() {}
-public:
-  virtual ~IMenuEventObserver() {};
-
-  virtual void MenuItemAction(CGUIMenuManager& menuMng,
-                              CGUIMenu& menu, 
-                              CGUIMenuItem& item) = 0;
-};
 
 class CMenuProcess
   : public ILogicProcess
 {
 public:
-  enum MENU_ID {
-    MENU_MAIN = 0,
-    MENU_HIGH,
-    MENU_OPTIONS
-  };
-  enum MENUITEM_ID {
-    MI_NEWGAME = 0,
-    MI_HIGH,
-    MI_OPTIONS,
-    MI_EXIT,
-    MI_GOBACK,
-    MI_RETURN,
-
-    MI_RESOLUTION,
-    MI_FULLSCREEN,
-    MI_SMOOTHSHADE,
-    MI_SMOOTHLINE,
-    MI_FPSCOUNTER,
-    MI_VSYNC,
-    MI_OPWARNING,
-
-    MI_HS1,
-    MI_HS2,
-    MI_HS3,
-    MI_HS4,
-    MI_HS5,
-    MI_HS6,
-    MI_HS7,
-    MI_HS8,
-    MI_HS9,
-    MI_HS10,
-    MI_HSRESET
-  };
+  typedef std::map<cb::string, CUIMenu*> MenuMapT;
 
 private:
-  typedef std::vector<IMenuEventObserver*> ObserverVectorT;
-
-  bool  mPauseMenu;
-  CGUIMenuManager	mMenuMng;
+  CUIFont mFont;
+  MenuMapT mMenuMap;
+  CUIMenu* mpCurrentMenu;
   CInputDeviceMap& mIDevMap;
-  ObserverVectorT mObservers;
-  glm::uvec2 mScreenSize;
+  glm::vec2 mPointerPos;
+  CUIMenuLayout mLayout;
 
 public:
-  CMenuProcess(CGUI& gui, CInputDeviceMap& inputDevMap);
+  CMenuProcess(CInputDeviceMap& inputDevMap);
   virtual ~CMenuProcess();
 
-  const bool Init(const CConfig& config);
+  const CUIFont& GetFont() const;
+  const CUIMenu* GetCurrent() const;
+  const glm::vec2 GetPointerPos() const;
+  const CUIMenuLayout& GetLayout() const;
 
-  void AddObserver(IMenuEventObserver* pObserver);
-  void RemoveObserver(IMenuEventObserver* pObserver);
-
-  void SetPauseMenu(const bool value);
-  const bool IsPauseMenu() const;
-
-  CGUIMenuManager& GetMenuManager();
+  const bool Init();
+  void Free();
 
   // Inherited via ILogicProcess
   virtual void Update(const float timeDelta) override;
@@ -89,19 +43,21 @@ class CMenuView
   : public IGraphicView
 {
 private:
-  CMenuProcess& mMenuProcess;
-  //CRaceTrack& mRaceTrack;
-  glm::uvec2 mScreenSize;
+  const CMenuProcess& mProcess;
+  CUIText mText;
+  CUIMenuView mMenuView;
+  glm::vec2 mScreenSize;
 
 public:
-  CMenuView(CMenuProcess& menuProcess);
+  CMenuView(const CMenuProcess& process, const glm::vec2& screenSize);
   virtual ~CMenuView();
 
-  const bool Init(const glm::uvec2& screenSize);
+  const bool Init();
+  void Free();
 
   // Inherited via IGraphicView
-  virtual void Render(const glm::mat4& transform) const override;
-  virtual void RenderUI(CGUI & gui) const override;
+  virtual void RenderView() const override;
+  virtual void RenderUI() const override;
 };
 
 #endif // !__BITRACE_MENU_H__

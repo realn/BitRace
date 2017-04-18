@@ -12,8 +12,8 @@ protected:
 public:
   virtual ~IGraphicView();
 
-  virtual void Render(const glm::mat4& transform) const = 0;
-  virtual void RenderUI(CGUI& gui) const = 0;
+  virtual void RenderView() const = 0;
+  virtual void RenderUI() const = 0;
 };
 
 #endif // !__BITRACE_GRAPHICView_H__

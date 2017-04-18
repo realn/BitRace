@@ -44,26 +44,50 @@ public:
   iterator Erase(const_iterator it);
   void Clear();
 
+  const Uint32 GetSize() const;
+
   iterator Begin();
   const_iterator Begin() const;
   iterator End();
   const_iterator End() const;
+
+  const CItem& Get(const Uint32 index) const;
 };
 
 class CUIFont;
 class CUIText;
 
+class CUIMenuLayout {
+public:
+  class CItem {
+  public:
+    const CUIMenu::CItem* pItem;
+    glm::vec2 Pos;
+    glm::vec2 Size;
+  };
+  typedef std::vector<CItem> ItemVectorT;
+
+  glm::vec2 Margin;
+  glm::vec2 ItemPadding;
+  glm::vec2 TitleScale;
+
+  const glm::vec2 GetTitlePos(const CUIFont& font, const CUIMenu& menu, glm::vec2& titleSize = glm::vec2()) const;
+  const ItemVectorT GetItems(const CUIFont& font, const CUIMenu& menu) const;
+};
+
 class CUIMenuView {
 private:
-  glm::vec2 mSize;
-  glm::vec2 mMargin;
+  glm::vec2 mScreenSize;
   glm::vec4 mItemColor;
   glm::vec4 mItemHighLightColor;
 
 public:
-  CUIMenuView(const glm::vec2& size);
+  CUIMenuView(const glm::vec2& screenSize);
 
-  void Render(const CUIFont& font, CUIText& text, const CUIMenu& menu);
+  void Render(const CUIFont& font, 
+              const CUIText& text, 
+              const CUIMenuLayout& layout,
+              const CUIMenu& menu) const;
 };
 
 #endif // !__BITRACE_UIMENU_H__

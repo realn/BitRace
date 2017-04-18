@@ -19,9 +19,9 @@ CUIFont::CUIFont() {
     fontChar.TexCoord[2] = glm::vec2(cx + 0.0625f, 1 - cy);
     fontChar.TexCoord[3] = glm::vec2(cx, 1 - cy);
 
-    fontChar.Size = glm::vec2(16.0f, 16.0f);
+    fontChar.Size = glm::vec2(1.0f, 1.0f);
 
-    fontChar.Adv = glm::vec2(10.0f, 0.0f);
+    fontChar.Adv = glm::vec2(0.6f, 0.0f);
 
     mCharMap[i] = fontChar;
   }
@@ -51,14 +51,16 @@ const glm::vec2 CUIFont::GetSize(const cb::string & text) const {
 
 
 
-CUIText::CUIText(const glm::vec2& charSize)
+CUIText::CUIText(const glm::vec2& screenSize, const glm::vec2& charSize)
   : mTexture(nullptr)
-  , mColor(1.0f) 
+  , mCharSize(charSize)
 {
-  this->m_Vertex[0] = glm::vec2(0.0f, charSize.y);
-  this->m_Vertex[1] = glm::vec2(charSize.x, charSize.y);
-  this->m_Vertex[2] = glm::vec2(charSize.x, 0.0f);
-  this->m_Vertex[3] = glm::vec2(0.0f, 0.0f);
+  mProjMatrix = glm::ortho(0.0f, screenSize.x, screenSize.y, 0.0f);
+
+  this->mVertex[0] = glm::vec2(0.0f, 1.0f);
+  this->mVertex[1] = glm::vec2(1.0f, 1.0f);
+  this->mVertex[2] = glm::vec2(1.0f, 0.0f);
+  this->mVertex[3] = glm::vec2(0.0f, 0.0f);
 }
 
 CUIText::~CUIText() {
@@ -108,13 +110,15 @@ const bool CUIText::IsInited() const {
   return mTexture != nullptr;
 }
 
-void CUIText::Bind(const glm::vec2& size) {
+const glm::vec2 CUIText::GetCharSize() const {
+  return mCharSize;
+}
+
+void CUIText::Bind() const {
   if(!IsInited()) {
     cb::error(L"Unitialized UI Text, cannot bind.");
     return;
   }
-  mProjMatrix = glm::ortho(0.0f, size.x, size.y, 0.0f);
-
   glPushAttrib(GL_ENABLE_BIT);
 
   glDisable(GL_DEPTH_TEST);
@@ -125,26 +129,14 @@ void CUIText::Bind(const glm::vec2& size) {
   mTexture->Bind();
 }
 
-void CUIText::UnBind() {
+void CUIText::UnBind() const {
   if(!IsInited()) {
     return;
   }
   glPopAttrib();
 }
 
-void CUIText::SetColor(const glm::vec4 & color) {
-  mColor = color;
-}
-
-void CUIText::SetColor(const glm::vec3 & color) {
-  SetColor(glm::vec4(color, 1.0f));
-}
-
-void CUIText::SetColor(const float r, const float g, const float b, const float a) {
-  SetColor(glm::vec4(r, g, b, a));
-}
-
-void CUIText::Render(const CUIFont& font, const glm::vec2& pos, const cb::string& text) const {
+void CUIText::Render(const CUIFont& font, const glm::vec2& pos, const cb::string& text, const CUITextContext& context) const {
   if(!IsInited()) {
     cb::error(L"Unitialized UI Text, cannot render.");
     return;
@@ -165,11 +157,11 @@ void CUIText::Render(const CUIFont& font, const glm::vec2& pos, const cb::string
     const CUIFont::CChar& fontChar = font.GetChar(text[i]);
 
     for(size_t j = 0; j < 4; j++) {
-      vertList[i * 4 + j] = this->m_Vertex[j] + textPos;
+      vertList[i * 4 + j] = mVertex[j] * mCharSize * fontChar.Size * context.Scale + textPos;
       texList[i * 4 + j] = fontChar.TexCoord[j];
     }
 
-    textPos += fontChar.Adv;
+    textPos += fontChar.Adv * mCharSize * context.Scale;
   }
 
   glLoadMatrixf(glm::value_ptr(mProjMatrix));
@@ -180,7 +172,7 @@ void CUIText::Render(const CUIFont& font, const glm::vec2& pos, const cb::string
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-  glColor4fv(glm::value_ptr(mColor));
+  glColor4fv(glm::value_ptr(context.Color));
   glDrawArrays(GL_QUADS, 0, vertList.size());
 
   glDisableClientState(GL_VERTEX_ARRAY);
@@ -271,3 +263,8 @@ void CUIText::RenderProgressBar(const glm::vec2& pos, const glm::vec2& size, con
 
   RenderQuad(pos, glm::vec2(sizeX, size.y), color);
 }
+
+CUITextContext::CUITextContext()
+  : Color(1.0f, 1.0f, 1.0f, 1.0f)
+  , Scale(1.0f, 1.0f)
+{}
