@@ -16,22 +16,17 @@
 #include "PerfTimer.h"
 #include "InputDevice.h"
 
-#include "RaceTrack.h"
-#include "GUI.h"
-#include "Intro.h"
-#include "Menu.h"
-#include "Game.h"
-#include "HighScore.h"
 #include "UIFont.h"
 
 class IFileSystem;
 class ILogicProcess;
 class IGraphicView;
 
-class CEngine 
-  : public IMenuEventObserver
-{
+class CEngine {
 private:
+  typedef std::map<Uint32, ILogicProcess*> LogicProcessMapT;
+  typedef std::map<Uint32, IGraphicView*> GraphicViewMapT;
+
   std::wofstream mLogFile;
   cb::CLogger mLogger;
 
@@ -47,65 +42,39 @@ private:
 
   CUIFont mUIFont;
   CUIText mUIText;
-  CGUI		        m_GUI;
-
-  CIntroProcess mIntroProcess;
-  CMenuProcess mMenuProcess;
-  CGameProcess mGameProcess;
-  CSpace			m_Space;
-  CHighScore		mHS;
-
-  CIntroView mIntroView;
-  CMenuView mMenuView;
-  CGameView mGameView;
 
   float mFrameTime;
   float mFrameStepTime;
-  bool			m_bShutdown;
+  bool	mRun;
 
-  glm::mat4 mProjMatrix;
-
-  enum GAME_STATE {
-    GS_INTRO = 0,
-    GS_MENU,
-    GS_GAME,
-    GS_HIGH,
-    GS_EXIT
-  };
-  unsigned m_uGameState;
+  LogicProcessMapT mLogicProcessMap;
+  GraphicViewMapT mGraphicViewMap;
 
 public:
   CEngine();
   ~CEngine();
 
   const bool Init(const cb::string& cmdLine);
-  bool InitInput();
-  bool InitGame();
 
   void Free();
+
+  int MainLoop();
+
+private:
+  void SaveConfig();
+  void LoadConfig();
+
+  const bool InitDisplay(const cb::string& title);
+  const bool InitInput();
+  const bool InitGame();
+
+  void FreeDisplay();
   void FreeInput();
   void FreeGame();
 
   void Update();
   void UpdateLogic(const float timeDelta);
-  void MenuItemAction(CGUIMenuManager& menuMng, CGUIMenu& menu, CGUIMenuItem& item);
-  void UpdateGame(const float timeDelta);
 
   void Render();
-  void RenderGame();
-  void RenderGUI();
-
-  int MainLoop();
-
-private:
-  const bool InitDisplay(const cb::string& title);
-
-  void FreeDisplay();
-
-  void SaveConfig();
-  void LoadConfig();
-
-  const GAME_STATE GetNextState() const;
-
-  ILogicProcess* GetLogicProcess(const GAME_STATE state);
+  void RenderFrame();
 };

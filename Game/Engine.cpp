@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include "BasicFileSystem.h"
 #include "UIMenu.h"
+#include "Model.h"
 
 CEngine::CEngine()
   : mpFileSystem(NULL)
@@ -9,18 +10,10 @@ CEngine::CEngine()
   , mpGLContext(NULL)
   , mUIFont()
   , mUIText()
-  , m_GUI()
-  , mIntroProcess()
-  , mMenuProcess(m_GUI, mIDevMap)
-  , mGameProcess(mConfig, mIDevMap)
-  , mIntroView(mIntroProcess)
-  , mMenuView(mMenuProcess)
-  , mGameView(mGameProcess)
-  , mHS(mIDevMap)
   , mFrameTime(0.0f)
   , mFrameStepTime(0.01f)
-  , m_bShutdown(false)
-  , m_uGameState(GS_INTRO) {
+  , mRun(true) {
+
   mLogFile.open(L"game.log", std::ios::out | std::ios::trunc);
   mLogger.AddStream(&mLogFile);
 
@@ -33,11 +26,12 @@ CEngine::CEngine()
 
 CEngine::~CEngine() {
   Free();
+
+  delete mpFileSystem;
+
   SDL_Quit();
 
   cb::CLogger::SetInstance(nullptr);
-
-  delete mpFileSystem;
 }
 
 const bool CEngine::Init(const cb::string& cmdLine) {
@@ -49,12 +43,12 @@ const bool CEngine::Init(const cb::string& cmdLine) {
     Free();
     return false;
   }
-  if(!this->InitInput()) {
+  if(!InitInput()) {
     cb::error(L"Can't initialize input.");
     Free();
     return false;
   }
-  if(!this->InitGame()) {
+  if(!InitGame()) {
     cb::error(L"Can't Initialize Final Game Settings");
     Free();
     return false;
@@ -64,74 +58,45 @@ const bool CEngine::Init(const cb::string& cmdLine) {
   return true;
 }
 
-bool  CEngine::InitInput() {
-  SDL_InitSubSystem(SDL_INIT_EVENTS);
-
-  mIDevMap.AddDevice(InputDevice::Keyboard, new CKeyboardInputDevice());
-  mIDevMap.AddDevice(InputDevice::Mouse, new CMouseInputDevice(mConfig.Screen.GetSize()));
-
-  return true;
-}
-
-bool CEngine::InitGame() {
-  if(!mTimer.Init()) {
-    return false;
-  }
-
-
-  std::srand((Uint32)mTimer.GetLastTick());
-
-  m_GUI.Init();
-
-  mGameProcess.Init();
-  this->mHS.LoadScores(L"score.hsf");
-
-  if(!mMenuProcess.Init(mConfig)) {
-    cb::error(L"Failed to initialize menu process.");
-    return false;
-  }
-  mMenuProcess.AddObserver(this);
-
-  mIntroView.Init(L"logos.fgx");
-  mMenuView.Init(mConfig.Screen.GetSize());
-
-  return true;
-}
-
 void CEngine::Free() {
-  this->FreeGame();
-  this->FreeInput();
+  FreeGame();
+  FreeInput();
   FreeDisplay();
 }
 
-void CEngine::FreeInput() {
-  SDL_QuitSubSystem(SDL_INIT_EVENTS);
-}
-
-void CEngine::FreeGame() {
-  mMenuProcess.RemoveObserver(this);
-  mGameProcess.Free();
-  m_GUI.Free();
-  mIntroView.Free();
-  CModelRepository::Instance.Clear();
-}
 
 int CEngine::MainLoop() {
   SDL_Event event;
 
-  while(!m_bShutdown) {
+  while(mRun) {
 
     if(SDL_PollEvent(&event)) {
-      if(event.type == SDL_QUIT)
-        this->m_bShutdown = true;
+      if(event.type == SDL_QUIT) {
+        mRun = false;
+      }
     }
 
-    this->Update();
-    this->Render();
+    Update();
+    Render();
   }
 
   Free();
   return 0;
+}
+
+void CEngine::SaveConfig() {
+  cb::info(cb::format(L"Saving config file to path {0}.", mConfigFilePath));
+  if(!mConfig.Write(*mpFileSystem, mConfigFilePath)) {
+    cb::error(L"Failed to save config file.");
+  }
+}
+
+void CEngine::LoadConfig() {
+  cb::info(cb::format(L"Loading config file from path {0}.", mConfigFilePath));
+  if(!mConfig.Read(*mpFileSystem, mConfigFilePath)) {
+    cb::error(L"Failed to load config file, reseting fo default.");
+    mConfig = CConfig();
+  }
 }
 
 const bool CEngine::InitDisplay(const cb::string & title) {
@@ -147,6 +112,7 @@ const bool CEngine::InitDisplay(const cb::string & title) {
   }
 
   cb::charvector szTitle = cb::toUtf8(title);
+  szTitle.push_back(0);
   mpWindow = SDL_CreateWindow(cb::vectorptr(szTitle),
                                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                int(mConfig.Screen.Width),
@@ -208,13 +174,29 @@ const bool CEngine::InitDisplay(const cb::string & title) {
   glLineWidth(2.0f);
   glPointSize(1.0f);
 
-  mProjMatrix = glm::perspectiveFov(glm::radians(50.0f),
-                                    float(mConfig.Screen.Width),
-                                    float(mConfig.Screen.Height),
-                                    1.0f, 50000.0f);
+  return true;
+}
+
+const bool  CEngine::InitInput() {
+  SDL_InitSubSystem(SDL_INIT_EVENTS);
+
+  mIDevMap.AddDevice(InputDevice::Keyboard, new CKeyboardInputDevice());
+  mIDevMap.AddDevice(InputDevice::Mouse, new CMouseInputDevice(mConfig.Screen.GetSize()));
 
   return true;
 }
+
+const bool CEngine::InitGame() {
+  if(!mTimer.Init()) {
+    return false;
+  }
+  std::srand((Uint32)mTimer.GetLastTick());
+
+
+
+  return true;
+}
+
 
 void CEngine::FreeDisplay() {
   if(mpGLContext) {
@@ -230,37 +212,22 @@ void CEngine::FreeDisplay() {
   SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
-void CEngine::SaveConfig() {
-  cb::info(cb::format(L"Saving config file to path {0}.", mConfigFilePath));
-  if(!mConfig.Write(*mpFileSystem, mConfigFilePath)) {
-    cb::error(L"Failed to save config file.");
-  }
+void CEngine::FreeInput() {
+  SDL_QuitSubSystem(SDL_INIT_EVENTS);
 }
 
-void CEngine::LoadConfig() {
-  cb::info(cb::format(L"Loading config file from path {0}.", mConfigFilePath));
-  if(!mConfig.Read(*mpFileSystem, mConfigFilePath)) {
-    cb::error(L"Failed to load config file, reseting fo default.");
-    mConfig = CConfig();
+void CEngine::FreeGame() {
+  for(GraphicViewMapT::iterator it = mGraphicViewMap.begin(); it != mGraphicViewMap.end(); it++) {
+    delete it->second;
   }
-}
+  mGraphicViewMap.clear();
 
-const CEngine::GAME_STATE CEngine::GetNextState() const {
-  switch(m_uGameState) {
-  case GS_INTRO:  return GS_MENU;
-  case GS_MENU:   return GS_MENU;
-  case GS_GAME:
-    {
-      if(mGameProcess.IsGameOver())
-        return GS_HIGH;
-      else
-        return GS_MENU;
-    }
-  case GS_HIGH: return GS_MENU;
-
-  default:
-    return GS_INTRO;
+  for(LogicProcessMapT::iterator it = mLogicProcessMap.begin(); it != mLogicProcessMap.end(); it++) {
+    delete it->second;
   }
+  mLogicProcessMap.clear();
+
+  CModelRepository::Instance.Clear();
 }
 
 void CEngine::Update() {
@@ -275,181 +242,14 @@ void CEngine::Update() {
   }
 }
 
-void CEngine::UpdateLogic(const float timeDelta) {
-  static bool down2 = false;
-  switch(m_uGameState) {
-  case GS_INTRO:
-    mIntroProcess.Update(timeDelta);
-    if(mIntroProcess.IsIntroEnded() ||
-       mIDevMap.GetState(InputDevice::Keyboard, (Uint32)KeyboardType::KeyPress, SDL_SCANCODE_ESCAPE)) {
-      m_uGameState = GS_MENU;
-    }
-    break;
-
-  case GS_MENU:
-    mMenuProcess.Update(timeDelta);
-    break;
-
-  case GS_GAME:
-    if(!mMenuProcess.GetMenuManager().GetCurrentMenu()->IsHidden()) {
-      CGUIMenu* M = mMenuProcess.GetMenuManager().GetCurrentMenu();
-      if(!M->IsHiding())
-        M->Hide();
-      mMenuProcess.Update(timeDelta);
-    }
-    else
-      mGameProcess.Update(timeDelta);
-    break;
-
-  case GS_HIGH:
-    mHS.Update(timeDelta);
-    if(mHS.IsEnded()) {
-      mHS.SaveScores(L"score.hsf");
-      mMenuProcess.GetMenuManager().ForceSwitchToMenu(CMenuProcess::MENU_HIGH);
-      m_uGameState = GS_MENU;
-    }
-    break;
-  };
-}
-
-void CEngine::UpdateGame(const float timeDelta) {}
-
-void CEngine::MenuItemAction(CGUIMenuManager& menuMng, CGUIMenu& menu, CGUIMenuItem& item) {
-  switch(menu.GetClickedID()) {
-  case CMenuProcess::MI_RETURN:
-    m_uGameState = GS_GAME;
-    break;
-
-  case CMenuProcess::MI_NEWGAME:
-    mGameProcess.ResetGame();
-    m_uGameState = GS_GAME;
-    break;
-
-  case CMenuProcess::MI_EXIT:
-    m_bShutdown = true;
-    break;
-
-  case CMenuProcess::MI_HIGH:
-  case CMenuProcess::MI_OPTIONS:
-  case CMenuProcess::MI_GOBACK:
-    menuMng.SwitchToMenu(item.GetUserDefID());
-    break;
-
-  case CMenuProcess::MI_RESOLUTION:
-    break;
-
-  case CMenuProcess::MI_SMOOTHSHADE:
-    mConfig.Render.SmoothShade = !mConfig.Render.SmoothShade;
-    if(mConfig.Render.SmoothShade) {
-      glShadeModel(GL_SMOOTH);
-      item.SetName("Smooth Shading: Enabled");
-    }
-    else {
-      glShadeModel(GL_FLAT);
-      item.SetName("Smooth Shading: Disabled");
-    }
-    SaveConfig();
-    break;
-
-  case CMenuProcess::MI_SMOOTHLINE:
-    mConfig.Render.SmoothLines = !mConfig.Render.SmoothLines;
-    if(mConfig.Render.SmoothLines) {
-      glEnable(GL_LINE_SMOOTH);
-      item.SetName("Smooth Lines: Enabled");
-    }
-    else {
-      glDisable(GL_LINE_SMOOTH);
-      item.SetName("Smooth Lines: Disabled");
-    }
-    SaveConfig();
-    break;
-
-  case CMenuProcess::MI_FULLSCREEN:
-    mConfig.Screen.Fullscreen = !mConfig.Screen.Fullscreen;
-    if(mConfig.Screen.Fullscreen)
-      item.SetName("Fullscreen: Enabled");
-    else
-      item.SetName("Fullscreen: Disabled");
-    menu.GetMenuItem(CMenuProcess::MI_OPWARNING)->SetEnable(true);
-    SaveConfig();
-    break;
-
-  case CMenuProcess::MI_FPSCOUNTER:
-    mConfig.Diag.FPSCounter = !mConfig.Diag.FPSCounter;
-    item.SetName((mConfig.Diag.FPSCounter) ? "FPS Counter: Enabled" : "FPS Counter: Disabled");
-    SaveConfig();
-    break;
-
-  case CMenuProcess::MI_VSYNC:
-    mConfig.Screen.VSync = !mConfig.Screen.VSync;
-    if(mConfig.Screen.VSync) {
-      //wglSwapIntervalEXT(1);
-      item.SetName("VSync: Enabled");
-    }
-    else {
-      //wglSwapIntervalEXT(0);
-      item.SetName("VSync: Disabled");
-    }
-    SaveConfig();
-    break;
-
-  case CMenuProcess::MI_HSRESET:
-    mHS.ResetAllScores();
-    mHS.SaveScores(L"score.hsf");
-    break;
-  };
-}
+void CEngine::UpdateLogic(const float timeDelta) {}
 
 void CEngine::Render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  RenderGame();
-  RenderGUI();
+  RenderFrame();
 
   SDL_GL_SwapWindow(mpWindow);
 }
 
-void CEngine::RenderGame() {
-  switch(m_uGameState) {
-  case GS_INTRO:
-    mIntroView.Render(mProjMatrix);
-    break;
-
-  case GS_MENU:
-    mMenuView.Render(mProjMatrix);
-    break;
-
-  case GS_GAME:
-    mGameView.Render(mProjMatrix);
-    break;
-
-  case GS_HIGH:
-    mHS.Render(mProjMatrix);
-    break;
-
-  default:
-    break;
-  }
-}
-
-void CEngine::RenderGUI() {
-  m_GUI.Begin(mConfig.Screen.GetSize());
-  switch(m_uGameState) {
-  case GS_INTRO:
-    mIntroView.RenderUI(m_GUI);
-    break;
-
-  case GS_MENU:
-    mMenuView.RenderUI(m_GUI);
-    break;
-
-  case GS_GAME:
-    mGameView.RenderUI(m_GUI);
-    break;
-
-  case GS_HIGH:
-    mHS.RenderUI(m_GUI);
-    break;
-  };
-  m_GUI.End();
-}
+void CEngine::RenderFrame() {}
