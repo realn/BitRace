@@ -1,7 +1,7 @@
 #pragma once
 
 #define GAME_NAME "BitRace"
-#define GAME_FULLNAME "CodeRulers BitRace v1.0a"
+#define GAME_FULLNAME L"CodeRulers BitRace v1.0a"
 #define GAME_DI_BUFSIZE 32
 #define	GAME_BLEND_TEX_SIZE	64
 
@@ -40,13 +40,10 @@ private:
   CPerfTimer mTimer;
   CInputDeviceMap mIDevMap;
 
-  ILogicProcess* mpProcess;
-  IGraphicView* mpView;
-
   cb::string mConfigFilePath;
 
-  SDL_Window*   m_pWindow;
-  SDL_GLContext m_pGLContext;
+  SDL_Window*   mpWindow;
+  SDL_GLContext mpGLContext;
 
   CUIFont mUIFont;
   CUIText mUIText;
@@ -65,9 +62,6 @@ private:
   float mFrameTime;
   float mFrameStepTime;
   bool			m_bShutdown;
-  bool			m_bGamePause;
-  bool			m_bTakeScreen;
-  unsigned int	m_uBlurTexture;
 
   glm::mat4 mProjMatrix;
 
@@ -80,25 +74,16 @@ private:
   };
   unsigned m_uGameState;
 
-  SDL_DisplayMode m_ModeOryginal;
-  std::vector<SDL_DisplayMode> m_ModeList;
-
 public:
   CEngine();
   ~CEngine();
 
-  bool Init(std::string strCmdLine);
-  bool InitWindow(std::string strTitle);
-  bool InitRender();
+  const bool Init(const cb::string& cmdLine);
   bool InitInput();
-  bool InitOpenGL();
   bool InitGame();
 
   void Free();
-  void FreeWindow();
-  void FreeRender();
   void FreeInput();
-  void FreeOpenGL();
   void FreeGame();
 
   void Update();
@@ -109,20 +94,18 @@ public:
   void Render();
   void RenderGame();
   void RenderGUI();
-  void RenderMenu();
-  void TakeScreenshot();
-  void ScanDispModes();
-  void ChangeDispMode();
 
   int MainLoop();
 
-  static float	s_fMaxDT;
-
-  void UpdateHS();
-
 private:
+  const bool InitDisplay(const cb::string& title);
+
+  void FreeDisplay();
+
   void SaveConfig();
   void LoadConfig();
 
   const GAME_STATE GetNextState() const;
+
+  ILogicProcess* GetLogicProcess(const GAME_STATE state);
 };
