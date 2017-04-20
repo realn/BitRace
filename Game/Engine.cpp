@@ -2,9 +2,7 @@
 #include "Engine.h"
 #include "BasicFileSystem.h"
 #include "Model.h"
-#include "GraphicView.h"
-#include "FrameProcess.h"
-#include "Menu.h"
+#include "GameState.h"
 
 CEngine::CEngine()
   : mpFileSystem(NULL)
@@ -14,7 +12,7 @@ CEngine::CEngine()
   , mFrameStepTime(0.01f)
   , mInited(false)
   , mRun(true)
-  , mState(0) {
+  , mState(nullptr) {
 
   mLogFile.open(L"game.log", std::ios::out | std::ios::trunc);
   mLogger.AddStream(&mLogFile);
@@ -41,50 +39,6 @@ CEngine::~CEngine() {
 
   cb::CLogger::SetInstance(nullptr);
 }
-
-const bool CEngine::Init(const cb::string& cmdLine) {
-  if(mInited) {
-    cb::warn(L"Engine already initialized.");
-    return true;
-  }
-
-  cb::info(L"Initializing engine.");
-  mConfigFilePath = L"main.cfg";
-  LoadConfig();
-
-  if(!InitDisplay(GAME_FULLNAME)) {
-    cb::error(L"Failed to initialize main display.");
-    return false;
-  }
-  if(!InitInput()) {
-    cb::error(L"Can't initialize input.");
-    return false;
-  }
-  if(!InitGame()) {
-    cb::error(L"Can't Initialize Final Game Settings");
-    return false;
-  }
-
-  mTimer.Update();
-  mInited = true;
-  cb::info(L"Engine initialized.");
-  return true;
-}
-
-void CEngine::Free() {
-  if(!mInited) {
-    cb::warn(L"Engine already freed.");
-    return;
-  }
-
-  cb::info(L"Freeing engine.");
-  FreeGame();
-  FreeInput();
-  FreeDisplay();
-  mInited = false;
-  cb::info(L"Engine freed.");
-}
-
 
 int CEngine::MainLoop(const cb::string& cmdLine) {
   SDL_Event event;
@@ -124,6 +78,35 @@ void CEngine::LoadConfig() {
     cb::error(L"Failed to load config file, reseting fo default.");
     mConfig = CConfig();
   }
+}
+
+const bool CEngine::Init(const cb::string& cmdLine) {
+  if(mInited) {
+    cb::warn(L"Engine already initialized.");
+    return true;
+  }
+
+  cb::info(L"Initializing engine.");
+  mConfigFilePath = L"main.cfg";
+  LoadConfig();
+
+  if(!InitDisplay(GAME_FULLNAME)) {
+    cb::error(L"Failed to initialize main display.");
+    return false;
+  }
+  if(!InitInput()) {
+    cb::error(L"Can't initialize input.");
+    return false;
+  }
+  if(!InitGame()) {
+    cb::error(L"Can't Initialize Final Game Settings");
+    return false;
+  }
+
+  mTimer.Update();
+  mInited = true;
+  cb::info(L"Engine initialized.");
+  return true;
 }
 
 const bool CEngine::InitDisplay(const cb::string & title) {
@@ -246,12 +229,31 @@ const bool CEngine::InitGame() {
   }
   std::srand((Uint32)mTimer.GetLastTick());
 
-  mState = 0;
+  CGameState* pState = new CGameState(mConfig, mIDevMap);
+  if(!pState->Init()) {
+    cb::error(L"Failed to initialize game state.");
+    delete pState;
+    return false;
+  }
+  mState = pState;
 
   cb::info(L"Game initialized.");
   return true;
 }
 
+void CEngine::Free() {
+  if(!mInited) {
+    cb::warn(L"Engine already freed.");
+    return;
+  }
+
+  cb::info(L"Freeing engine.");
+  FreeGame();
+  FreeInput();
+  FreeDisplay();
+  mInited = false;
+  cb::info(L"Engine freed.");
+}
 
 void CEngine::FreeDisplay() {
   cb::info(L"Freeing display.");
@@ -284,15 +286,12 @@ void CEngine::FreeInput() {
 
 void CEngine::FreeGame() {
   cb::info(L"Freeing game.");
-  for(GraphicViewMapT::iterator it = mGraphicViewMap.begin(); it != mGraphicViewMap.end(); it++) {
-    delete it->second;
-  }
-  mGraphicViewMap.clear();
 
-  for(FrameProcessMapT::iterator it = mFrameProcessMap.begin(); it != mFrameProcessMap.end(); it++) {
-    delete it->second;
+  if(mState != nullptr) {
+    cb::debug(L"Removing state.");
+    delete mState;
+    mState = nullptr;
   }
-  mFrameProcessMap.clear();
 
   cb::debug(L"Clearing 3d model cache.");
   CModelRepository::Instance.Clear();
@@ -309,15 +308,16 @@ void CEngine::Update() {
 
     mFrameTime -= mFrameStepTime;
   }
+
+  if(mState != nullptr) {
+    mState->UpdateRender();
+  }
 }
 
 void CEngine::UpdateFrame(const float timeDelta) {
-  FrameProcessMapT::iterator it = mFrameProcessMap.find(mState);
-  if(it == mFrameProcessMap.end()) {
-    return;
+  if(mState != nullptr) {
+    mState->Update(timeDelta);
   }
-
-  it->second->Update(timeDelta);
 }
 
 void CEngine::Render() {
@@ -329,11 +329,9 @@ void CEngine::Render() {
 }
 
 void CEngine::RenderFrame() {
-  GraphicViewMapT::iterator it = mGraphicViewMap.find(mState);
-  if(it == mGraphicViewMap.end()) {
+  if(mState == nullptr)
     return;
-  }
 
-  it->second->RenderView();
-  it->second->RenderUI();
+  mState->Render();
+  mState->RenderUI();
 }

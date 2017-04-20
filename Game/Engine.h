@@ -17,14 +17,10 @@
 #include "UIFont.h"
 
 class IFileSystem;
-class IFrameProcess;
-class IGraphicView;
+class IEngineState;
 
 class CEngine {
 private:
-  typedef std::map<Uint32, IFrameProcess*> FrameProcessMapT;
-  typedef std::map<Uint32, IGraphicView*> GraphicViewMapT;
-
   std::wofstream mLogFile;
   cb::CLogger mLogger;
 
@@ -44,27 +40,24 @@ private:
   bool mInited;
   bool mRun;
 
-  FrameProcessMapT mFrameProcessMap;
-  GraphicViewMapT mGraphicViewMap;
-
-  Uint32 mState;
+  IEngineState* mState;
 
 public:
   CEngine();
   ~CEngine();
 
-  const bool Init(const cb::string& cmdLine);
-  void Free();
   int MainLoop(const cb::string& cmdLine);
 
 private:
   void SaveConfig();
   void LoadConfig();
 
+  const bool Init(const cb::string& cmdLine);
   const bool InitDisplay(const cb::string& title);
   const bool InitInput();
   const bool InitGame();
 
+  void Free();
   void FreeDisplay();
   void FreeInput();
   void FreeGame();
