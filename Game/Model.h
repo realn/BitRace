@@ -80,3 +80,6 @@ public:
 
   static CModelRepository Instance;
 };
+
+extern const cb::string toStr(const ModelType type);
+extern const bool fromStr(const cb::string& text, ModelType& outType);

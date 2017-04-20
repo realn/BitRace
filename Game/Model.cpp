@@ -346,10 +346,9 @@ void CModelData::CreateIndexLines() {
 CModel::CModel()
   : mVertexBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW)
   , mIndexBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW)
-  , mType(ModelType::MT_NONE) 
+  , mType(ModelType::MT_NONE)
   , mLineIndicesNumber(0)
-  , mTriangleIndicesNumber(0)
-{
+  , mTriangleIndicesNumber(0) {
 
 }
 
@@ -397,14 +396,14 @@ void CModel::Render(const glm::vec4& lineColor, const glm::vec4& triColor) {
 
   glColor4fv(glm::value_ptr(triColor));
   glDrawElements(GL_TRIANGLES,
-                 mTriangleIndicesNumber, 
-                 GL_UNSIGNED_SHORT, 
+                 mTriangleIndicesNumber,
+                 GL_UNSIGNED_SHORT,
                  nullptr);
 
   glColor4fv(glm::value_ptr(lineColor));
-  glDrawElements(GL_LINES, 
-                 mLineIndicesNumber, 
-                 GL_UNSIGNED_SHORT, 
+  glDrawElements(GL_LINES,
+                 mLineIndicesNumber,
+                 GL_UNSIGNED_SHORT,
                  reinterpret_cast<void*>(mTriangleIndicesNumber * sizeof(Uint16)));
 
   glDisableClientState(GL_VERTEX_ARRAY);
@@ -447,3 +446,38 @@ void CModelRepository::Clear() {
   mModelMap.clear();
 }
 
+typedef std::map<ModelType, cb::string> _ModelTypeStrMapT;
+static _ModelTypeStrMapT gModelTypeMap = {
+  {ModelType::MT_NONE, L"None"},
+  {ModelType::MT_BOMB, L"Bomb"},
+  {ModelType::MT_DL_PART, L"DlPart"},
+  {ModelType::MT_DL_PART2, L"DlPart2"},
+  {ModelType::MT_HACK, L"Hack"},
+  {ModelType::MT_HACK2, L"Hack2"},
+  {ModelType::MT_HTTP10, L"Http10"},
+  {ModelType::MT_HTTP20, L"Http20"},
+  {ModelType::MT_P2PBT, L"P2PBT"},
+  {ModelType::MT_P2PEDK2K, L"P2PEDK2K"},
+  {ModelType::MT_P2PFT, L"P2PFT"},
+  {ModelType::MT_P2PFT20, L"P2PFT20"},
+  {ModelType::MT_P2PGNU, L"P2PGNU"},
+  {ModelType::MT_P2PGNU2, L"P2PGNU2"},
+};
+
+const cb::string toStr(const ModelType type) {
+  _ModelTypeStrMapT::iterator it = gModelTypeMap.find(type);
+  if(it != gModelTypeMap.end())
+    return it->second;
+
+  return L"None";
+}
+
+const bool fromStr(const cb::string & text, ModelType & outType) {
+  for(_ModelTypeStrMapT::iterator it = gModelTypeMap.begin(); it != gModelTypeMap.end(); it++) {
+    if(it->second == text) {
+      outType = it->first;
+      return true;
+    }
+  }
+  return false;
+}

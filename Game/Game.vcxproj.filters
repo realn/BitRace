@@ -85,6 +85,9 @@
     <ClCompile Include="GameState.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="GameEntity.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -155,6 +158,9 @@
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="GameState.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GameEntity.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>

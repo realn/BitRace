@@ -4,6 +4,9 @@
 #include "Model.h"
 #include "GameState.h"
 
+#include "GameEntity.h"
+#include <CBXml/Serialize.h>
+
 CEngine::CEngine()
   : mpFileSystem(NULL)
   , mpWindow(NULL)
@@ -228,6 +231,21 @@ const bool CEngine::InitGame() {
     return false;
   }
   std::srand((Uint32)mTimer.GetLastTick());
+
+  GameEntityTypeMapT entityTypes;
+  CGameEntityType type;
+  type.Name = L"DownloadPart";
+  type.Color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+  type.Damage = -20.0f;
+  type.ModelType = ModelType::MT_DL_PART;
+  type.Speed = glm::vec2(0.0f, 50.0f);
+  type.Type = EntityType::ET_ITEM;
+
+  entityTypes[L"DLPART"] = type;
+
+  mpFileSystem->WriteXml(L"entityType.xml", L"EntityType", type);
+
+  mpFileSystem->WriteXml(L"entityTypes.xml", L"EntityTypes", entityTypes);
 
   CGameState* pState = new CGameState(mConfig, mIDevMap);
   if(!pState->Init()) {

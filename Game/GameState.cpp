@@ -14,6 +14,8 @@ const bool CGameState::Init() {
   this->mRacer.SetColor(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
   this->mRaceTrack.Init();
   this->mRaceTrack.SetRacer(&mRacer);
+  
+
   return true;
 }
 

@@ -5,68 +5,19 @@
 
 #include "Space.h"
 #include "Racer.h"
+#include "GameEntity.h"
 
 class CGUI;
 
 class CRaceTrack {
-public:
-
-  class CShot {
-  private:
-    glm::vec2	m_vVec;
-    glm::vec2	m_vPos;
-    glm::vec3	m_vColor;
-    float	m_fDamage;
-    bool	m_bCanDelete;
-  public:
-    CShot(glm::vec2 vVec, glm::vec2 vStartPos, glm::vec3 vColor, float fDamage);
-    void Engine(float fDT);
-    void SetRender(glm::vec3* vpLine, glm::vec3* vpColor);
-    glm::vec2 GetPos() const;
-    glm::vec2 GetVec() const;
-    float GetDamage() const;
-    void SetCanDelete(bool bSet);
-    bool GetCanDelete();
-  };
-
-  class CEntity {
-  private:
-    CModel*	m_Model;
-    glm::vec2	m_vPos;
-    glm::vec2	m_vVec;
-    glm::vec3	m_vColor;
-    float	m_fValue;
-    float	m_fHealth;
-    float	m_fTemp;
-    unsigned	m_uType;
-    ModelType	mModelType;
-    bool	m_bCanDelete;
-  public:
-    enum ENTITY_TYPE {
-      ET_NONE = 0,
-      ET_BONUS = 1,
-      ET_ENEMY = 2
-    };
-    CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec3 vColor, const ModelType modelType);
-    bool	Engine(float fDT, float fRacerPosX, CShot** aShotList, const unsigned uShotCount);
-    void	Render(const glm::mat4& transform) const;
-    float	GetValue();
-    float	GetHealth();
-    unsigned	GetType();
-    const ModelType	GetModelType() const;
-    glm::vec2	GetPos();
-    void SetCanDelete(bool bSet);
-    bool GetCanDelete();
-  };
 private:
   CSpace	m_SpaceSky;
   CSpace	m_SpaceGround;
   CRacer* m_pRacer;
 
-  std::vector<CShot*> m_aShotList;
-  std::vector<glm::vec3>	m_avShotRenderList;
-  std::vector<glm::vec3>	m_avShotRenderColorList;
-  std::vector<CEntity*>	m_aEntityList;
+  ProjectileVectorT mProjectiles;
+  GameEntityVectorT mEntities;
+  ProjectileVertexVectorT mProjectileVertices;
 
   glm::vec2	m_vMove;
   float	m_fMoveX;
@@ -93,15 +44,13 @@ private:
 
   const glm::vec2 CreateEntityPosition();
 
-  void AddEntity(const glm::vec2& vec, const glm::vec3& color, const ModelType type);
+  void AddEntity(const CGameEntityType& type);
   void AddEntity_DL();
   void AddEntity_DL2();
   void AddEntity_BOMB();
   void AddEntity_HACK();
   void AddEntity_HACK2();
 
-  void Engine_Entity(float fDT);
-  void Engine_Shot(float fDT);
   void Engine_Intro(float fDT);
   void Engine_Track(float fDT);
   void Engine_GameOver(float fDT);
@@ -114,7 +63,6 @@ private:
   void SetUpgScreen(float fTimeOut);
   void SetFSQ(float fTimeOut, glm::vec3 vColor);
   void GenRandomObject();
-  void DeleteShot(size_t i);
   void Clear();
   const std::string GetDifLevelString() const;
   const ModelType GetLevelModelType() const;
@@ -163,5 +111,8 @@ public:
   bool IsGameRuning();
 
 private:
+  void UpdateEntities(const float timeDelta);
+  void UpdateProjectiles(const float timeDelta);
+  void UpdateRenderProjectiles();
   void RenderProjectiles(const glm::mat4& transform) const;
 };

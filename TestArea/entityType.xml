@@ -1,0 +1,1 @@
+<EntityType Name="DownloadPart" Type="Item" Speed="0:50" Color="1:1:0:1" ModelType="DlPart" MaxHealth="1" Damage="-20" AIPause="0.5" IgnoreProjectiles="false" />

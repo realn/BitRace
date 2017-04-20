@@ -98,6 +98,7 @@
     <ClCompile Include="FGXFile.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="GameEntity.cpp" />
     <ClCompile Include="GameState.cpp" />
     <ClCompile Include="GraphicBuffer.cpp" />
     <ClCompile Include="GUI.cpp" />
@@ -128,6 +129,7 @@
     <ClInclude Include="FGXFile.h" />
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="GameEntity.h" />
     <ClInclude Include="GameState.h" />
     <ClInclude Include="GLDefines.h" />
     <ClInclude Include="GraphicBuffer.h" />

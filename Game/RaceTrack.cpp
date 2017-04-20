@@ -7,205 +7,205 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-CRaceTrack::CShot::CShot(glm::vec2 vVec, glm::vec2 vStartPos, glm::vec3 vColor, float fDamage) :
-  m_vVec(vVec), m_vPos(vStartPos), m_vColor(vColor), m_fDamage(fDamage), m_bCanDelete(false) {
-
-}
-
-void CRaceTrack::CShot::Engine(float fDT) {
-  if(m_bCanDelete)
-    return;
-
-  m_vPos += m_vVec * fDT;
-}
-
-void CRaceTrack::CShot::SetRender(glm::vec3 *vpLine, glm::vec3 *vpColor) {
-  if(m_bCanDelete)
-    return;
-
-  glm::vec2 t = glm::normalize(m_vVec) * 3.0f + m_vPos;
-  vpLine[0] = glm::vec3(t.x, 0.0f, t.y);
-  vpLine[1] = glm::vec3(m_vPos.x, 0.0f, m_vPos.y);
-
-  vpColor[0] = m_vColor;
-  vpColor[1] = m_vColor;
-}
-
-glm::vec2 CRaceTrack::CShot::GetPos() const {
-  return m_vPos;
-}
-
-glm::vec2 CRaceTrack::CShot::GetVec() const {
-  return m_vVec;
-}
-
-float CRaceTrack::CShot::GetDamage() const {
-  return m_fDamage;
-}
-
-void CRaceTrack::CShot::SetCanDelete(bool bSet) {
-  m_bCanDelete = bSet;
-}
-
-bool CRaceTrack::CShot::GetCanDelete() {
-  return m_bCanDelete;
-}
-
-//===========================================
-CRaceTrack::CEntity::CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec3 vColor, const ModelType modelType) :
-  m_vPos(vPos), m_vVec(vVec), m_vColor(vColor), m_fTemp(0.0f), mModelType(modelType), m_bCanDelete(false), m_Model(NULL) {
-  if((Uint32)mModelType < 9) {
-    this->m_uType = ET_NONE;
-    return;
-  }
-  switch(mModelType) {
-  default:
-    this->m_uType = ET_NONE;
-    return;
-  case ModelType::MT_DL_PART:
-    this->m_fHealth = 1.0f;
-    this->m_fValue = 100.0f;
-    this->m_uType = ET_BONUS;
-    break;
-  case ModelType::MT_DL_PART2:
-    this->m_fHealth = 1.0f;
-    this->m_fValue = 1000.0f;
-    this->m_uType = ET_BONUS;
-    break;
-  case ModelType::MT_BOMB:
-    this->m_fHealth = 20.0f;
-    this->m_fValue = 15.0f;
-    this->m_uType = ET_ENEMY;
-    break;
-  case ModelType::MT_HACK:
-    this->m_fHealth = 30.0f;
-    this->m_fValue = 30.0f;
-    this->m_uType = ET_ENEMY;
-    break;
-  case ModelType::MT_HACK2:
-    this->m_fHealth = 50.0f;
-    this->m_fValue = 50.0f;
-    this->m_uType = ET_ENEMY;
-    break;
-  };
-  this->m_Model = CModelRepository::Instance.GetModel(mModelType);
-}
-
-bool CRaceTrack::CEntity::Engine(float fDT, float fRacerPosX, CRaceTrack::CShot **aShotList, const unsigned uShotCount) {
-  if(m_bCanDelete)
-    return false;
-
-  this->m_vPos += this->m_vVec * fDT;
-  unsigned i;
-  for(i = 0; i < uShotCount; i++) {
-    if(aShotList[i]->GetCanDelete())
-      continue;
-    if(mModelType != ModelType::MT_BOMB && glm::distance(this->m_vPos, aShotList[i]->GetPos()) < 1.4f) {
-      this->m_fHealth -= aShotList[i]->GetDamage();
-      aShotList[i]->SetCanDelete(true);
-      continue;
-    }
-  }
-  if(m_fHealth <= 0.0f) {
-    this->SetCanDelete(true);
-    if(mModelType != ModelType::MT_DL_PART || mModelType != ModelType::MT_DL_PART2)
-      return true;
-    else return false;
-  }
-  switch(this->m_uType) {
-  default:
-  case ET_NONE:
-    return false;
-  case ET_BONUS:
-    this->m_fTemp += fDT;
-    break;
-  case ET_ENEMY:
-    switch((ModelType)mModelType) {
-    case ModelType::MT_BOMB:
-      this->m_fTemp += 70.0f * fDT;
-      break;
-    case ModelType::MT_HACK:
-      this->m_fTemp += fDT;
-      if(m_fTemp > 0.4f) {
-        m_fTemp = 0.0f;
-        glm::vec2 vRPos = glm::vec2(fRacerPosX, 0.0f);
-        this->m_vVec = glm::normalize(vRPos - this->m_vPos);
-        if(this->m_vVec.y < 0.4f)
-          this->m_vVec.y = 0.4f;
-        this->m_vVec *= 30.0f;
-      }
-      break;
-    case ModelType::MT_HACK2:
-      glm::vec2 vRPos = glm::vec2(fRacerPosX, 0.0f);
-      this->m_vVec = glm::normalize(vRPos - this->m_vPos);
-      this->m_fTemp = glm::degrees(glm::orientedAngle(m_vVec, glm::vec2(0.0f, 1.0f)));
-      if(this->m_vVec.y < 0.4f)
-        this->m_vVec.y = 0.4f;
-      this->m_vVec *= 50.0f;
-      break;
-    };
-    break;
-  };
-  return false;
-}
-
-void CRaceTrack::CEntity::Render(const glm::mat4& transform) const {
-  if(m_bCanDelete)
-    return;
-
-  glm::vec3 rotVec(1.0f, 0.0f, 0.0f);
-  float rotAngle = 0.0f;
-  switch(mModelType) {
-  case ModelType::MT_BOMB:
-    rotAngle = m_fTemp;
-    rotVec = glm::vec3(0.0f, -1.0f, 0.0f);
-    break;
-  case ModelType::MT_HACK:
-    rotAngle = m_fTemp;
-    rotVec = glm::vec3(0.0f, 1.0f, 0.0f);
-    break;
-  case ModelType::MT_HACK2:
-    rotAngle = m_fTemp;
-    rotVec = glm::vec3(0.0f, 1.0f, 0.0f);
-    break;
-  }
-
-  glm::mat4 mat = transform *
-    glm::translate(glm::vec3(m_vPos.x, 3.0f, m_vPos.y)) *
-    glm::rotate(glm::radians(m_fTemp), rotVec);
-
-  glColor3fv(glm::value_ptr(m_vColor));
-  glLoadMatrixf(glm::value_ptr(mat));
-  m_Model->Render(glm::vec4(m_vColor, 1.0f), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-}
-
-float CRaceTrack::CEntity::GetHealth() {
-  return m_fHealth;
-}
-
-bool CRaceTrack::CEntity::GetCanDelete() {
-  return m_bCanDelete;
-}
-
-const ModelType CRaceTrack::CEntity::GetModelType() const {
-  return mModelType;
-}
-
-unsigned CRaceTrack::CEntity::GetType() {
-  return m_uType;
-}
-
-float CRaceTrack::CEntity::GetValue() {
-  return m_fValue;
-}
-
-glm::vec2 CRaceTrack::CEntity::GetPos() {
-  return m_vPos;
-}
-
-void CRaceTrack::CEntity::SetCanDelete(bool bSet) {
-  m_bCanDelete = bSet;
-}
+//CRaceTrack::CShot::CShot(glm::vec2 vVec, glm::vec2 vStartPos, glm::vec3 vColor, float fDamage) :
+//  m_vVec(vVec), m_vPos(vStartPos), m_vColor(vColor), m_fDamage(fDamage), m_bCanDelete(false) {
+//
+//}
+//
+//void CRaceTrack::CShot::Engine(float fDT) {
+//  if(m_bCanDelete)
+//    return;
+//
+//  m_vPos += m_vVec * fDT;
+//}
+//
+//void CRaceTrack::CShot::SetRender(glm::vec3 *vpLine, glm::vec3 *vpColor) {
+//  if(m_bCanDelete)
+//    return;
+//
+//  glm::vec2 t = glm::normalize(m_vVec) * 3.0f + m_vPos;
+//  vpLine[0] = glm::vec3(t.x, 0.0f, t.y);
+//  vpLine[1] = glm::vec3(m_vPos.x, 0.0f, m_vPos.y);
+//
+//  vpColor[0] = m_vColor;
+//  vpColor[1] = m_vColor;
+//}
+//
+//glm::vec2 CRaceTrack::CShot::GetPos() const {
+//  return m_vPos;
+//}
+//
+//glm::vec2 CRaceTrack::CShot::GetVec() const {
+//  return m_vVec;
+//}
+//
+//float CRaceTrack::CShot::GetDamage() const {
+//  return m_fDamage;
+//}
+//
+//void CRaceTrack::CShot::SetCanDelete(bool bSet) {
+//  m_bCanDelete = bSet;
+//}
+//
+//bool CRaceTrack::CShot::GetCanDelete() {
+//  return m_bCanDelete;
+//}
+//
+////===========================================
+//CRaceTrack::CEntity::CEntity(glm::vec2 vPos, glm::vec2 vVec, glm::vec3 vColor, const ModelType modelType) :
+//  m_vPos(vPos), m_vVec(vVec), m_vColor(vColor), m_fTemp(0.0f), mModelType(modelType), m_bCanDelete(false), m_Model(NULL) {
+//  if((Uint32)mModelType < 9) {
+//    this->m_uType = ET_NONE;
+//    return;
+//  }
+//  switch(mModelType) {
+//  default:
+//    this->m_uType = ET_NONE;
+//    return;
+//  case ModelType::MT_DL_PART:
+//    this->m_fHealth = 1.0f;
+//    this->m_fValue = 100.0f;
+//    this->m_uType = ET_BONUS;
+//    break;
+//  case ModelType::MT_DL_PART2:
+//    this->m_fHealth = 1.0f;
+//    this->m_fValue = 1000.0f;
+//    this->m_uType = ET_BONUS;
+//    break;
+//  case ModelType::MT_BOMB:
+//    this->m_fHealth = 20.0f;
+//    this->m_fValue = 15.0f;
+//    this->m_uType = ET_ENEMY;
+//    break;
+//  case ModelType::MT_HACK:
+//    this->m_fHealth = 30.0f;
+//    this->m_fValue = 30.0f;
+//    this->m_uType = ET_ENEMY;
+//    break;
+//  case ModelType::MT_HACK2:
+//    this->m_fHealth = 50.0f;
+//    this->m_fValue = 50.0f;
+//    this->m_uType = ET_ENEMY;
+//    break;
+//  };
+//  this->m_Model = CModelRepository::Instance.GetModel(mModelType);
+//}
+//
+//bool CRaceTrack::CEntity::Engine(float fDT, float fRacerPosX, CRaceTrack::CShot **aShotList, const unsigned uShotCount) {
+//  if(m_bCanDelete)
+//    return false;
+//
+//  this->m_vPos += this->m_vVec * fDT;
+//  unsigned i;
+//  for(i = 0; i < uShotCount; i++) {
+//    if(aShotList[i]->GetCanDelete())
+//      continue;
+//    if(mModelType != ModelType::MT_BOMB && glm::distance(this->m_vPos, aShotList[i]->GetPos()) < 1.4f) {
+//      this->m_fHealth -= aShotList[i]->GetDamage();
+//      aShotList[i]->SetCanDelete(true);
+//      continue;
+//    }
+//  }
+//  if(m_fHealth <= 0.0f) {
+//    this->SetCanDelete(true);
+//    if(mModelType != ModelType::MT_DL_PART || mModelType != ModelType::MT_DL_PART2)
+//      return true;
+//    else return false;
+//  }
+//  switch(this->m_uType) {
+//  default:
+//  case ET_NONE:
+//    return false;
+//  case ET_BONUS:
+//    this->m_fTemp += fDT;
+//    break;
+//  case ET_ENEMY:
+//    switch((ModelType)mModelType) {
+//    case ModelType::MT_BOMB:
+//      this->m_fTemp += 70.0f * fDT;
+//      break;
+//    case ModelType::MT_HACK:
+//      this->m_fTemp += fDT;
+//      if(m_fTemp > 0.4f) {
+//        m_fTemp = 0.0f;
+//        glm::vec2 vRPos = glm::vec2(fRacerPosX, 0.0f);
+//        this->m_vVec = glm::normalize(vRPos - this->m_vPos);
+//        if(this->m_vVec.y < 0.4f)
+//          this->m_vVec.y = 0.4f;
+//        this->m_vVec *= 30.0f;
+//      }
+//      break;
+//    case ModelType::MT_HACK2:
+//      glm::vec2 vRPos = glm::vec2(fRacerPosX, 0.0f);
+//      this->m_vVec = glm::normalize(vRPos - this->m_vPos);
+//      this->m_fTemp = glm::degrees(glm::orientedAngle(m_vVec, glm::vec2(0.0f, 1.0f)));
+//      if(this->m_vVec.y < 0.4f)
+//        this->m_vVec.y = 0.4f;
+//      this->m_vVec *= 50.0f;
+//      break;
+//    };
+//    break;
+//  };
+//  return false;
+//}
+//
+//void CRaceTrack::CEntity::Render(const glm::mat4& transform) const {
+//  if(m_bCanDelete)
+//    return;
+//
+//  glm::vec3 rotVec(1.0f, 0.0f, 0.0f);
+//  float rotAngle = 0.0f;
+//  switch(mModelType) {
+//  case ModelType::MT_BOMB:
+//    rotAngle = m_fTemp;
+//    rotVec = glm::vec3(0.0f, -1.0f, 0.0f);
+//    break;
+//  case ModelType::MT_HACK:
+//    rotAngle = m_fTemp;
+//    rotVec = glm::vec3(0.0f, 1.0f, 0.0f);
+//    break;
+//  case ModelType::MT_HACK2:
+//    rotAngle = m_fTemp;
+//    rotVec = glm::vec3(0.0f, 1.0f, 0.0f);
+//    break;
+//  }
+//
+//  glm::mat4 mat = transform *
+//    glm::translate(glm::vec3(m_vPos.x, 3.0f, m_vPos.y)) *
+//    glm::rotate(glm::radians(m_fTemp), rotVec);
+//
+//  glColor3fv(glm::value_ptr(m_vColor));
+//  glLoadMatrixf(glm::value_ptr(mat));
+//  m_Model->Render(glm::vec4(m_vColor, 1.0f), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+//}
+//
+//float CRaceTrack::CEntity::GetHealth() {
+//  return m_fHealth;
+//}
+//
+//bool CRaceTrack::CEntity::GetCanDelete() {
+//  return m_bCanDelete;
+//}
+//
+//const ModelType CRaceTrack::CEntity::GetModelType() const {
+//  return mModelType;
+//}
+//
+//unsigned CRaceTrack::CEntity::GetType() {
+//  return m_uType;
+//}
+//
+//float CRaceTrack::CEntity::GetValue() {
+//  return m_fValue;
+//}
+//
+//glm::vec2 CRaceTrack::CEntity::GetPos() {
+//  return m_vPos;
+//}
+//
+//void CRaceTrack::CEntity::SetCanDelete(bool bSet) {
+//  m_bCanDelete = bSet;
+//}
 
 //===========================================
 CRaceTrack::CRaceTrack() :
@@ -456,8 +456,9 @@ void CRaceTrack::Engine_Track(float fDT) {
   if(this->m_vMove.x < -20.0f)
     this->m_vMove.x += 20.0f;
 
-  this->Engine_Entity(fDT);
-  this->Engine_Shot(fDT);
+  UpdateEntities(fDT);
+  UpdateProjectiles(fDT);
+  UpdateRenderProjectiles();
   this->CheckDifLevel();
 
   if(m_pRacer->GetBitRate() <= 0.0f)
@@ -486,9 +487,9 @@ void CRaceTrack::Render_Track(const glm::mat4& transform) const {
   mat *= glm::translate(glm::vec3(-m_fMoveX, 3.0f, 0.0));
   RenderProjectiles(mat);
 
-  size_t i;
-  for(i = 0; i < this->m_aEntityList.size(); ++i)
-    this->m_aEntityList[i]->Render(mat);
+  for(GameEntityVectorT::const_iterator it = mEntities.begin(); it != mEntities.end(); it++) {
+    (*it)->Render(mat);
+  }
 }
 
 void CRaceTrack::Engine_GameOver(float fDT) {
@@ -519,17 +520,17 @@ void CRaceTrack::SetRacer(CRacer *pRacer) {
   m_pRacer = pRacer;
 }
 
-void CRaceTrack::DeleteShot(size_t i) {
-  if(i >= this->m_aShotList.size())
-    return;
-
-  delete this->m_aShotList[i];
-  this->m_aShotList.erase(this->m_aShotList.begin() + i);
-  this->m_avShotRenderList.pop_back();
-  this->m_avShotRenderList.pop_back();
-  this->m_avShotRenderColorList.pop_back();
-  this->m_avShotRenderColorList.pop_back();
-}
+//void CRaceTrack::DeleteShot(size_t i) {
+//  if(i >= this->m_aShotList.size())
+//    return;
+//
+//  delete this->m_aShotList[i];
+//  this->m_aShotList.erase(this->m_aShotList.begin() + i);
+//  this->m_avShotRenderList.pop_back();
+//  this->m_avShotRenderList.pop_back();
+//  this->m_avShotRenderColorList.pop_back();
+//  this->m_avShotRenderColorList.pop_back();
+//}
 
 void CRaceTrack::FireWeapon() {
   float fSpeed = 50.0f;
@@ -542,23 +543,23 @@ void CRaceTrack::FireWeapon() {
     else
       vVec = glm::rotate(glm::vec2(0.0f, -1.0f), glm::radians(-6.0f * float(m_uFireCount - 1) / 2.0f + float(i) * 6.0f));
 
-    this->m_aShotList.push_back(new CShot(vVec * fSpeed, vStPos, glm::vec3(0.0f, 0.0f, 1.0f), m_fDamage));
-    this->m_avShotRenderList.push_back(glm::vec3());
-    this->m_avShotRenderList.push_back(glm::vec3());
-    this->m_avShotRenderColorList.push_back(glm::vec3());
-    this->m_avShotRenderColorList.push_back(glm::vec3());
+    mProjectiles.push_back(CProjectile(vStPos, vVec, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), fSpeed, m_fDamage));
+
+    //this->m_avShotRenderList.push_back(glm::vec3());
+    //this->m_avShotRenderList.push_back(glm::vec3());
+    //this->m_avShotRenderColorList.push_back(glm::vec3());
+    //this->m_avShotRenderColorList.push_back(glm::vec3());
   }
 }
 
 void CRaceTrack::Clear() {
-  int i;
-  for(i = int(this->m_aShotList.size() - 1); i >= 0; --i) {
-    this->DeleteShot(i);
+  for(GameEntityVectorT::iterator it = mEntities.begin(); it != mEntities.end(); it++) {
+    delete (*it);
   }
-  for(i = int(this->m_aEntityList.size() - 1); i >= 0; --i) {
-    delete this->m_aEntityList[i];
-    this->m_aEntityList.erase(this->m_aEntityList.begin() + i);
-  }
+  mEntities.clear();
+
+  mProjectiles.clear();
+  mProjectileVertices.clear();
 }
 
 void CRaceTrack::RenderUI(CGUI& gui) const {
@@ -621,29 +622,75 @@ const glm::vec2 CRaceTrack::CreateEntityPosition() {
   return glm::vec2(randF / 100.0f * 30.0f + m_fMoveX + (100.0f * this->m_pRacer->GetVec().x), -80.0f);
 }
 
-void CRaceTrack::AddEntity(const glm::vec2& vec, const glm::vec3& color, const ModelType type) {
-  CEntity* pEntity = new CEntity(this->CreateEntityPosition(), vec, color, type);
-  this->m_aEntityList.push_back(pEntity);
+void CRaceTrack::AddEntity(const CGameEntityType& type) {
+  CGameEntity* pEntity = new CGameEntity(type, CreateEntityPosition());
+  mEntities.push_back(pEntity);
 }
 
 void CRaceTrack::AddEntity_DL() {
-  this->AddEntity(glm::vec2(0.0f, 50.0f), glm::vec3(1.0f, 1.0f, 0.0f), ModelType::MT_DL_PART);
+  CGameEntityType type;
+  type.Name = L"DownloadPart";
+  type.Color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+  type.Damage = -20.0f;
+  type.ModelType = ModelType::MT_DL_PART;
+  type.Speed = glm::vec2(0.0f, 50.0f);
+  type.Type = EntityType::ET_ITEM;
+
+  AddEntity(type);
 }
 
 void CRaceTrack::AddEntity_DL2() {
-  this->AddEntity(glm::vec2(0.0f, 40.0f), glm::vec3(1.0f, 1.0f, 0.0f), ModelType::MT_DL_PART2);
+  CGameEntityType type;
+  type.Name = L"Big DownloadPart";
+  type.Color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
+  type.Damage = -20.0f;
+  type.ModelType = ModelType::MT_DL_PART2;
+  type.Speed = glm::vec2(0.0f, 40.0f);
+  type.Type = EntityType::ET_ITEM;
+
+  AddEntity(type);
 }
 
 void CRaceTrack::AddEntity_BOMB() {
-  this->AddEntity(glm::vec2(0.0f, 50.0f), glm::vec3(1.0f, 0.0f, 1.0f), ModelType::MT_BOMB);
+  CGameEntityType type;
+  type.Name = L"CRC ERR B0MB";
+  type.Color = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
+  type.Damage = 20.0f;
+  type.MaxHealth = 20.0f;
+  type.ModelType = ModelType::MT_BOMB;
+  type.IgnoreProjectiles = true;
+  type.Speed = glm::vec2(0.0f, 50.0f);
+  type.Type = EntityType::ET_OBSTACLE;
+
+  AddEntity(type);
 }
 
 void CRaceTrack::AddEntity_HACK() {
-  this->AddEntity(glm::vec2(0.0f, 30.0f), glm::vec3(0.5f, 0.2f, 0.8f), ModelType::MT_HACK);
+  CGameEntityType type;
+  type.Name = L"H4X0R";
+  type.Color = glm::vec4(0.5f, 0.2f, 0.8f, 1.0f);
+  type.Damage = 20.0f;
+  type.MaxHealth = 30.0f;
+  type.ModelType = ModelType::MT_HACK;
+  type.Speed = glm::vec2(0.0f, 30.0f);
+  type.Type = EntityType::ET_ENEMY;
+  type.AIPause = 0.4f;
+
+  AddEntity(type);
 }
 
 void CRaceTrack::AddEntity_HACK2() {
-  this->AddEntity(glm::vec2(0.0f, 50.0f), glm::vec3(1.0f, 0.0f, 0.0f), ModelType::MT_HACK2);
+  CGameEntityType type;
+  type.Name = L"733T H4X0R";
+  type.Color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+  type.Damage = 50.0f;
+  type.MaxHealth = 50.0f;
+  type.ModelType = ModelType::MT_HACK2;
+  type.Speed = glm::vec2(0.0f, 50.0f);
+  type.Type = EntityType::ET_ENEMY;
+  type.AIPause = 0.05f;
+
+  AddEntity(type);
 }
 
 void CRaceTrack::GenRandomObject() {
@@ -713,70 +760,6 @@ void CRaceTrack::GenRandomObject() {
     else this->AddEntity_HACK2();
     break;
   };
-}
-
-void CRaceTrack::Engine_Entity(float fDT) {
-  int i;
-  for(i = int(this->m_aEntityList.size() - 1); i >= 0; --i) {
-    if(this->m_aShotList.size() != 0) {
-      if(this->m_aEntityList[i]->Engine(fDT, m_fMoveX, &this->m_aShotList[0], (unsigned)this->m_aShotList.size())) {
-        switch(this->m_aEntityList[i]->GetModelType()) {
-        case ModelType::MT_HACK:
-          m_uPoints += 500;
-          break;
-        case ModelType::MT_HACK2:
-          m_uPoints += 2000;
-          if(m_uDifLevel == DL_HOLY_SHIT)
-            this->m_pRacer->ModBitRate(1.0f);
-          break;
-        }
-      }
-    }
-    else this->m_aEntityList[i]->Engine(fDT, m_fMoveX, NULL, 0);
-
-    if(this->m_aEntityList[i]->GetCanDelete()) {
-      delete this->m_aEntityList[i];
-      this->m_aEntityList.erase(this->m_aEntityList.begin() + i);
-      continue;
-    }
-
-    glm::vec3 vPos = glm::vec3(this->m_aEntityList[i]->GetPos().x, 0.0f, this->m_aEntityList[i]->GetPos().y);
-
-    if(glm::distance(glm::vec3(m_fMoveX, 0.0f, 0.0f), vPos) < 2.0f) {
-      this->m_aEntityList[i]->SetCanDelete(true);
-      switch(this->m_aEntityList[i]->GetModelType()) {
-      case ModelType::MT_BOMB:
-      case ModelType::MT_HACK:
-      case ModelType::MT_HACK2:
-        this->m_pRacer->ModBitRate(-this->m_aEntityList[i]->GetValue());
-        this->SetFSQ(0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-        break;
-      case ModelType::MT_DL_PART:
-      case ModelType::MT_DL_PART2:
-        this->m_uPoints += unsigned(this->m_aEntityList[i]->GetValue());
-        this->m_pRacer->ModBitRate(20.0f);
-        this->SetFSQ(0.8f, glm::vec3(0.0f, 1.0f, 0.0));
-      }
-    }
-    if(this->m_aEntityList[i]->GetPos().y > 4.0f) {
-      this->m_aEntityList[i]->SetCanDelete(true);
-    }
-  }
-}
-
-void CRaceTrack::Engine_Shot(float fDT) {
-  int i;
-  for(i = int(this->m_aShotList.size() - 1); i >= 0; --i) {
-    this->m_aShotList[i]->Engine(fDT);
-    if(this->m_aShotList[i]->GetPos().y < -100.0f) {
-      this->DeleteShot((size_t)i);
-      continue;
-    }
-    if(this->m_aShotList[i]->GetCanDelete())
-      this->DeleteShot((size_t)i);
-  }
-  for(i = 0; i < int(this->m_aShotList.size()); ++i)
-    this->m_aShotList[i]->SetRender(&this->m_avShotRenderList[i * 2], &this->m_avShotRenderColorList[i * 2]);
 }
 
 void CRaceTrack::ResetGame() {
@@ -887,17 +870,88 @@ bool CRaceTrack::IsGameRuning() {
   return m_bGameRuning;
 }
 
-void CRaceTrack::RenderProjectiles(const glm::mat4 & transform) const {
-  glLoadMatrixf(glm::value_ptr(transform));
-  if(this->m_aShotList.size() > 0) {
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, &this->m_avShotRenderList[0]);
-    glColorPointer(3, GL_FLOAT, 0, &this->m_avShotRenderColorList[0]);
+void CRaceTrack::UpdateEntities(const float timeDelta) {
+  GameEntityVectorT::iterator it = mEntities.begin();
+  while(it != mEntities.end()) {
+    if((*it)->Update(timeDelta, m_fMoveX, mProjectiles)) {
+      m_uPoints += 100;
+      if(m_uDifLevel == DL_HOLY_SHIT)
+        this->m_pRacer->ModBitRate(1.0f);
+    }
 
-    glDrawArrays(GL_LINES, 0, (GLsizei)this->m_aShotList.size() * 2);
+    if((*it)->IsDeleted()) {
+      delete *it;
+      it = mEntities.erase(it);
+      continue;
+    }
 
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_COLOR_ARRAY);
+    glm::vec3 vPos = glm::vec3((*it)->GetPos().x, 0.0f, (*it)->GetPos().y);
+
+    if(glm::distance(glm::vec3(m_fMoveX, 0.0f, 0.0f), vPos) < 2.0f) {
+      m_pRacer->ModBitRate(-(*it)->GetDamage());
+      if((*it)->GetDamage() > 0.0f) {
+        SetFSQ(0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+      }
+      else {
+        SetFSQ(0.8f, glm::vec3(0.0f, 1.0f, 0.0));
+      }
+      (*it)->Delete();
+    }
+
+    if((*it)->GetPos().y > 4.0f) {
+      (*it)->Delete();
+    }
+
+    it++;
   }
+}
+
+void CRaceTrack::UpdateProjectiles(const float timeDelta) {
+  {
+    ProjectileVectorT::iterator it = mProjectiles.begin();
+    while(it != mProjectiles.end()) {
+      it->Update(timeDelta);
+
+      if(it->IsDeleted() || it->GetPos().y < -100.0f) {
+        it = mProjectiles.erase(it);
+      }
+      else {
+        it++;
+      }
+    }
+  }
+}
+
+void CRaceTrack::UpdateRenderProjectiles() {
+  if(mProjectiles.empty()) {
+    mProjectileVertices.clear();
+    return;
+  }
+
+  mProjectileVertices.resize(mProjectiles.size());
+  for(size_t i = 0; i < mProjectiles.size(); i++) {
+    mProjectiles[i].UpdateRender(mProjectileVertices[i]);
+  }
+}
+
+void CRaceTrack::RenderProjectiles(const glm::mat4 & transform) const {
+  if(mProjectileVertices.empty())
+    return;
+
+  glLoadMatrixf(glm::value_ptr(transform));
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_COLOR_ARRAY);
+
+  size_t vertSize = sizeof(CProjectileVertex) / 2;
+
+  const glm::vec3* vertPtr = cb::vectorcastptr<glm::vec3>(mProjectileVertices);
+  const glm::vec4* colorPtr = reinterpret_cast<const glm::vec4*>(vertPtr + 1);
+
+  glVertexPointer(3, GL_FLOAT, vertSize, vertPtr);
+  glColorPointer(4, GL_FLOAT, vertSize, colorPtr);
+
+  glDrawArrays(GL_LINES, 0, (GLsizei)mProjectileVertices.size() * 2);
+
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_COLOR_ARRAY);
 }
