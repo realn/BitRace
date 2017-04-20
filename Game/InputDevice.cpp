@@ -138,10 +138,7 @@ const glm::ivec2 CMouseInputDevice::GetPosDelta() const {
 CInputDeviceMap::CInputDeviceMap() {}
 
 CInputDeviceMap::~CInputDeviceMap() {
-  for(DeviceMapT::iterator it = mDeviceMap.begin(); it != mDeviceMap.end(); it++) {
-    delete it->second;
-  }
-  mDeviceMap.clear();
+  Clear();
 }
 
 void CInputDeviceMap::AddDevice(const InputDevice id, CInputDevice * pDevice) {
@@ -150,6 +147,13 @@ void CInputDeviceMap::AddDevice(const InputDevice id, CInputDevice * pDevice) {
     mDeviceMap.erase(it);
   }
   mDeviceMap[id] = pDevice;
+}
+
+void CInputDeviceMap::Clear() {
+  for(DeviceMapT::iterator it = mDeviceMap.begin(); it != mDeviceMap.end(); it++) {
+    delete it->second;
+  }
+  mDeviceMap.clear();
 }
 
 const bool CInputDeviceMap::GetState(const InputDevice devId, const Uint32 type, const Uint32 id) const {

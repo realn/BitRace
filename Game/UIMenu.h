@@ -5,9 +5,22 @@
 #include <CBStr/Defines.h>
 #include <vector>
 
+class CUIMenuLayout {
+public:
+  glm::vec2 ItemsPos;
+  glm::vec2 ItemPadding;
+  glm::vec2 TitleScale;
+  glm::vec2 TitlePos;
+
+  CUIMenuLayout();
+};
+
+class CUIFont;
+class CUIText;
+
 class CUIMenu {
 public:
-  enum ITEMFLAT {
+  enum ITEMFLAG {
     IF_HIDDEN = 0x1,
     IF_HIGHLIGHT = 0x2,
     IF_FOCUS = 0x4
@@ -17,6 +30,8 @@ public:
   public:
     Uint32  Id;
     cb::string Text;
+    glm::vec2 Pos;
+    glm::vec2 Size;
     Uint32 Flags;
     float HLValue;
 
@@ -38,9 +53,12 @@ public:
 
   const cb::string& GetTitle() const;
 
+  void CalcItemsPosSize(const CUIFont& font, const CUIMenuLayout& layout);
+
   iterator AddItem(const Uint32 id, const cb::string& text);
-  iterator GetItem(const Uint32 id);
-  const_iterator GetItem(const Uint32 id) const;
+  iterator FindItem(const Uint32 id);
+  const_iterator FindItem(const Uint32 id) const;
+  const CItem& GetItem(const Uint32 index) const;
   iterator Erase(const_iterator it);
   void Clear();
 
@@ -51,28 +69,6 @@ public:
   iterator End();
   const_iterator End() const;
 
-  const CItem& Get(const Uint32 index) const;
-};
-
-class CUIFont;
-class CUIText;
-
-class CUIMenuLayout {
-public:
-  class CItem {
-  public:
-    const CUIMenu::CItem* pItem;
-    glm::vec2 Pos;
-    glm::vec2 Size;
-  };
-  typedef std::vector<CItem> ItemVectorT;
-
-  glm::vec2 Margin;
-  glm::vec2 ItemPadding;
-  glm::vec2 TitleScale;
-
-  const glm::vec2 GetTitlePos(const CUIFont& font, const CUIMenu& menu, glm::vec2& titleSize = glm::vec2()) const;
-  const ItemVectorT GetItems(const CUIFont& font, const CUIMenu& menu) const;
 };
 
 class CUIMenuView {

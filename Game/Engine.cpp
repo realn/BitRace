@@ -3,7 +3,7 @@
 #include "BasicFileSystem.h"
 #include "Model.h"
 #include "GraphicView.h"
-#include "LogicProcess.h"
+#include "FrameProcess.h"
 #include "Menu.h"
 
 CEngine::CEngine()
@@ -12,64 +12,88 @@ CEngine::CEngine()
   , mpGLContext(NULL)
   , mFrameTime(0.0f)
   , mFrameStepTime(0.01f)
-  , mRun(true) 
-  , mState(0)
-{
+  , mInited(false)
+  , mRun(true)
+  , mState(0) {
 
   mLogFile.open(L"game.log", std::ios::out | std::ios::trunc);
   mLogger.AddStream(&mLogFile);
 
   cb::CLogger::SetInstance(&mLogger);
 
+  cb::info(L"Initializing SDL.");
   SDL_Init(0);
 
+  cb::info(L"Creating filesystem.");
   mpFileSystem = new CBasicFileSystem();
 }
 
 CEngine::~CEngine() {
-  Free();
+  if(mInited) {
+    Free();
+  }
 
+  cb::info(L"Destroing filesystem.");
   delete mpFileSystem;
 
+  cb::info(L"Quiting SDL.");
   SDL_Quit();
 
   cb::CLogger::SetInstance(nullptr);
 }
 
 const bool CEngine::Init(const cb::string& cmdLine) {
+  if(mInited) {
+    cb::warn(L"Engine already initialized.");
+    return true;
+  }
+
+  cb::info(L"Initializing engine.");
   mConfigFilePath = L"main.cfg";
   LoadConfig();
 
   if(!InitDisplay(GAME_FULLNAME)) {
     cb::error(L"Failed to initialize main display.");
-    Free();
     return false;
   }
   if(!InitInput()) {
     cb::error(L"Can't initialize input.");
-    Free();
     return false;
   }
   if(!InitGame()) {
     cb::error(L"Can't Initialize Final Game Settings");
-    Free();
     return false;
   }
 
   mTimer.Update();
+  mInited = true;
+  cb::info(L"Engine initialized.");
   return true;
 }
 
 void CEngine::Free() {
+  if(!mInited) {
+    cb::warn(L"Engine already freed.");
+    return;
+  }
+
+  cb::info(L"Freeing engine.");
   FreeGame();
   FreeInput();
   FreeDisplay();
+  mInited = false;
+  cb::info(L"Engine freed.");
 }
 
 
-int CEngine::MainLoop() {
+int CEngine::MainLoop(const cb::string& cmdLine) {
   SDL_Event event;
 
+  if(!Init(cmdLine)) {
+    return -1;
+  }
+
+  cb::info(L"Entering main loop.");
   while(mRun) {
 
     if(SDL_PollEvent(&event)) {
@@ -81,6 +105,7 @@ int CEngine::MainLoop() {
     Update();
     Render();
   }
+  cb::info(L"Leaving main loop.");
 
   Free();
   return 0;
@@ -102,8 +127,11 @@ void CEngine::LoadConfig() {
 }
 
 const bool CEngine::InitDisplay(const cb::string & title) {
+  cb::info(L"Initializing display.");
+
+  cb::debug(L"Initializing SDL VIDEO.");
   if(SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
-    cb::error(L"Failed initializing SDL.");
+    cb::error(L"Failed initializing SDL VIDEO.");
     return false;
   }
 
@@ -115,11 +143,13 @@ const bool CEngine::InitDisplay(const cb::string & title) {
 
   cb::charvector szTitle = cb::toUtf8(title);
   szTitle.push_back(0);
+
+  cb::debug(L"Creating window titled " + title);
   mpWindow = SDL_CreateWindow(cb::vectorptr(szTitle),
-                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                               int(mConfig.Screen.Width),
-                               int(mConfig.Screen.Height),
-                               winFlags);
+                              SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                              int(mConfig.Screen.Width),
+                              int(mConfig.Screen.Height),
+                              winFlags);
 
   if(mpWindow == nullptr) {
     cb::error(L"Failed to create window.");
@@ -128,23 +158,39 @@ const bool CEngine::InitDisplay(const cb::string & title) {
 
   SDL_ShowWindow(mpWindow);
 
+  cb::debug(L"Seting up OpenGL Context creation.");
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
   SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, int(mConfig.Screen.ColorBits));
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
 
+  cb::debug(L"Creating OpenGL Context.");
   mpGLContext = SDL_GL_CreateContext(mpWindow);
   if(mpGLContext == nullptr) {
     cb::error(L"Failed to create OpenGL Context.");
     return false;
   }
 
+  cb::debug(L"Binding OpenGL Context to window.");
   SDL_GL_MakeCurrent(mpWindow, mpGLContext);
 
-  if(glewInit() != GLEW_OK) {
+  cb::debug(L"Initialzing GLEW.");
+  GLenum glewStatus = glewInit();
+  if(glewStatus != GLEW_OK) {
+    cb::charvector szErr = 
+      cb::utf8vec(reinterpret_cast<const char*>(glewGetErrorString(glewStatus)));
+    cb::error(cb::format(L"Failed to initialize glew, error: {0}.",
+                         cb::fromUtf8(szErr)));
     return false;
   }
 
+  {
+    cb::charvector exts =
+      cb::utf8vec(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
+    cb::debug(L"Extensions: " + cb::fromUtf8(exts));
+  }
+
+  cb::debug(L"Seting up OpenGL State.");
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClearDepth(1.0f);
   glClearStencil(0);
@@ -176,72 +222,81 @@ const bool CEngine::InitDisplay(const cb::string & title) {
   glLineWidth(2.0f);
   glPointSize(1.0f);
 
+  cb::info(L"Display initialized.");
   return true;
 }
 
 const bool  CEngine::InitInput() {
+  cb::info(L"Initializing input.");
+  cb::debug(L"Initializing SDL EVENTS");
   SDL_InitSubSystem(SDL_INIT_EVENTS);
 
+  cb::debug(L"Adding input devices.");
   mIDevMap.AddDevice(InputDevice::Keyboard, new CKeyboardInputDevice());
   mIDevMap.AddDevice(InputDevice::Mouse, new CMouseInputDevice(mConfig.Screen.GetSize()));
 
+  cb::info(L"Input initialized.");
   return true;
 }
 
 const bool CEngine::InitGame() {
+  cb::info(L"Initializing game.");
   if(!mTimer.Init()) {
     return false;
   }
   std::srand((Uint32)mTimer.GetLastTick());
 
-  {
-    CMenuProcess* pProcess = new CMenuProcess(mIDevMap);
-    pProcess->Init();
+  mState = 0;
 
-    mLogicProcessMap[1] = pProcess;
-
-    CMenuView* pView = new CMenuView(*pProcess, mConfig.Screen.GetSize());
-    pView->Init();
-
-    mGraphicViewMap[1] = pView;
-  }
-
-  mState = 1;
-
+  cb::info(L"Game initialized.");
   return true;
 }
 
 
 void CEngine::FreeDisplay() {
+  cb::info(L"Freeing display.");
   if(mpGLContext) {
+    cb::debug(L"Deleting OpenGL Context.");
     SDL_GL_DeleteContext(mpGLContext);
     mpGLContext = nullptr;
   }
 
   if(mpWindow) {
+    cb::debug(L"Destroing window.");
     SDL_DestroyWindow(mpWindow);
     mpWindow = nullptr;
   }
 
+  cb::debug(L"Quiting SDL VIDEO.");
   SDL_QuitSubSystem(SDL_INIT_VIDEO);
+  cb::info(L"Display freed.");
 }
 
 void CEngine::FreeInput() {
+  cb::info(L"Freeing input.");
+  cb::debug(L"Clearing devices.");
+  mIDevMap.Clear();
+
+  cb::debug(L"Quiting SDL EVENTS.");
   SDL_QuitSubSystem(SDL_INIT_EVENTS);
+  cb::info(L"Input freed.");
 }
 
 void CEngine::FreeGame() {
+  cb::info(L"Freeing game.");
   for(GraphicViewMapT::iterator it = mGraphicViewMap.begin(); it != mGraphicViewMap.end(); it++) {
     delete it->second;
   }
   mGraphicViewMap.clear();
 
-  for(LogicProcessMapT::iterator it = mLogicProcessMap.begin(); it != mLogicProcessMap.end(); it++) {
+  for(FrameProcessMapT::iterator it = mFrameProcessMap.begin(); it != mFrameProcessMap.end(); it++) {
     delete it->second;
   }
-  mLogicProcessMap.clear();
+  mFrameProcessMap.clear();
 
+  cb::debug(L"Clearing 3d model cache.");
   CModelRepository::Instance.Clear();
+  cb::info(L"Game freed.");
 }
 
 void CEngine::Update() {
@@ -250,15 +305,15 @@ void CEngine::Update() {
   mFrameTime += mTimer.GetTimeDelta();
   while(mFrameTime > mFrameStepTime) {
     mIDevMap.Update(mFrameStepTime);
-    UpdateLogic(mFrameStepTime);
+    UpdateFrame(mFrameStepTime);
 
     mFrameTime -= mFrameStepTime;
   }
 }
 
-void CEngine::UpdateLogic(const float timeDelta) {
-  LogicProcessMapT::iterator it = mLogicProcessMap.find(mState);
-  if(it == mLogicProcessMap.end()) {
+void CEngine::UpdateFrame(const float timeDelta) {
+  FrameProcessMapT::iterator it = mFrameProcessMap.find(mState);
+  if(it == mFrameProcessMap.end()) {
     return;
   }
 

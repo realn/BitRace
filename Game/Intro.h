@@ -3,7 +3,7 @@
 //#include <SDL_types.h>
 //#include <CBIO/Defines.h>
 //
-//#include "LogicProcess.h"
+//#include "FrameProcess.h"
 //#include "GraphicView.h"
 //
 //class CGUI;
@@ -26,7 +26,7 @@
 //};
 //
 //class CIntroProcess
-//  : public ILogicProcess {
+//  : public IFrameProcess {
 //private:
 //  IntroState	mIntroState;
 //  unsigned	mCharCount;

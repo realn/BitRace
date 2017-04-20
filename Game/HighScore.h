@@ -4,14 +4,14 @@
 //#include <CBStr/Defines.h>
 //
 //#include "GraphicView.h"
-//#include "LogicProcess.h"
+//#include "FrameProcess.h"
 //
 //class CGUI;
 //class CInputDeviceMap;
 //class CGUIMenuManager;
 //
 //class CHighScore
-//  : public ILogicProcess
+//  : public IFrameProcess
 //  , public IGraphicView {
 //public:
 //  class CScore {

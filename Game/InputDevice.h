@@ -35,6 +35,7 @@ public:
   ~CInputDeviceMap();
 
   void AddDevice(const InputDevice id, CInputDevice* pDevice);
+  void Clear();
 
   const bool GetState(const InputDevice devId, const Uint32 type, const Uint32 id) const;
   const float GetRange(const InputDevice devId, const Uint32 type, const Uint32 id) const;

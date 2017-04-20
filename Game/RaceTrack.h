@@ -4,7 +4,7 @@
 //#include <glm/glm.hpp>
 //
 //#include "GraphicView.h"
-//#include "LogicProcess.h"
+//#include "FrameProcess.h"
 //
 //#include "Space.h"
 //#include "Racer.h"
@@ -12,7 +12,7 @@
 //class CGUI;
 //
 //class CRaceTrack
-//  : public ILogicProcess
+//  : public IFrameProcess
 //  , public IGraphicView {
 //public:
 //

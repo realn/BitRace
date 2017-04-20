@@ -2,8 +2,6 @@
 
 #define GAME_NAME "BitRace"
 #define GAME_FULLNAME L"CodeRulers BitRace v1.0a"
-#define GAME_DI_BUFSIZE 32
-#define	GAME_BLEND_TEX_SIZE	64
 
 #include <SDL.h>
 
@@ -19,12 +17,12 @@
 #include "UIFont.h"
 
 class IFileSystem;
-class ILogicProcess;
+class IFrameProcess;
 class IGraphicView;
 
 class CEngine {
 private:
-  typedef std::map<Uint32, ILogicProcess*> LogicProcessMapT;
+  typedef std::map<Uint32, IFrameProcess*> FrameProcessMapT;
   typedef std::map<Uint32, IGraphicView*> GraphicViewMapT;
 
   std::wofstream mLogFile;
@@ -42,9 +40,11 @@ private:
 
   float mFrameTime;
   float mFrameStepTime;
-  bool	mRun;
 
-  LogicProcessMapT mLogicProcessMap;
+  bool mInited;
+  bool mRun;
+
+  FrameProcessMapT mFrameProcessMap;
   GraphicViewMapT mGraphicViewMap;
 
   Uint32 mState;
@@ -54,10 +54,8 @@ public:
   ~CEngine();
 
   const bool Init(const cb::string& cmdLine);
-
   void Free();
-
-  int MainLoop();
+  int MainLoop(const cb::string& cmdLine);
 
 private:
   void SaveConfig();
@@ -72,7 +70,7 @@ private:
   void FreeGame();
 
   void Update();
-  void UpdateLogic(const float timeDelta);
+  void UpdateFrame(const float timeDelta);
 
   void Render();
   void RenderFrame();

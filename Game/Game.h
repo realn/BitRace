@@ -1,7 +1,7 @@
 //#ifndef __BITRACE_GAME_H__
 //#define __BITRACE_GAME_H__
 //
-//#include "LogicProcess.h"
+//#include "FrameProcess.h"
 //#include "GraphicView.h"
 //#include "RaceTrack.h"
 //#include "Racer.h"
@@ -10,7 +10,7 @@
 //class CInputDeviceMap;
 //
 //class CGameProcess :
-//  public ILogicProcess {
+//  public IFrameProcess {
 //private:
 //  CConfig& mConfig;
 //  CInputDeviceMap& mIDevMap;
@@ -29,7 +29,7 @@
 //  const CRaceTrack& GetRaceTrack() const;
 //  const bool IsGameOver() const;
 //
-//  // Inherited via ILogicProcess
+//  // Inherited via IFrameProcess
 //  virtual void Update(const float timeDelta) override;
 //};
 //
