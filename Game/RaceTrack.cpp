@@ -7,8 +7,13 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-CRaceTrack::CRaceTrack(const GameEntityTypeMapT& entityTypes) 
+static const glm::vec2 gGridSize(800.0f);
+static const glm::uvec2 gGridSteps(40);
+
+CRaceTrack::CRaceTrack(const GameEntityTypeMapT& entityTypes)
   : mEntityTypes(entityTypes)
+  , mGridTop(gGridSize, gGridSteps, 0.0f)
+  , mGridBottom(gGridSize, gGridSteps, 0.0f)
   , m_pRacer(NULL),
   m_fMoveX(0.0f),
   m_fTime(0.0f),
@@ -34,19 +39,11 @@ CRaceTrack::~CRaceTrack() {
 }
 
 bool CRaceTrack::Init() {
-  if(!this->m_SpaceSky.Generate(800.0f, 800.0f, 40, 40, 0.0f))
-    return false;
-  if(!this->m_SpaceGround.Generate(800.0f, 800.0f, 40, 40, 0.0f)) {
-    Free();
-    return false;
-  }
 
   return true;
 }
 
 void CRaceTrack::Free() {
-  this->m_SpaceSky.Free();
-  this->m_SpaceGround.Free();
   this->m_vMove = glm::vec2(0.0f);
   this->m_fMoveX = 0.0f;
   m_fTime = 0.0f;
@@ -178,11 +175,11 @@ void CRaceTrack::Render_Intro(const glm::mat4& transform) const {
 
       glm::mat4 mat = baseMat *
         glm::translate(glm::vec3(0.0f, 20.0f * m_fIntroTime / 2.0f, 0.0f));
-      m_SpaceSky.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
+      mGridTop.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
 
       mat = baseMat *
         glm::translate(glm::vec3(0.0f, -20.0f * m_fIntroTime / 2.0f, 0.0f));
-      m_SpaceGround.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
+      mGridBottom.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
     }
     break;
 
@@ -195,11 +192,11 @@ void CRaceTrack::Render_Intro(const glm::mat4& transform) const {
 
       glm::mat4 mat = baseMat *
         glm::translate(glm::vec3(0.0f, 20.0f, 0.0f));
-      m_SpaceSky.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
+      mGridTop.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
 
       mat = baseMat *
         glm::translate(glm::vec3(0.0f, -20.0f, 0.0f));
-      m_SpaceGround.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
+      mGridBottom.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
     }
     break;
 
@@ -215,11 +212,11 @@ void CRaceTrack::Render_Intro(const glm::mat4& transform) const {
 
       glm::mat4 skyMat = moveMat *
         glm::translate(glm::vec3(0.0f, 20.0f, 0.0f));
-      m_SpaceSky.Render(skyMat, glm::vec3(0.0f, 1.0f, 0.0f));
+      mGridTop.Render(skyMat, glm::vec3(0.0f, 1.0f, 0.0f));
 
       glm::mat4 groundMat = moveMat *
         glm::translate(glm::vec3(0.0f, -20.0f, 0.0f));
-      m_SpaceGround.Render(groundMat, glm::vec3(0.0f, 1.0f, 0.0f));
+      mGridBottom.Render(groundMat, glm::vec3(0.0f, 1.0f, 0.0f));
 
       glm::mat4 racerMat = baseMat *
         glm::translate(glm::vec3(0.0f, -20.0f, 0.0f));
@@ -274,10 +271,10 @@ void CRaceTrack::Render_Track(const glm::mat4& transform) const {
     glm::mat4 spaceMat = mat *
       glm::translate(glm::vec3(m_vMove.x, 0.0f, m_vMove.y)) *
       glm::translate(glm::vec3(0.0f, 20.0f, 0.0f));
-    m_SpaceSky.Render(spaceMat, glm::vec3(0.0f, 1.0f, 0.0f));
+    mGridTop.Render(spaceMat, glm::vec3(0.0f, 1.0f, 0.0f));
 
     spaceMat *= glm::translate(glm::vec3(0.0f, -40.0f, 0.0f));
-    m_SpaceGround.Render(spaceMat, glm::vec3(0.0f, 1.0f, 0.0f));
+    mGridBottom.Render(spaceMat, glm::vec3(0.0f, 1.0f, 0.0f));
   }
 
   glEnable(GL_DEPTH_TEST);

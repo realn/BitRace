@@ -36,6 +36,10 @@ void CGraphicBuffer::SubLoad(const Uint32 offset, const Uint32 size, const void 
   glBindBuffer(mTarget, 0);
 }
 
+void CGraphicBuffer::Resize(const Uint32 size) {
+  Load(size, nullptr);
+}
+
 void CGraphicBuffer::UnBind(const CGraphicBuffer & buffer) {
   glBindBuffer(buffer.mTarget, 0);
 }

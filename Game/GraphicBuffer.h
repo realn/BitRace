@@ -23,6 +23,12 @@ public:
     Load(sizeof(_Type) * data.size(), cb::vectorptr(data));
   }
   void SubLoad(const Uint32 offset, const Uint32 size, const void* pData);
+  template<typename _Type>
+  void SubLoad(const Uint32 offset, const std::vector<_Type>& data) {
+    SubLoad(offset, sizeof(_Type) * data.size(), cb::vectorptr(data));
+  }
+
+  void Resize(const Uint32 size);
 
   static void UnBind(const CGraphicBuffer& buffer);
   static void UnBind(const Uint32 target);

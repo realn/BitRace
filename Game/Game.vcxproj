@@ -113,7 +113,7 @@
     <ClCompile Include="PerfTimer.cpp" />
     <ClCompile Include="Racer.cpp" />
     <ClCompile Include="RaceTrack.cpp" />
-    <ClCompile Include="Space.cpp" />
+    <ClCompile Include="LaserGrid.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
@@ -152,7 +152,7 @@
     <ClInclude Include="UIMenu.h" />
     <ClInclude Include="XmlTypes.h" />
     <CustomBuild Include="RaceTrack.h" />
-    <ClInclude Include="Space.h" />
+    <ClInclude Include="LaserGrid.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

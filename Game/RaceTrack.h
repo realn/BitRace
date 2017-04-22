@@ -3,7 +3,7 @@
 #include <SDL_types.h>
 #include <glm/glm.hpp>
 
-#include "Space.h"
+#include "LaserGrid.h"
 #include "Racer.h"
 #include "GameEntity.h"
 
@@ -12,8 +12,8 @@ class CGUI;
 class CRaceTrack {
 private:
   const GameEntityTypeMapT& mEntityTypes;
-  CSpace	m_SpaceSky;
-  CSpace	m_SpaceGround;
+  CLaserGrid	mGridTop;
+  CLaserGrid	mGridBottom;
   CRacer* m_pRacer;
 
   ProjectileVectorT mProjectiles;

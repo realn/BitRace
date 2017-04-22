@@ -30,9 +30,6 @@
     <ClCompile Include="RaceTrack.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="Space.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="FGXFile.cpp" />
     <ClCompile Include="IniFiles.cpp" />
@@ -91,6 +88,9 @@
     <ClCompile Include="TestState.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="LaserGrid.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -103,9 +103,6 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Racer.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Space.h">
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h" />
@@ -167,6 +164,9 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="TestState.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="LaserGrid.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>
