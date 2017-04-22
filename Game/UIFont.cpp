@@ -1,39 +1,53 @@
 #include "stdafx.h"
 #include "UIFont.h"
+#include "FileSystem.h"
 #include "FGXFile.h"
+#include "MeshFunctions.h"
 #include "Texture.h"
+#include "XmlTypes.h"
 
-typedef std::vector<glm::vec2> vec2vector;
+class CFontData {
+public:
+  typedef std::map<Uint16, CUIFont::CChar> CharMapT;
 
-CUIFont::CUIFont() {
-  for(Uint16 i = 0; i < 256; ++i) {
-    float cx = float(i % 16) / 16.0f;
-    float cy = float(i / 16) / 16.0f;
+  cb::string Name;
+  cb::string TextureFilePath;
+  CharMapT CharMap;
+};
 
-    CChar fontChar;
+CUIFont::CChar::CChar() {}
 
-    fontChar.Code = i;
+CUIFont::CUIFont() 
+  : mTexture(nullptr)
+{}
 
-    fontChar.TexCoord[0] = glm::vec2(cx, 1 - cy - 0.0625f);
-    fontChar.TexCoord[1] = glm::vec2(cx + 0.0625f, 1 - cy - 0.0625f);
-    fontChar.TexCoord[2] = glm::vec2(cx + 0.0625f, 1 - cy);
-    fontChar.TexCoord[3] = glm::vec2(cx, 1 - cy);
-
-    fontChar.Size = glm::vec2(1.0f, 1.0f);
-
-    fontChar.Adv = glm::vec2(0.6f, 0.0f);
-
-    mCharMap[i] = fontChar;
+CUIFont::~CUIFont() {
+  if(mTexture) {
+    delete mTexture;
+    mTexture = nullptr;
   }
 }
 
-CUIFont::~CUIFont() {}
+const bool CUIFont::Load(IFileSystem & fs, const cb::string & fontFilePath) {
+  CFontData data;
+  if(!fs.ReadXml(fontFilePath, L"Font", data)) {
+    return false;
+  }
+
+  if(!LoadTexture(fs, data.TextureFilePath)) {
+    return false;
+  }
+
+  mCharMap = data.CharMap;
+  return true;
+}
+
+const CTexture * CUIFont::GetTexture() const {
+  return mTexture;
+}
 
 const CUIFont::CChar& CUIFont::GetChar(const wchar_t code) const {
-  //  return mCharMap.find(code)->second;
-  Uint16 c = (Uint16)code - 32;
-
-  return mCharMap.at(c);
+  return mCharMap.at((Uint16)code);
 }
 
 const glm::vec2 CUIFont::GetSize(const cb::string & text) const {
@@ -47,29 +61,9 @@ const glm::vec2 CUIFont::GetSize(const cb::string & text) const {
   return result;
 }
 
-
-
-
-
-CUIText::CUIText(const glm::vec2& screenSize, const glm::vec2& charSize)
-  : mTexture(nullptr)
-  , mCharSize(charSize)
-{
-  mProjMatrix = glm::ortho(0.0f, screenSize.x, screenSize.y, 0.0f);
-
-  this->mVertex[0] = glm::vec2(0.0f, 1.0f);
-  this->mVertex[1] = glm::vec2(1.0f, 1.0f);
-  this->mVertex[2] = glm::vec2(1.0f, 0.0f);
-  this->mVertex[3] = glm::vec2(0.0f, 0.0f);
-}
-
-CUIText::~CUIText() {
-  Free();
-}
-
-const bool CUIText::LoadFontTexture(const cb::string& filename) {
+const bool CUIFont::LoadTexture(IFileSystem & fs, const cb::string & filepath) {
   CFGXFile imgFile;
-  if(!imgFile.Load(filename)) {
+  if(!imgFile.Load(filepath)) {
     return false;
   }
 
@@ -87,38 +81,38 @@ const bool CUIText::LoadFontTexture(const cb::string& filename) {
   };
   const cb::bytevector& Data = imgFile.GetData();
 
+  if(mTexture) {
+    delete mTexture;
+  }
   mTexture = new CTexture(GL_TEXTURE_2D, size, GL_RGBA);
   mTexture->Load(format, imgFile.GetData());
   return true;
 }
 
-const bool CUIText::Init(const cb::string& fontTextureFilepath) {
-  if(!LoadFontTexture(fontTextureFilepath)) {
-    mTexture = 0;
-    return false;
-  }
 
-  return true;
+
+
+
+CUIText::CUIText(const CUIFont& font, const glm::vec2& screenSize, 
+                 const glm::vec2& charSize)
+  : mFont(font)
+  , mCharSize(charSize)
+{
+  mProjMatrix = glm::ortho(0.0f, screenSize.x, screenSize.y, 0.0f);
+
+  this->mVertex[0] = glm::vec2(0.0f, 1.0f);
+  this->mVertex[1] = glm::vec2(1.0f, 1.0f);
+  this->mVertex[2] = glm::vec2(1.0f, 0.0f);
+  this->mVertex[3] = glm::vec2(0.0f, 0.0f);
 }
 
-void CUIText::Free() {
-  delete mTexture;
-  mTexture = nullptr;
-}
-
-const bool CUIText::IsInited() const {
-  return mTexture != nullptr;
-}
+CUIText::~CUIText() {}
 
 const glm::vec2 CUIText::GetCharSize() const {
   return mCharSize;
 }
 
 void CUIText::Bind() const {
-  if(!IsInited()) {
-    cb::error(L"Unitialized UI Text, cannot bind.");
-    return;
-  }
   glPushAttrib(GL_ENABLE_BIT);
 
   glDisable(GL_DEPTH_TEST);
@@ -126,57 +120,49 @@ void CUIText::Bind() const {
   glEnable(GL_TEXTURE_2D);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  mTexture->Bind();
+  mFont.GetTexture()->Bind();
 }
 
 void CUIText::UnBind() const {
-  if(!IsInited()) {
-    return;
-  }
+  mFont.GetTexture()->UnBind();
   glPopAttrib();
 }
 
-void CUIText::Render(const CUIFont& font, const glm::vec2& pos, const cb::string& text, const CUITextContext& context) const {
-  if(!IsInited()) {
-    cb::error(L"Unitialized UI Text, cannot render.");
-    return;
-  }
+void CUIText::Render(const glm::vec2& pos, const cb::string& text, const CUITextContext& context) const {
   if(text.empty()) {
     return;
   }
 
-
-  std::vector<glm::vec2> vertList;
-  std::vector<glm::vec2> texList;
+  vec3vector vertList;
+  vec2vector texList;
 
   vertList.resize(4 * text.length());
   texList.resize(4 * text.length());
 
   glm::vec2 textPos = pos;
   for(size_t i = 0; i < text.length(); i++) {
-    const CUIFont::CChar& fontChar = font.GetChar(text[i]);
+    const CUIFont::CChar& fontChar = mFont.GetChar(text[i]);
+    glm::vec3* vp = &vertList[i * 4];
+    glm::vec2* vt = &texList[i * 4];
 
     for(size_t j = 0; j < 4; j++) {
-      vertList[i * 4 + j] = mVertex[j] * mCharSize * fontChar.Size * context.Scale + textPos;
-      texList[i * 4 + j] = fontChar.TexCoord[j];
+      vp[j] = glm::vec3(mVertex[j] * mCharSize * fontChar.Size * context.Scale + textPos, 0.0f);
     }
+
+    glm::vec2 t0 = fontChar.TexPos;
+    glm::vec2 t1 = fontChar.TexPos + fontChar.TexSize;
+
+    vt[0] = glm::vec2(t0.x, t1.y);
+    vt[1] = t1;
+    vt[2] = glm::vec2(t1.x, t0.y);
+    vt[3] = t0;
 
     textPos += fontChar.Adv * mCharSize * context.Scale;
   }
 
   glLoadMatrixf(glm::value_ptr(mProjMatrix));
-
-  glVertexPointer(2, GL_FLOAT, 0, &vertList[0]);
-  glTexCoordPointer(2, GL_FLOAT, 0, &texList[0]);
-
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
   glColor4fv(glm::value_ptr(context.Color));
-  glDrawArrays(GL_QUADS, 0, vertList.size());
-
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  RenderTexVectorList(GL_QUADS, vertList, texList);
 }
 
 void CUIText::RenderQuad(const glm::vec2 & pos, const glm::vec2 & size, const glm::vec4 & color, const Uint32 texId) {
@@ -268,3 +254,51 @@ CUITextContext::CUITextContext()
   : Color(1.0f, 1.0f, 1.0f, 1.0f)
   , Scale(1.0f, 1.0f)
 {}
+
+
+
+static const cb::string XML_FONTCHAR_CODE = L"Code";
+static const cb::string XML_FONTCHAR_TEXPOS = L"TexPos";
+static const cb::string XML_FONTCHAR_TEXSIZE = L"TexSize";
+static const cb::string XML_FONTCHAR_POS = L"Pos";
+static const cb::string XML_FONTCHAR_SIZE = L"Size";
+static const cb::string XML_FONTCHAR_ADV = L"Adv";
+
+CB_DEFINEXMLREAD(CUIFont::CChar) {
+  return
+    GetAttribute(XML_FONTCHAR_CODE, mObject.Code) &&
+    GetAttribute(XML_FONTCHAR_POS, mObject.Pos) &&
+    GetAttribute(XML_FONTCHAR_SIZE, mObject.Size) &&
+    GetAttribute(XML_FONTCHAR_TEXPOS, mObject.TexPos) &&
+    GetAttribute(XML_FONTCHAR_TEXSIZE, mObject.TexSize) &&
+    GetAttribute(XML_FONTCHAR_ADV, mObject.Adv);
+}
+
+CB_DEFINEXMLWRITE(CUIFont::CChar) {
+  return
+    SetAttribute(XML_FONTCHAR_CODE, mObject.Code) &&
+    SetAttribute(XML_FONTCHAR_POS, mObject.Pos) &&
+    SetAttribute(XML_FONTCHAR_SIZE, mObject.Size) &&
+    SetAttribute(XML_FONTCHAR_TEXPOS, mObject.TexPos) &&
+    SetAttribute(XML_FONTCHAR_TEXSIZE, mObject.TexSize) &&
+    SetAttribute(XML_FONTCHAR_ADV, mObject.Adv);
+}
+
+static const cb::string XML_FONT_NAME = L"Name";
+static const cb::string XML_FONT_TEXFILENAME = L"Texture";
+static const cb::string XML_FONT_CHAR = L"Char";
+
+CB_DEFINEXMLREAD(CFontData) {
+  return
+    GetAttribute(XML_FONT_NAME, mObject.Name) &&
+    GetAttribute(XML_FONT_TEXFILENAME, mObject.TextureFilePath) &&
+    GetNodeMap(mObject.CharMap, XML_FONT_CHAR, XML_FONTCHAR_CODE);
+}
+
+CB_DEFINEXMLWRITE(CFontData) {
+  return
+    SetAttribute(XML_FONT_NAME, mObject.Name) &&
+    SetAttribute(XML_FONT_TEXFILENAME, mObject.TextureFilePath) &&
+    SetNodeMap(mObject.CharMap, XML_FONT_CHAR, XML_FONTCHAR_CODE);
+}
+

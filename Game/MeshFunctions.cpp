@@ -2,45 +2,75 @@
 #include "MeshFunctions.h"
 #include "GLDefines.h"
 
-void RenderVectorList(const Uint32 mode, const vec3vector & vecList) {
-  glVertexPointer(3, GL_FLOAT, 0, cb::vectorptr(vecList));
+void RenderVectorList(const Uint32 mode, const Uint32 vFloatNum, 
+                      const void * vptr, const Uint32 size) {
+  glVertexPointer(vFloatNum, GL_FLOAT, 0, vptr);
 
   glEnableClientState(GL_VERTEX_ARRAY);
-  glDrawArrays(mode, 0, vecList.size());
+  glDrawArrays(mode, 0, size);
   glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void RenderVectorList(const Uint32 mode, const Uint32 vFloatNum, 
+                      const void * vptr, const ind16vector & indices) {
+  glVertexPointer(vFloatNum, GL_FLOAT, 0, vptr);
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glDrawElements(mode, indices.size(), GL_UNSIGNED_SHORT, cb::vectorptr(indices));
+  glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void RenderVectorList(const Uint32 mode, const vec3vector & vecList) {
+  RenderVectorList(mode, 3, cb::vectorptr(vecList), vecList.size());
 }
 
 void RenderVectorList(const Uint32 mode, const vec3vector & vecList, 
                       const ind16vector & indices) {
-  glVertexPointer(3, GL_FLOAT, 0, cb::vectorptr(vecList));
+  RenderVectorList(mode, 3, cb::vectorptr(vecList), indices);
+}
+
+void RenderTexVectorList(const Uint32 mode, 
+                         const Uint32 vFloatNum, const void * vptr, 
+                         const Uint32 texFloatNum, const void * texptr, 
+                         const Uint32 size) {
+  glVertexPointer(vFloatNum, GL_FLOAT, 0, vptr);
+  glTexCoordPointer(texFloatNum, GL_FLOAT, 0, texptr);
 
   glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glDrawArrays(mode, 0, size);
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
+void RenderTexVectorList(const Uint32 mode, 
+                         const Uint32 vFloatNum, const void * vptr, 
+                         const Uint32 texFloatNum, const void * texptr, 
+                         const ind16vector & indices) {
+  glVertexPointer(vFloatNum, GL_FLOAT, 0, vptr);
+  glTexCoordPointer(texFloatNum, GL_FLOAT, 0, texptr);
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
   glDrawElements(mode, indices.size(), GL_UNSIGNED_SHORT, cb::vectorptr(indices));
   glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 void RenderTexVectorList(const Uint32 mode, const vec3vector & vecList, 
                          const vec2vector & texList) {
-  glVertexPointer(3, GL_FLOAT, 0, cb::vectorptr(vecList));
-  glTexCoordPointer(2, GL_FLOAT, 0, cb::vectorptr(texList));
-
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glDrawArrays(mode, 0, vecList.size());
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  RenderTexVectorList(mode,
+                      3, cb::vectorptr(vecList),
+                      2, cb::vectorptr(texList),
+                      vecList.size());
 }
 
 void RenderTexVectorList(const Uint32 mode, const vec3vector & vecList, 
                          const vec2vector & texList, ind16vector & indices) {
-  glVertexPointer(3, GL_FLOAT, 0, cb::vectorptr(vecList));
-  glTexCoordPointer(2, GL_FLOAT, 0, cb::vectorptr(texList));
-
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glDrawElements(mode, indices.size(), GL_UNSIGNED_SHORT, cb::vectorptr(indices));
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  RenderTexVectorList(mode,
+                      3, cb::vectorptr(vecList),
+                      2, cb::vectorptr(texList),
+                      indices);
 }
 
 void RenderQuad(const glm::vec2 & pos, const glm::vec2 & size) {

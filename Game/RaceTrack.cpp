@@ -16,7 +16,7 @@ const cb::string CGameDifficulty::GetEntity(const Uint32 pos) const {
   Uint32 weigth = 0;
   for(EntitySpawnMapT::const_iterator it = EntitySpawnRates.begin();
       it != EntitySpawnRates.end(); it++) {
-    if(weigth < pos && weigth + it->second > pos) {
+    if(weigth <= pos && weigth + it->second > pos) {
       return it->first;
     }
     weigth += it->second;
@@ -53,7 +53,6 @@ CRaceTrack::CRaceTrack(const GameEntityTypeMapT& entityTypes)
   m_fGameOverTime2(0.0f),
   m_uPoints(0),
   m_uFireCount(1),
-  m_uNeedPoints(5000),
   m_uTrackState(TS_INTRO),
   m_unsignedroState(IS_STATE1),
   m_uGameOverCharCount(0),
@@ -162,7 +161,6 @@ void CRaceTrack::Free() {
   m_uPoints = 0;
   m_uFireCount = 1;
   m_fDamage = 15.0f;
-  m_uNeedPoints = 5000;
   m_uTrackState = TS_INTRO;
   m_unsignedroState = IS_STATE1;
   m_fIntroTime = 0.0f;
@@ -491,7 +489,7 @@ void CRaceTrack::RenderUI(CGUI& gui) const {
   glColor3f(1.0f, 0.5f, 0.5f);
   gui.Print(glm::vec2(10.0f, 5.0f), "POINTS: %u", m_uPoints);
   //if(m_uDifLevel < DL_VERY_HARD)
-  gui.Print(glm::vec2(200.0f, 5.0f), "NEED POINTS: %u", m_uNeedPoints);
+  //gui.Print(glm::vec2(200.0f, 5.0f), "NEED POINTS: %u", m_uNeedPoints);
   glColor3f(1.0f, 1.0f, 1.0f);
   //gui.Print(glm::vec2(10.0f, 22.0f), "LEVEL: %s", GetDifLevelString().c_str());
   gui.RenderProgressBar(glm::vec2(20.0f, 450.0f), glm::vec2(200.0f, 20.0f), glm::vec4(1.0f, 0.0f, 0.0f, 0.6f), this->m_pRacer->GetBitRate());
@@ -509,7 +507,7 @@ void CRaceTrack::RenderUI(CGUI& gui) const {
 }
 
 const glm::vec2 CRaceTrack::CreateEntityPosition() {
-  float randF = float(rand() % 200 + 1 - 100);
+  float randF = float(rand() % 200 - 100);
   return glm::vec2(randF / 100.0f * 30.0f + m_fMoveX + (100.0f * this->m_pRacer->GetVec().x), gMapEdgeFar);
 }
 
@@ -539,7 +537,6 @@ void CRaceTrack::GenRandomObject() {
 
 void CRaceTrack::ResetGame() {
   m_uPoints = 0;
-  m_uNeedPoints = 5000;
   m_uFireCount = 1;
   m_uGameOverCharCount = 0;
   m_fDamage = 15.0f;

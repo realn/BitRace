@@ -91,6 +91,7 @@
     <ClCompile Include="LaserGrid.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="UIScreen.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -168,6 +169,9 @@
     </ClInclude>
     <ClInclude Include="LaserGrid.h">
       <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="UIScreen.h">
+      <Filter>Graphic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -4,6 +4,7 @@
 #include "EngineState.h"
 #include "RaceTrack.h"
 #include "Racer.h"
+#include "UIFont.h"
 
 class CConfig;
 class CInputDeviceMap;
@@ -20,6 +21,7 @@ private:
   CInputDeviceMap& mIDevMap;
   CRaceTrack mRaceTrack;
   CRacer mRacer;
+  CUIFont mFont;
 
 public:
   CGameState(CConfig& config, 

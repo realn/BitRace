@@ -121,17 +121,17 @@ void CUIMenuView::Render(const CUIFont & font,
 
   text.Bind();
 
-  ctx.Scale = layout.TitleScale;
-  text.Render(font, layout.TitlePos * text.GetCharSize(), menu.GetTitle(), ctx);
+  //ctx.Scale = layout.TitleScale;
+  //text.Render(font, layout.TitlePos * text.GetCharSize(), menu.GetTitle(), ctx);
 
-  ctx.Scale = glm::vec2(1.0f);
-  for(CUIMenu::const_iterator it = menu.Begin(); it != menu.End(); it++) {
-    ctx.Color = glm::mix(mItemHighLightColor, mItemColor, it->HLValue);
-    text.Render(font, 
-                it->Pos * text.GetCharSize(), 
-                it->Text, 
-                ctx);
-  }
+  //ctx.Scale = glm::vec2(1.0f);
+  //for(CUIMenu::const_iterator it = menu.Begin(); it != menu.End(); it++) {
+  //  ctx.Color = glm::mix(mItemHighLightColor, mItemColor, it->HLValue);
+  //  text.Render(font, 
+  //              it->Pos * text.GetCharSize(), 
+  //              it->Text, 
+  //              ctx);
+  //}
 
   text.UnBind();
 }

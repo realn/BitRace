@@ -115,6 +115,10 @@ void CTexture::Load(const Uint32 format, const cb::bytevector & data) {
   Load(format, GL_UNSIGNED_BYTE, cb::vectorptr(data));
 }
 
+void CTexture::UnBind(const Uint32 unit) const {
+  UnBind(*this, unit);
+}
+
 void CTexture::UnBind(const CTexture & texture, const Uint32 unit) {
   glActiveTexture(GL_TEXTURE0 + unit);
   glBindTexture(texture.GetTarget(), 0);

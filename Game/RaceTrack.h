@@ -52,7 +52,6 @@ private:
   float	m_fGameOverTime2;
   glm::vec3	m_vFSQColor;
   unsigned	m_uPoints;
-  unsigned	m_uNeedPoints;
   unsigned	m_uFireCount;
   unsigned	m_uTrackState;
   unsigned	m_unsignedroState;

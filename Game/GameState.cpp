@@ -16,6 +16,7 @@ CGameState::CGameState(CConfig& config,
   , mRaceTrack(mEntityTypes)
 {
   fileSystem.ReadXml(ENTTYPES_FILEPATH, ENTTYPES_ROOTNAME, mEntityTypes);
+  mFont.Load(fileSystem, L"font.xml");
 }
 
 CGameState::~CGameState() {}
@@ -25,7 +26,6 @@ const bool CGameState::Init() {
   this->mRacer.SetColor(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
   this->mRaceTrack.Init();
   this->mRaceTrack.SetRacer(&mRacer);
-  
 
   return true;
 }
@@ -86,6 +86,10 @@ void CGameState::Render() const {
 }
 
 void CGameState::RenderUI() const {
+  CUIText text(mFont, glm::vec2(1024.0f, 600.0f));
+  text.Bind();
+  text.Render(glm::vec2(20.0f), L"Test");
+  text.UnBind();
   //mRaceTrack.RenderUI();
 }
 

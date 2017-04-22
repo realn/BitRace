@@ -47,6 +47,7 @@ public:
   void Load(const Uint32 format, const Uint32 type, const void* pData);
   void Load(const Uint32 format, const cb::bytevector& data);
 
+  void UnBind(const Uint32 unit = 0) const;
   static void UnBind(const CTexture& texture, const Uint32 unit = 0);
   static void UnBind(const Uint32 target, const Uint32 unit = 0);
 
