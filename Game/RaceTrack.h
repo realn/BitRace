@@ -11,6 +11,7 @@ class CGUI;
 
 class CRaceTrack {
 private:
+  const GameEntityTypeMapT& mEntityTypes;
   CSpace	m_SpaceSky;
   CSpace	m_SpaceGround;
   CRacer* m_pRacer;
@@ -44,7 +45,7 @@ private:
 
   const glm::vec2 CreateEntityPosition();
 
-  void AddEntity(const CGameEntityType& type);
+  void AddEntity(const cb::string& typeId);
   void AddEntity_DL();
   void AddEntity_DL2();
   void AddEntity_BOMB();
@@ -89,7 +90,7 @@ public:
     IS_ENDSTATE = 4,
     IS_SKIP = 5
   };
-  CRaceTrack();
+  CRaceTrack(const GameEntityTypeMapT& entityTypes);
   ~CRaceTrack();
 
   void Free();

@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+typedef std::vector<glm::vec4> vec4vector;
 typedef std::vector<glm::vec3> vec3vector;
 typedef std::vector<glm::vec2> vec2vector;
 typedef std::vector<Uint16> ind16vector;

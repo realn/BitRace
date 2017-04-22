@@ -3,6 +3,7 @@
 #include "BasicFileSystem.h"
 #include "Model.h"
 #include "GameState.h"
+#include "TestState.h"
 
 #include "GameEntity.h"
 #include <CBXml/Serialize.h>
@@ -232,27 +233,15 @@ const bool CEngine::InitGame() {
   }
   std::srand((Uint32)mTimer.GetLastTick());
 
-  GameEntityTypeMapT entityTypes;
-  CGameEntityType type;
-  type.Name = L"DownloadPart";
-  type.Color = glm::vec4(1.0f, 1.0f, 0.0f, 1.0f);
-  type.Damage = -20.0f;
-  type.ModelType = ModelType::MT_DL_PART;
-  type.Speed = glm::vec2(0.0f, 50.0f);
-  type.Type = EntityType::ET_ITEM;
-
-  entityTypes[L"DLPART"] = type;
-
-  mpFileSystem->WriteXml(L"entityType.xml", L"EntityType", type);
-
-  mpFileSystem->WriteXml(L"entityTypes.xml", L"EntityTypes", entityTypes);
-
-  CGameState* pState = new CGameState(mConfig, mIDevMap);
+  CGameState* pState = new CGameState(mConfig,
+                                      *mpFileSystem, 
+                                      mIDevMap);
   if(!pState->Init()) {
     cb::error(L"Failed to initialize game state.");
     delete pState;
     return false;
   }
+  //CTestState* pState = new CTestState();
   mState = pState;
 
   cb::info(L"Game initialized.");

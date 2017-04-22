@@ -7,18 +7,24 @@
 
 class CConfig;
 class CInputDeviceMap;
+class CGameEntityType;
+class IFileSystem;
+typedef std::map<cb::string, CGameEntityType> GameEntityTypeMapT;
 
 class CGameState :
   public IEngineState
 {
 private:
   CConfig& mConfig;
+  GameEntityTypeMapT mEntityTypes;
   CInputDeviceMap& mIDevMap;
   CRaceTrack mRaceTrack;
   CRacer mRacer;
 
 public:
-  CGameState(CConfig& config, CInputDeviceMap& inputDevMap);
+  CGameState(CConfig& config, 
+             IFileSystem& fileSystem,
+             CInputDeviceMap& inputDevMap);
   virtual ~CGameState();
 
   const bool Init();

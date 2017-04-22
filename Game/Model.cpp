@@ -244,8 +244,8 @@ const bool CModelData::Generate(const ModelType type) {
     AddTriangle(0, 5, 4);
     AddTriangle(3, 2, 6);
     AddTriangle(3, 6, 7);
-    AddTriangle(2, 3, 7);
-    AddTriangle(2, 7, 4);
+    AddTriangle(0, 3, 7);
+    AddTriangle(0, 7, 4);
     AddTriangle(1, 2, 6);
     AddTriangle(1, 6, 5);
     break;
@@ -268,8 +268,8 @@ const bool CModelData::Generate(const ModelType type) {
     AddTriangle(0, 5, 4);
     AddTriangle(3, 2, 6);
     AddTriangle(3, 6, 7);
-    AddTriangle(2, 3, 7);
-    AddTriangle(2, 7, 4);
+    AddTriangle(0, 3, 7);
+    AddTriangle(0, 7, 4);
     AddTriangle(1, 2, 6);
     AddTriangle(1, 6, 5);
     break;
@@ -388,12 +388,11 @@ void CModel::Free() {
 
 void CModel::Render(const glm::vec4& lineColor, const glm::vec4& triColor) {
   mVertexBuffer.Bind();
-  mIndexBuffer.Bind();
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer(3, GL_FLOAT, 0, NULL);
 
-
+  mIndexBuffer.Bind();
   glColor4fv(glm::value_ptr(triColor));
   glDrawElements(GL_TRIANGLES,
                  mTriangleIndicesNumber,

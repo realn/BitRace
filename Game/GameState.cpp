@@ -2,10 +2,21 @@
 #include "GameState.h"
 #include "InputDevice.h"
 #include "Config.h"
+#include "FileSystem.h"
+#include "GameEntity.h"
 
-CGameState::CGameState(CConfig& config, CInputDeviceMap& inputDevMap)
+static const cb::string ENTTYPES_FILEPATH = L"entityTypes.xml";
+static const cb::string ENTTYPES_ROOTNAME = L"EntityTypes";
+
+CGameState::CGameState(CConfig& config, 
+                       IFileSystem& fileSystem,
+                       CInputDeviceMap& inputDevMap)
   : mConfig(config)
-  , mIDevMap(inputDevMap) {}
+  , mIDevMap(inputDevMap) 
+  , mRaceTrack(mEntityTypes)
+{
+  fileSystem.ReadXml(ENTTYPES_FILEPATH, ENTTYPES_ROOTNAME, mEntityTypes);
+}
 
 CGameState::~CGameState() {}
 
@@ -69,7 +80,7 @@ void CGameState::UpdateRender() {
 void CGameState::Render() const {
   glm::mat4 proj = glm::perspective(glm::radians(50.0f),
                                     mConfig.Screen.GetAspectRatio(),
-                                    0.001f, 1000.0f);
+                                    1.f, 1000.0f);
 
   mRaceTrack.Render(proj);
 }
