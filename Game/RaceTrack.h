@@ -7,6 +7,23 @@
 #include "Racer.h"
 #include "GameEntity.h"
 
+class CGameDifficulty {
+public:
+  typedef std::map<cb::string, Uint32> EntitySpawnMapT;
+
+  cb::string Name;
+  float EntitySpawnPause;
+  EntitySpawnMapT EntitySpawnRates;
+  cb::string NextId;
+  Uint32 NextNeededPoints;
+
+  CGameDifficulty();
+
+  const cb::string GetEntity(const Uint32 pos) const;
+  const Uint32 GetEntityWeightSum() const;
+};
+typedef std::map<cb::string, CGameDifficulty> GameDifficultyMapT;
+
 class CGUI;
 
 class CRaceTrack {
@@ -14,12 +31,14 @@ private:
   const GameEntityTypeMapT& mEntityTypes;
   CLaserGrid	mGridTop;
   CLaserGrid	mGridBottom;
+  GameDifficultyMapT mDifficultyMap;
   CRacer* m_pRacer;
 
   ProjectileVectorT mProjectiles;
   GameEntityVectorT mEntities;
   ProjectileVertexVectorT mProjectileVertices;
 
+  cb::string mDiffId;
   glm::vec2	m_vMove;
   float	m_fMoveX;
   float	m_fTime;
@@ -34,7 +53,6 @@ private:
   glm::vec3	m_vFSQColor;
   unsigned	m_uPoints;
   unsigned	m_uNeedPoints;
-  unsigned	m_uDifLevel;
   unsigned	m_uFireCount;
   unsigned	m_uTrackState;
   unsigned	m_unsignedroState;
@@ -46,11 +64,6 @@ private:
   const glm::vec2 CreateEntityPosition();
 
   void AddEntity(const cb::string& typeId);
-  void AddEntity_DL();
-  void AddEntity_DL2();
-  void AddEntity_BOMB();
-  void AddEntity_HACK();
-  void AddEntity_HACK2();
 
   void Engine_Intro(float fDT);
   void Engine_Track(float fDT);
@@ -65,17 +78,8 @@ private:
   void SetFSQ(float fTimeOut, glm::vec3 vColor);
   void GenRandomObject();
   void Clear();
-  const std::string GetDifLevelString() const;
   const ModelType GetLevelModelType() const;
 public:
-  enum DIF_LEVEL {
-    DL_VERY_EASY = 0,
-    DL_EASY = 1,
-    DL_MEDIUM = 2,
-    DL_HARD = 3,
-    DL_VERY_HARD = 4,
-    DL_HOLY_SHIT = 5
-  };
   enum TRACK_STATE {
     TS_NONE = 0,
     TS_INTRO = 1,
@@ -103,8 +107,6 @@ public:
   void Update(const float timeDelta);
 
   void FireWeapon();
-  unsigned GetDifLevel();
-  void SetDifLevel(unsigned uDifLevel);
   unsigned GetPoints();
   void SetPoints(unsigned uPoints);
   void SkipIntro();
