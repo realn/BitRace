@@ -14,7 +14,7 @@ public:
 
   // Inherited via IEngineState
   virtual void Update(const float timeDelta) override;
-  virtual void UpdateRender() override;
+  virtual void UpdateRender(const float timeDelta) override;
   virtual void Render() const override;
   virtual void RenderUI() const override;
   virtual const bool IsDone() const override;

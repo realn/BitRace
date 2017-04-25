@@ -317,7 +317,7 @@ void CEngine::Update() {
   }
 
   if(mState != nullptr) {
-    mState->UpdateRender();
+    mState->UpdateRender(mTimer.GetTimeDelta());
   }
 }
 

@@ -6,6 +6,8 @@
 #include "Racer.h"
 #include "UIFont.h"
 
+class CUIScreen;
+class CUIText;
 class CConfig;
 class CInputDeviceMap;
 class CGameEntityType;
@@ -22,6 +24,9 @@ private:
   CRaceTrack mRaceTrack;
   CRacer mRacer;
   CUIFont mFont;
+  CUIScreen* mMainUI;
+  CUIText* mFPSCounter;
+  float mFPSDT;
 
 public:
   CGameState(CConfig& config, 
@@ -40,7 +45,7 @@ public:
   // Inherited via IEngineState
   virtual void Update(const float timeDelta) override;
 
-  virtual void UpdateRender() override;
+  virtual void UpdateRender(const float timeDelta) override;
 
   virtual void Render() const override;
 

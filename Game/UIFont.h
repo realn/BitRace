@@ -2,12 +2,15 @@
 #define __BITRACE_UIFONT_H__
 
 #include <SDL_types.h>
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
 #include <map>
 #include <CBStr/Defines.h>
 
 class IFileSystem;
 class CTexture;
+
+typedef std::vector<glm::vec3> vec3vector;
+typedef std::vector<glm::vec2> vec2vector;
 
 class CUIFont {
 public:
@@ -33,6 +36,9 @@ public:
   ~CUIFont();
 
   const bool Load(IFileSystem& fs, const cb::string& fontFilePath);
+  void CreateMesh(const cb::string& text, vec3vector& vertices, 
+                  vec2vector& texcoords, 
+                  const glm::vec2& charSize = glm::vec2(1.0f)) const;
 
   const CTexture* GetTexture() const;
   const CChar&  GetChar(const wchar_t code) const;
@@ -48,31 +54,6 @@ public:
   glm::vec2 Scale;
 
   CUITextContext();
-};
-
-class CUIText {
-private:
-  const CUIFont& mFont;
-  glm::vec2 mCharSize;
-  glm::vec2 mVertex[4];
-  glm::mat4 mProjMatrix;
-
-public:
-  CUIText(const CUIFont& font, const glm::vec2& screenSize, 
-          const glm::vec2& charSize = glm::vec2(16.0f, 16.0f));
-  ~CUIText();
-
-  const glm::vec2 GetCharSize() const;
-
-  void Bind() const;
-  void UnBind() const;
-
-  void Render(const glm::vec2& pos, const cb::string& text, const CUITextContext& context = CUITextContext()) const;
-
-  void RenderQuad(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const Uint32 texId = 0);
-  void RenderQuadLines(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color);
-  void RenderQuadFullScreen(const glm::vec2& size, const glm::vec4& color, const Uint32 texId = 0);
-  void RenderProgressBar(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, const float progress);
 };
 
 

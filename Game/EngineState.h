@@ -11,7 +11,7 @@ public:
 
   virtual void Update(const float timeDelta) = 0;
 
-  virtual void UpdateRender() = 0;
+  virtual void UpdateRender(const float timeDelta) = 0;
 
   virtual void Render() const = 0;
   virtual void RenderUI() const = 0;

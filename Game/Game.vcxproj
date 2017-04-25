@@ -119,6 +119,7 @@
     </ClCompile>
     <ClCompile Include="TestState.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="UIBrush.cpp" />
     <ClCompile Include="UIFont.cpp" />
     <ClCompile Include="UIMenu.cpp" />
     <ClCompile Include="UIScreen.cpp" />
@@ -149,6 +150,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TestState.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="UIBrush.h" />
     <ClInclude Include="UIFont.h" />
     <ClInclude Include="UIMenu.h" />
     <ClInclude Include="UIScreen.h" />

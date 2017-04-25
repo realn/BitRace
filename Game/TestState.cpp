@@ -12,7 +12,7 @@ void CTestState::Update(const float timeDelta) {
   mRotation += timeDelta * 30.0f;
 }
 
-void CTestState::UpdateRender() {}
+void CTestState::UpdateRender(const float timeDelta) {}
 
 void CTestState::Render() const {
   vec3vector verts = {

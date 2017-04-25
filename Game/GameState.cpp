@@ -4,6 +4,7 @@
 #include "Config.h"
 #include "FileSystem.h"
 #include "GameEntity.h"
+#include "UIScreen.h"
 
 static const cb::string ENTTYPES_FILEPATH = L"entityTypes.xml";
 static const cb::string ENTTYPES_ROOTNAME = L"EntityTypes";
@@ -14,9 +15,24 @@ CGameState::CGameState(CConfig& config,
   : mConfig(config)
   , mIDevMap(inputDevMap) 
   , mRaceTrack(mEntityTypes)
+  , mMainUI(nullptr)
+  , mFPSDT(0.0f)
 {
   fileSystem.ReadXml(ENTTYPES_FILEPATH, ENTTYPES_ROOTNAME, mEntityTypes);
   mFont.Load(fileSystem, L"font.xml");
+
+  mMainUI = new CUIScreen(config.Screen.GetSize(), glm::vec4(50.0f));
+
+  CUIStack* pStack = new CUIStack(UIOrientation::Horizontal,
+                                  UIHAlign::Center,
+                                  UIVAlign::Top);
+
+  pStack->AddItem(new CUIRect(glm::vec4(0.0f, 1.0f, 0.0f, 0.4f), glm::vec2(50.0f, 50.0f)));
+  pStack->AddItem(new CUIRect(glm::vec4(1.0f, 0.0f, 0.0f, 0.2f), glm::vec2(100.0f, 16.0f)));
+  mFPSCounter = new CUIText(L"FPS: 0");
+  pStack->AddItem(mFPSCounter);
+
+  mMainUI->SetItem(pStack);
 }
 
 CGameState::~CGameState() {}
@@ -33,6 +49,10 @@ const bool CGameState::Init() {
 void CGameState::Free() {
   mRaceTrack.Free();
   mRacer.Free();
+  if(mMainUI) {
+    delete mMainUI;
+    mMainUI = nullptr;
+  }
 }
 
 void CGameState::ResetGame() {
@@ -71,10 +91,19 @@ void CGameState::Update(const float timeDelta) {
   //  return;
   //}
 
+  if(timeDelta > 0.0f)
+  mFPSDT += timeDelta;
   mRaceTrack.Update(timeDelta);
 }
 
-void CGameState::UpdateRender() {
+void CGameState::UpdateRender(const float timeDelta) {
+  if(timeDelta > 0.0f) {
+    Uint32 fps = (Uint32)(1.0f / timeDelta);
+    mFPSCounter->SetText(cb::format(L"FPS: {0}", fps));
+  }
+  mFPSDT = 0.0f;
+
+  mMainUI->UpdateRender(mFont);
 }
 
 void CGameState::Render() const {
@@ -86,11 +115,7 @@ void CGameState::Render() const {
 }
 
 void CGameState::RenderUI() const {
-  CUIText text(mFont, glm::vec2(1024.0f, 600.0f));
-  text.Bind();
-  text.Render(glm::vec2(20.0f), L"Test");
-  text.UnBind();
-  //mRaceTrack.RenderUI();
+  mMainUI->Render(mFont);
 }
 
 const bool CGameState::IsDone() const {
