@@ -123,6 +123,7 @@
     <ClCompile Include="UIFont.cpp" />
     <ClCompile Include="UIMenu.cpp" />
     <ClCompile Include="UIScreen.cpp" />
+    <ClCompile Include="UIScreenXml.cpp" />
     <ClCompile Include="XmlTypes.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -154,6 +155,7 @@
     <ClInclude Include="UIFont.h" />
     <ClInclude Include="UIMenu.h" />
     <ClInclude Include="UIScreen.h" />
+    <ClInclude Include="UIScreenXml.h" />
     <ClInclude Include="XmlTypes.h" />
     <CustomBuild Include="RaceTrack.h" />
     <ClInclude Include="LaserGrid.h" />

@@ -94,14 +94,16 @@ private:
   glm::vec4 mColor;
 
 public:
-  CUIText(const cb::string& text,
+  CUIText(const cb::string& text = cb::string(),
           const glm::vec4& color = glm::vec4(1.0f),
           const glm::vec2& margin = glm::vec2(0.0f));
   virtual ~CUIText();
 
   void SetText(const cb::string& text);
+  void SetColor(const glm::vec4& color);
 
   const cb::string& GetText() const;
+  const glm::vec4& GetColor() const;
 
   // Inherited via IUIItem
   virtual void UpdateRender(const glm::vec2& size,
@@ -117,17 +119,20 @@ private:
   glm::vec4 mColor;
   UISizePolicy mSizeHPolicy;
   UISizePolicy mSizeVPolicy;
+  bool mFillRect;
 
 public:
-  CUIRect(const glm::vec4& color,
+  CUIRect(const glm::vec4& color = glm::vec4(1.0f),
           const glm::vec2& size = glm::vec2(0.0f),
           const glm::vec2& margin = glm::vec2(0.0f));
   virtual ~CUIRect();
 
   virtual void SetColor(const glm::vec4& color);
   virtual void SetSize(const glm::vec2& size) override;
+  void SetFillRect(const bool value);
 
   const glm::vec4& GetColor() const;
+  const bool GetFillRect() const;
 
   // Inherited via IUIItem
   virtual void UpdateRender(const glm::vec2& size,
@@ -182,6 +187,13 @@ public:
            const glm::vec2& margin = glm::vec2(0.0f));
   virtual ~CUIStack();
 
+  void SetOrientation(const UIOrientation value);
+  void SetItemsAlign(const UIHAlign halign, const UIVAlign valign);
+
+  const UIOrientation GetOrientation() const;
+  const UIHAlign GetHAlign() const;
+  const UIVAlign GetVAlign() const;
+
   void AddItem(IUIItem* pItem);
   void RemoveItem(IUIItem* pItem);
 
@@ -194,7 +206,67 @@ private:
   const bool IsHorVAlignRev(const UIHAlign halign, const UIVAlign valign) const;
 };
 
+class CUIItemList
+  : public CUIRect {
+private:
+  class CItemData {
+  public:
+    IUIItem* Item;
+    UIHAlign HAlign;
+    UIVAlign VAlign;
+  };
+  typedef std::vector<CItemData> ItemDataVectorT;
 
+  ItemDataVectorT mItems;
+
+public:
+  CUIItemList(const glm::vec4& color = glm::vec4(0.0f),
+              const glm::vec2& size = glm::vec2(0.0f),
+              const glm::vec2& margin = glm::vec2(0.0f));
+  virtual ~CUIItemList();
+
+  void AddItem(IUIItem* pItem,
+               const UIHAlign halign = UIHAlign::Center,
+               const UIVAlign valign = UIVAlign::Middle);
+  void RemoveItem(IUIItem* pItem);
+
+  virtual void UpdateRender(const glm::vec2& size,
+                            const CUIBrush& brush) override;
+  virtual void Render(const glm::vec2& pos,
+                      const CUIBrush& brush) const override;
+};
+
+class CUIProgressBar
+  : public CUIRect {
+private:
+  CUIRect mBar;
+  float mMinValue;
+  float mMaxValue;
+  float mValue;
+
+public:
+  CUIProgressBar(const glm::vec4& barColor = glm::vec4(1.0f),
+                 const glm::vec4& lineColro = glm::vec4(0.0f),
+                 const glm::vec2& size = glm::vec2(0.0f),
+                 const glm::vec2& margin = glm::vec2(0.0f));
+  virtual ~CUIProgressBar();
+
+  void SetBarColor(const glm::vec4& color);
+  void SetRange(const float minValue, const float maxValue);
+  void SetValue(const float value);
+
+  const glm::vec4& GetBarColor() const;
+  const float GetMaxValue() const;
+  const float GetMinValue() const;
+  const float GetValue() const;
+
+  virtual void UpdateRender(const glm::vec2& size,
+                            const CUIBrush& brush) override;
+  virtual void Render(const glm::vec2& pos,
+                      const CUIBrush& brush) const override;
+
+  
+};
 
 #endif // !__BITRACE_UISCREEN_H__
 

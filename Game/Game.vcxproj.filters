@@ -91,10 +91,13 @@
     <ClCompile Include="LaserGrid.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="UIScreen.cpp" />
     <ClCompile Include="UIBrush.cpp">
       <Filter>Graphic</Filter>
     </ClCompile>
+    <ClCompile Include="UIScreen.cpp">
+      <Filter>Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="UIScreenXml.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -177,6 +180,9 @@
       <Filter>Graphic</Filter>
     </ClInclude>
     <ClInclude Include="UIBrush.h">
+      <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="UIScreenXml.h">
       <Filter>Graphic</Filter>
     </ClInclude>
   </ItemGroup>

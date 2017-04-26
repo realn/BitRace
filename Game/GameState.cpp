@@ -5,6 +5,7 @@
 #include "FileSystem.h"
 #include "GameEntity.h"
 #include "UIScreen.h"
+#include "UIScreenXml.h"
 
 static const cb::string ENTTYPES_FILEPATH = L"entityTypes.xml";
 static const cb::string ENTTYPES_ROOTNAME = L"EntityTypes";
@@ -22,17 +23,27 @@ CGameState::CGameState(CConfig& config,
   mFont.Load(fileSystem, L"font.xml");
 
   mMainUI = new CUIScreen(config.Screen.GetSize(), glm::vec4(50.0f));
+  fileSystem.ReadXml(L"screen.xml", L"Screen", *mMainUI);
 
-  CUIStack* pStack = new CUIStack(UIOrientation::Horizontal,
-                                  UIHAlign::Center,
-                                  UIVAlign::Top);
+  //{
+  //  CUIItemList* pItemList = new CUIItemList();
+  //  pItemList->SetMargin(glm::vec2(8.0f, 3.0f));
+  //  {
+  //    CUIStack* pStack = new CUIStack(UIOrientation::Vertical);
+  //    pStack->SetMargin(glm::vec2(10.0f, 5.0f));
+  //    pStack->AddItem(new CUIText(L"POINTS: 0"));
+  //    pStack->AddItem(new CUIText(L"DIFFCULTY LEVEL: EASY"));
+  //    CUIPanel* pPanel = new CUIPanel(pStack,
+  //                                    glm::vec4(0.4f, 0.4f, 1.0f, 0.6f),
+  //                                    glm::vec2(400.0f, 40.0f));
 
-  pStack->AddItem(new CUIRect(glm::vec4(0.0f, 1.0f, 0.0f, 0.4f), glm::vec2(50.0f, 50.0f)));
-  pStack->AddItem(new CUIRect(glm::vec4(1.0f, 0.0f, 0.0f, 0.2f), glm::vec2(100.0f, 16.0f)));
-  mFPSCounter = new CUIText(L"FPS: 0");
-  pStack->AddItem(mFPSCounter);
+  //    pItemList->AddItem(pPanel, UIHAlign::Left, UIVAlign::Top);
 
-  mMainUI->SetItem(pStack);
+  //    mFPSCounter = new CUIText(L"FPS: 0");
+  //    pItemList->AddItem(mFPSCounter, UIHAlign::Right, UIVAlign::Top);
+  //  }
+  //  mMainUI->SetItem(pItemList);
+  //}
 }
 
 CGameState::~CGameState() {}
@@ -91,17 +102,17 @@ void CGameState::Update(const float timeDelta) {
   //  return;
   //}
 
-  if(timeDelta > 0.0f)
-  mFPSDT += timeDelta;
+  //if(timeDelta > 0.0f)
+  //mFPSDT += timeDelta;
   mRaceTrack.Update(timeDelta);
 }
 
 void CGameState::UpdateRender(const float timeDelta) {
-  if(timeDelta > 0.0f) {
-    Uint32 fps = (Uint32)(1.0f / timeDelta);
-    mFPSCounter->SetText(cb::format(L"FPS: {0}", fps));
-  }
-  mFPSDT = 0.0f;
+  //if(timeDelta > 0.0f) {
+  //  Uint32 fps = (Uint32)(1.0f / timeDelta);
+  //  mFPSCounter->SetText(cb::format(L"FPS: {0}", fps));
+  //}
+  //mFPSDT = 0.0f;
 
   mMainUI->UpdateRender(mFont);
 }

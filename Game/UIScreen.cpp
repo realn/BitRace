@@ -108,8 +108,16 @@ void CUIText::SetText(const cb::string & text) {
   mText = text;
 }
 
+void CUIText::SetColor(const glm::vec4 & color) {
+  mColor = color;
+}
+
 const cb::string & CUIText::GetText() const {
   return mText;
+}
+
+const glm::vec4 & CUIText::GetColor() const {
+  return mColor;
 }
 
 void CUIText::UpdateRender(const glm::vec2& size, const CUIBrush& brush) {
@@ -132,6 +140,7 @@ CUIRect::CUIRect(const glm::vec4 & color,
   , mColor(color)
   , mSizeHPolicy(UISizePolicy::Fixed)
   , mSizeVPolicy(UISizePolicy::Fixed)
+  , mFillRect(true)
 {
   if(mSize.x == 0.0f) {
     mSizeHPolicy = UISizePolicy::FillOwner;
@@ -154,8 +163,16 @@ void CUIRect::SetSize(const glm::vec2 & size) {
   mSizeVPolicy = mSize.y == 0.0f ? UISizePolicy::FillOwner : UISizePolicy::Fixed;
 }
 
+void CUIRect::SetFillRect(const bool value) {
+  mFillRect = value;
+}
+
 const glm::vec4 & CUIRect::GetColor() const {
   return mColor;
+}
+
+const bool CUIRect::GetFillRect() const {
+  return mFillRect;
 }
 
 void CUIRect::UpdateRender(const glm::vec2& size, const CUIBrush & brush) {
@@ -172,8 +189,12 @@ void CUIRect::Render(const glm::vec2 & pos,
   CUIBrush localBrush(brush);
   localBrush.SetColor(mColor);
 
-  localBrush.RenderQuad(GetClientPos(pos), GetClientSize());
-
+  if(mFillRect) {
+    localBrush.RenderQuad(GetClientPos(pos), GetClientSize());
+  }
+  else {
+    localBrush.RenderQuadLines(GetClientPos(pos), GetClientSize());
+  }
 }
 
 CUIPanel::CUIPanel(IUIItem * pItem, 
@@ -250,6 +271,27 @@ CUIStack::~CUIStack() {
   for(UIItemVectorT::iterator it = mItems.begin(); it != mItems.end(); it++) {
     delete *it;
   }
+}
+
+void CUIStack::SetOrientation(const UIOrientation value) {
+  mOrientation = value;
+}
+
+void CUIStack::SetItemsAlign(const UIHAlign halign, const UIVAlign valign) {
+  mHAlign = halign;
+  mVAlign = valign;
+}
+
+const UIOrientation CUIStack::GetOrientation() const {
+  return mOrientation;
+}
+
+const UIHAlign CUIStack::GetHAlign() const {
+  return mHAlign;
+}
+
+const UIVAlign CUIStack::GetVAlign() const {
+  return mVAlign;
 }
 
 void CUIStack::AddItem(IUIItem * pItem) {
@@ -342,4 +384,113 @@ const bool CUIStack::IsHorVAlignRev(const UIHAlign halign, const UIVAlign valign
     return true;
   }
   return false;
+}
+
+CUIItemList::CUIItemList(const glm::vec4 & color, 
+                         const glm::vec2 & size, 
+                         const glm::vec2 & margin) 
+  : CUIRect(color, size, margin)
+{}
+
+CUIItemList::~CUIItemList() {
+  for(ItemDataVectorT::iterator it = mItems.begin(); it != mItems.end(); it++) {
+    delete it->Item;
+  }
+}
+
+void CUIItemList::AddItem(IUIItem * pItem, const UIHAlign halign, const UIVAlign valign) {
+  CItemData data;
+  data.Item = pItem;
+  data.HAlign = halign;
+  data.VAlign = valign;
+  mItems.push_back(data);
+}
+
+void CUIItemList::RemoveItem(IUIItem * pItem) {
+  ItemDataVectorT::iterator it = mItems.begin();
+  while(it != mItems.end()) {
+    if(it->Item == pItem) {
+      it = mItems.erase(it);
+    }
+    else {
+      it++;
+    }
+  }
+}
+
+void CUIItemList::UpdateRender(const glm::vec2 & size, const CUIBrush & brush) {
+  CUIRect::UpdateRender(size, brush);
+
+  for(ItemDataVectorT::iterator it = mItems.begin(); it != mItems.end(); it++) {
+    it->Item->UpdateRender(GetClientSize(), brush);
+  }
+}
+
+void CUIItemList::Render(const glm::vec2 & pos, const CUIBrush & brush) const {
+  CUIRect::Render(pos, brush);
+
+  glm::vec2 clientPos = GetClientPos(pos);
+  glm::vec2 clientSize = GetClientSize();
+
+  for(ItemDataVectorT::const_iterator it = mItems.begin(); it != mItems.end(); it++) {
+    glm::vec2 alignVal = GetAlignMulVal(it->HAlign, it->VAlign);
+    glm::vec2 itemPos = clientPos + (clientSize - it->Item->GetSize()) * alignVal;
+
+    it->Item->Render(itemPos, brush);
+  }
+}
+
+CUIProgressBar::CUIProgressBar(const glm::vec4 & barColor, 
+                               const glm::vec4 & lineColor, 
+                               const glm::vec2 & size, 
+                               const glm::vec2 & margin) 
+  : CUIRect(lineColor, size, margin)
+  , mBar(barColor, size, margin)
+  , mMaxValue(1.0f)
+  , mMinValue(0.0f)
+  , mValue(1.0f)
+{}
+
+CUIProgressBar::~CUIProgressBar() {}
+
+void CUIProgressBar::SetBarColor(const glm::vec4 & color) {
+  mBar.SetColor(color);
+}
+
+void CUIProgressBar::SetRange(const float minValue, const float maxValue) {
+  mMaxValue = maxValue;
+  mMinValue = minValue;
+}
+
+void CUIProgressBar::SetValue(const float value) {
+  mValue = glm::clamp(value, mMinValue, mMaxValue);
+}
+
+const glm::vec4 & CUIProgressBar::GetBarColor() const {
+  return mBar.GetColor();
+}
+
+const float CUIProgressBar::GetMaxValue() const {
+  return mMaxValue;
+}
+
+const float CUIProgressBar::GetMinValue() const {
+  return mMinValue;
+}
+
+const float CUIProgressBar::GetValue() const {
+  return mValue;
+}
+
+void CUIProgressBar::UpdateRender(const glm::vec2 & size, 
+                                  const CUIBrush & brush) {
+  CUIRect::UpdateRender(size, brush);
+  float val = (mValue - mMinValue) / (mMaxValue - mMinValue);
+  glm::vec2 valVec(val, 1.0f);
+  mBar.SetSize(GetClientSize() * valVec);
+}
+
+void CUIProgressBar::Render(const glm::vec2 & pos, const CUIBrush & brush) const {
+  CUIRect::Render(pos, brush);
+  mBar.Render(GetClientPos(pos), brush);
 }
