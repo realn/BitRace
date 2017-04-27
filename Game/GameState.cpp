@@ -5,6 +5,7 @@
 #include "FileSystem.h"
 #include "GameEntity.h"
 #include "UIScreen.h"
+#include "UIItems.h"
 #include "UIScreenXml.h"
 
 static const cb::string ENTTYPES_FILEPATH = L"entityTypes.xml";
@@ -24,6 +25,7 @@ CGameState::CGameState(CConfig& config,
 
   mMainUI = new CUIScreen(config.Screen.GetSize(), glm::vec4(50.0f));
   fileSystem.ReadXml(L"screen.xml", L"Screen", *mMainUI);
+  mFPSCounter = mMainUI->GetItem<CUITextNumber<Sint32>>(L"fpsCounter");
 
   //{
   //  CUIItemList* pItemList = new CUIItemList();
@@ -108,10 +110,10 @@ void CGameState::Update(const float timeDelta) {
 }
 
 void CGameState::UpdateRender(const float timeDelta) {
-  //if(timeDelta > 0.0f) {
-  //  Uint32 fps = (Uint32)(1.0f / timeDelta);
-  //  mFPSCounter->SetText(cb::format(L"FPS: {0}", fps));
-  //}
+  if(timeDelta > 0.0f && mFPSCounter) {
+    Uint32 fps = (Uint32)(1.0f / timeDelta);
+    mFPSCounter->SetValue(fps);
+  }
   //mFPSDT = 0.0f;
 
   mMainUI->UpdateRender(mFont);

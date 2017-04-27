@@ -7,7 +7,7 @@
 #include "UIFont.h"
 
 class CUIScreen;
-class CUIText;
+template<typename _Type> class CUITextNumber;
 class CConfig;
 class CInputDeviceMap;
 class CGameEntityType;
@@ -25,7 +25,7 @@ private:
   CRacer mRacer;
   CUIFont mFont;
   CUIScreen* mMainUI;
-  CUIText* mFPSCounter;
+  CUITextNumber<Sint32>* mFPSCounter;
   float mFPSDT;
 
 public:

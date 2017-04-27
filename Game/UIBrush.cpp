@@ -92,7 +92,9 @@ void CUIBrush::RenderText(const glm::vec2& pos, const cb::string& text) const {
 
   glLoadMatrixf(glm::value_ptr(mat));
   glColor4fv(glm::value_ptr(mColor));
+  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
   RenderTexVectorList(GL_QUADS, vertList, texList);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void CUIBrush::RenderQuad(const glm::vec2 & pos, const glm::vec2 & size) const {

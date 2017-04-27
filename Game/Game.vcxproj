@@ -121,6 +121,7 @@
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="UIBrush.cpp" />
     <ClCompile Include="UIFont.cpp" />
+    <ClCompile Include="UIItems.cpp" />
     <ClCompile Include="UIMenu.cpp" />
     <ClCompile Include="UIScreen.cpp" />
     <ClCompile Include="UIScreenXml.cpp" />
@@ -153,6 +154,7 @@
     <ClInclude Include="Texture.h" />
     <ClInclude Include="UIBrush.h" />
     <ClInclude Include="UIFont.h" />
+    <ClInclude Include="UIItems.h" />
     <ClInclude Include="UIMenu.h" />
     <ClInclude Include="UIScreen.h" />
     <ClInclude Include="UIScreenXml.h" />

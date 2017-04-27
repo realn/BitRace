@@ -1,11 +1,11 @@
 <Screen>
     <ItemList Margin="8:3">
-        <Panel HorAlign="Left" VerAlign="Top" Size="400:60" Color="0.4:0.4:1:0.6">
-            <Stack Orientation="Vertical" Marin="10:5">
+        <Panel HorAlign="Left" VerAlign="Top" Size="360:40" Color="0.4:0.4:1:0.6">
+            <Stack Orientation="Vertical" Margin="10:5">
                 <Text Text="POINTS: 0" />
                 <Text Text="DIFFICULTY LEVEL: EASY" />
             </Stack>
         </Panel>
-        <Text HorAlign="Right" VerAlign="Top" Text="FPS: 0" />
+        <TextInt Id="fpsCounter" HorAlign="Right" VerAlign="Top" Format="FPS: {0}" />
     </ItemList>
 </Screen>

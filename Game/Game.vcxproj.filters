@@ -98,6 +98,9 @@
       <Filter>Graphic</Filter>
     </ClCompile>
     <ClCompile Include="UIScreenXml.cpp" />
+    <ClCompile Include="UIItems.cpp">
+      <Filter>Graphic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -183,6 +186,9 @@
       <Filter>Graphic</Filter>
     </ClInclude>
     <ClInclude Include="UIScreenXml.h">
+      <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="UIItems.h">
       <Filter>Graphic</Filter>
     </ClInclude>
   </ItemGroup>
