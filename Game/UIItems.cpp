@@ -78,6 +78,7 @@ CUIText::CUIText(const cb::string & text,
   : CUIItemBase(glm::vec2(0.0f), margin)
   , mText(text)
   , mColor(color) 
+  , mScale(1.0f)
   , mAutoSize(true)
 {}
 
@@ -91,6 +92,10 @@ void CUIText::SetColor(const glm::vec4 & color) {
   mColor = color;
 }
 
+void CUIText::SetScale(const glm::vec2 & scale) {
+  mScale = scale;
+}
+
 void CUIText::SetAutoSize(const bool value) {}
 
 const cb::string & CUIText::GetText() const {
@@ -101,13 +106,20 @@ const glm::vec4 & CUIText::GetColor() const {
   return mColor;
 }
 
+const glm::vec2 & CUIText::GetScale() const {
+  return mScale;
+}
+
 const bool CUIText::IsAutoSize() const {
   return false;
 }
 
 void CUIText::UpdateRender(const glm::vec2& size, const CUIBrush& brush) {
   if(mAutoSize) {
-    glm::vec2 textSize = brush.GetTextSize(mText);
+    CUIBrush localBrush(brush);
+    localBrush.SetScale(mScale);
+
+    glm::vec2 textSize = localBrush.GetTextSize(mText);
     mSize = glm::min(size, textSize + mMargin * 2.0f);
   }
 }
@@ -120,6 +132,7 @@ void CUIText::Render(const glm::vec2 & pos,
   CUIBrush localBrush(brush);
 
   localBrush.SetColor(mColor);
+  localBrush.SetScale(mScale);
   localBrush.RenderText(GetClientPos(pos), mText);
 }
 
@@ -465,7 +478,9 @@ CUIProgressBar::CUIProgressBar(const glm::vec4 & barColor,
   , mBar(barColor, size, margin)
   , mMaxValue(1.0f)
   , mMinValue(0.0f)
-  , mValue(1.0f) {}
+  , mValue(1.0f) {
+  SetFillRect(false);
+}
 
 CUIProgressBar::~CUIProgressBar() {}
 

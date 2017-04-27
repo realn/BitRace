@@ -72,7 +72,10 @@ CGameEntityType::CGameEntityType()
   , MaxHealth(1.0f)
   , Damage(0.0f)
   , AIPause(0.5f)
-  , IgnoreProjectiles(false) {}
+  , RotSpeed(20.0f)
+  , IgnoreProjectiles(false) 
+  , Points(0)
+{}
 
 CGameEntity::CGameEntity(const CGameEntityType & type,
                          const glm::vec2& pos,
@@ -89,8 +92,11 @@ CGameEntity::CGameEntity(const CGameEntityType & type,
   , mAIPause(type.AIPause)
   , mAITime(0.0f)
   , mRotAngle(rotAngle)
+  , mRotSpeed(type.RotSpeed)
   , mIgnoreProjectiles(type.IgnoreProjectiles)
-  , mDeleted(false) {
+  , mDeleted(false) 
+  , mPoints(type.Points)
+{
   mModel = CModelRepository::Instance.GetModel(type.ModelType);
 }
 
@@ -126,6 +132,10 @@ const bool CGameEntity::IsDeleted() const {
   return mDeleted;
 }
 
+const Uint32 CGameEntity::GetPoints() const {
+  return mPoints;
+}
+
 const bool CGameEntity::Update(const float timeDelta, const float racerPosX, ProjectileVectorT & projectiles) {
   if(mDeleted)
     return false;
@@ -156,7 +166,7 @@ const bool CGameEntity::Update(const float timeDelta, const float racerPosX, Pro
   case EntityType::ET_ITEM:
   case EntityType::ET_OBSTACLE:
     {
-      mRotAngle += timeDelta * 20.0f;
+      mRotAngle += timeDelta * mRotSpeed;
     }
     break;
 
@@ -233,7 +243,9 @@ static const cb::string XML_ENTITYTYPE_MODELTYPE = L"ModelType";
 static const cb::string XML_ENTITYTYPE_MAXHEALTH = L"MaxHealth";
 static const cb::string XML_ENTITYTYPE_DAMAGE = L"Damage";
 static const cb::string XML_ENTITYTYPE_AIPAUSE = L"AIPause";
+static const cb::string XML_ENTITYTYPE_ROTSPEED = L"RotSpeed";
 static const cb::string XML_ENTITYTYPE_IGNOREPROJECTILES = L"IgnoreProjectiles";
+static const cb::string XML_ENTITYTYPE_POINTS = L"Points";
 
 CB_DEFINEXMLREAD(CGameEntityType) {
   GetAttribute(XML_ENTITYTYPE_NAME, mObject.Name);
@@ -244,7 +256,9 @@ CB_DEFINEXMLREAD(CGameEntityType) {
   GetAttribute(XML_ENTITYTYPE_MAXHEALTH, mObject.MaxHealth);
   GetAttribute(XML_ENTITYTYPE_DAMAGE, mObject.Damage);
   GetAttribute(XML_ENTITYTYPE_AIPAUSE, mObject.AIPause);
+  GetAttribute(XML_ENTITYTYPE_ROTSPEED, mObject.RotSpeed);
   GetAttribute(XML_ENTITYTYPE_IGNOREPROJECTILES, mObject.IgnoreProjectiles);
+  GetAttribute(XML_ENTITYTYPE_POINTS, mObject.Points);
 
   return true;
 }
@@ -258,7 +272,9 @@ CB_DEFINEXMLWRITE(CGameEntityType) {
   SetAttribute(XML_ENTITYTYPE_MAXHEALTH, mObject.MaxHealth);
   SetAttribute(XML_ENTITYTYPE_DAMAGE, mObject.Damage);
   SetAttribute(XML_ENTITYTYPE_AIPAUSE, mObject.AIPause);
+  SetAttribute(XML_ENTITYTYPE_ROTSPEED, mObject.RotSpeed);
   SetAttribute(XML_ENTITYTYPE_IGNOREPROJECTILES, mObject.IgnoreProjectiles);
+  SetAttribute(XML_ENTITYTYPE_POINTS, mObject.Points);
 
   return true;
 }

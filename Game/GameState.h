@@ -8,6 +8,9 @@
 
 class CUIScreen;
 template<typename _Type> class CUITextNumber;
+class CUIProgressBar;
+class CUIRect;
+
 class CConfig;
 class CInputDeviceMap;
 class CGameEntityType;
@@ -15,8 +18,7 @@ class IFileSystem;
 typedef std::map<cb::string, CGameEntityType> GameEntityTypeMapT;
 
 class CGameState :
-  public IEngineState
-{
+  public IEngineState {
 private:
   CConfig& mConfig;
   GameEntityTypeMapT mEntityTypes;
@@ -24,12 +26,16 @@ private:
   CRaceTrack mRaceTrack;
   CRacer mRacer;
   CUIFont mFont;
+
+  Uint32 mPoints;
+
   CUIScreen* mMainUI;
   CUITextNumber<Sint32>* mFPSCounter;
-  float mFPSDT;
+  CUIProgressBar* mUIHealthBar;
+  CUITextNumber<Sint32>* mUIPoints;
 
 public:
-  CGameState(CConfig& config, 
+  CGameState(CConfig& config,
              IFileSystem& fileSystem,
              CInputDeviceMap& inputDevMap);
   virtual ~CGameState();

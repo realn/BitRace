@@ -61,6 +61,7 @@ class CUIText :
 private:
   cb::string mText;
   glm::vec4 mColor;
+  glm::vec2 mScale;
   bool mAutoSize;
 
 public:
@@ -71,10 +72,12 @@ public:
 
   void SetText(const cb::string& text);
   void SetColor(const glm::vec4& color);
+  void SetScale(const glm::vec2& scale);
   void SetAutoSize(const bool value);
 
   const cb::string& GetText() const;
   const glm::vec4& GetColor() const;
+  const glm::vec2& GetScale() const;
   const bool IsAutoSize() const;
 
   // Inherited via IUIItem

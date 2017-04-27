@@ -65,7 +65,9 @@ public:
   float MaxHealth;
   float Damage;
   float AIPause;
+  float RotSpeed;
   bool IgnoreProjectiles;
+  Uint32 Points;
 
 public:
   CGameEntityType();
@@ -86,8 +88,10 @@ private:
   float mAIPause;
   float mAITime;
   float mRotAngle;
+  float mRotSpeed;
   bool mIgnoreProjectiles;
   bool mDeleted;
+  Uint32 mPoints;
 
 public:
   CGameEntity(const CGameEntityType& type,
@@ -102,6 +106,7 @@ public:
   const glm::vec2   GetDir() const;
   const glm::vec2   GetVec() const;
   const bool IsDeleted() const;
+  const Uint32 GetPoints() const;
 
   const bool	Update(const float timeDelta,
                      const float racerPosX,

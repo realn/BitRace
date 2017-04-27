@@ -17,35 +17,18 @@ CGameState::CGameState(CConfig& config,
   : mConfig(config)
   , mIDevMap(inputDevMap) 
   , mRaceTrack(mEntityTypes)
+  , mPoints(0)
   , mMainUI(nullptr)
-  , mFPSDT(0.0f)
 {
   fileSystem.ReadXml(ENTTYPES_FILEPATH, ENTTYPES_ROOTNAME, mEntityTypes);
   mFont.Load(fileSystem, L"font.xml");
 
-  mMainUI = new CUIScreen(config.Screen.GetSize(), glm::vec4(50.0f));
+  mMainUI = new CUIScreen(config.Screen.GetSize());
   fileSystem.ReadXml(L"screen.xml", L"Screen", *mMainUI);
+
   mFPSCounter = mMainUI->GetItem<CUITextNumber<Sint32>>(L"fpsCounter");
-
-  //{
-  //  CUIItemList* pItemList = new CUIItemList();
-  //  pItemList->SetMargin(glm::vec2(8.0f, 3.0f));
-  //  {
-  //    CUIStack* pStack = new CUIStack(UIOrientation::Vertical);
-  //    pStack->SetMargin(glm::vec2(10.0f, 5.0f));
-  //    pStack->AddItem(new CUIText(L"POINTS: 0"));
-  //    pStack->AddItem(new CUIText(L"DIFFCULTY LEVEL: EASY"));
-  //    CUIPanel* pPanel = new CUIPanel(pStack,
-  //                                    glm::vec4(0.4f, 0.4f, 1.0f, 0.6f),
-  //                                    glm::vec2(400.0f, 40.0f));
-
-  //    pItemList->AddItem(pPanel, UIHAlign::Left, UIVAlign::Top);
-
-  //    mFPSCounter = new CUIText(L"FPS: 0");
-  //    pItemList->AddItem(mFPSCounter, UIHAlign::Right, UIVAlign::Top);
-  //  }
-  //  mMainUI->SetItem(pItemList);
-  //}
+  mUIHealthBar = mMainUI->GetItem<CUIProgressBar>(L"healthBar");
+  mUIPoints = mMainUI->GetItem<CUITextNumber<Sint32>>(L"pointsDisplay");
 }
 
 CGameState::~CGameState() {}
@@ -107,12 +90,19 @@ void CGameState::Update(const float timeDelta) {
   //if(timeDelta > 0.0f)
   //mFPSDT += timeDelta;
   mRaceTrack.Update(timeDelta);
+  mPoints = mRaceTrack.GetPoints();
 }
 
 void CGameState::UpdateRender(const float timeDelta) {
   if(timeDelta > 0.0f && mFPSCounter) {
     Uint32 fps = (Uint32)(1.0f / timeDelta);
     mFPSCounter->SetValue(fps);
+  }
+  if(mUIHealthBar) {
+    mUIHealthBar->SetValue(mRacer.GetBitRate());
+  }
+  if(mUIPoints) {
+    mUIPoints->SetValue((Sint32)mPoints);
   }
   //mFPSDT = 0.0f;
 

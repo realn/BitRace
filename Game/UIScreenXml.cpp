@@ -183,6 +183,7 @@ CB_DEFINEXMLREAD(CUIItemBase) {
 
 static const cb::string XML_UITEXT_TEXT = L"Text";
 static const cb::string XML_UITEXT_COLOR = L"Color";
+static const cb::string XML_UITEXT_SCALE = L"Scale";
 static const cb::string XML_UITEXT_AUTOSIZE = L"AutoSize";
 
 CB_DEFINEXMLREAD(CUIText) {
@@ -191,12 +192,16 @@ CB_DEFINEXMLREAD(CUIText) {
   }
   cb::string text;
   glm::vec4 color;
+  glm::vec2 scale;
   bool autosize;
   if(GetAttribute(XML_UITEXT_TEXT, text)) {
     mObject.SetText(text);
   }
   if(GetAttribute(XML_UITEXT_COLOR, color)) {
     mObject.SetColor(color);
+  }
+  if(GetAttribute(XML_UITEXT_SCALE, scale)) {
+    mObject.SetScale(scale);
   }
   if(GetAttribute(XML_UITEXT_AUTOSIZE, autosize)) {
     mObject.SetAutoSize(autosize);

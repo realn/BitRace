@@ -97,8 +97,10 @@
     <ClCompile Include="UIScreen.cpp">
       <Filter>Graphic</Filter>
     </ClCompile>
-    <ClCompile Include="UIScreenXml.cpp" />
     <ClCompile Include="UIItems.cpp">
+      <Filter>Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="UIScreenXml.cpp">
       <Filter>Graphic</Filter>
     </ClCompile>
   </ItemGroup>
