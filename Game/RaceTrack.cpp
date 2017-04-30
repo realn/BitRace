@@ -3,48 +3,22 @@
 #include "GLDefines.h"
 #include "GUI.h"
 #include "MeshFunctions.h"
+#include "GameDifficulty.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/vector_angle.hpp>
-
-
-CGameDifficulty::CGameDifficulty()
-  : EntitySpawnPause(0.0f)
-  , NextNeededPoints(0) {}
-
-const cb::string CGameDifficulty::GetEntity(const Uint32 pos) const {
-  Uint32 weigth = 0;
-  for(EntitySpawnMapT::const_iterator it = EntitySpawnRates.begin();
-      it != EntitySpawnRates.end(); it++) {
-    if(weigth <= pos && weigth + it->second > pos) {
-      return it->first;
-    }
-    weigth += it->second;
-  }
-  return cb::string();
-}
-
-const Uint32 CGameDifficulty::GetEntityWeightSum() const {
-  Uint32 weight = 0;
-  for(EntitySpawnMapT::const_iterator it = EntitySpawnRates.begin();
-      it != EntitySpawnRates.end(); it++) {
-    weight += it->second;
-  }
-  return weight;
-}
-
 
 static const glm::vec2 gGridSize(800.0f);
 static const glm::uvec2 gGridSteps(40);
 static const float gMapEdgeFar = -100.0f;
 static const float gMapEdgeNear = 4.0f;
 
-CRaceTrack::CRaceTrack(const GameEntityTypeMapT& entityTypes)
+CRaceTrack::CRaceTrack(const GameEntityTypeMapT& entityTypes,
+                       IFileSystem& fs)
   : mEntityTypes(entityTypes)
   , mGridTop(gGridSize, gGridSteps, 0.0f)
   , mGridBottom(gGridSize, gGridSteps, 0.0f)
-  , m_pRacer(NULL)
-  , mDiffId(L"DIFF_VERYEASY"),
+  , m_pRacer(NULL),
   m_fMoveX(0.0f),
   m_fTime(0.0f),
   m_fDamage(15.0f),
@@ -59,90 +33,6 @@ CRaceTrack::CRaceTrack(const GameEntityTypeMapT& entityTypes)
   m_bGameOver(false),
   m_bGameRuning(false),
   m_strGameOver("GAME OVER") {
-    {
-      CGameDifficulty diff;
-      diff.Name = L"VERY EASY";
-      diff.EntitySpawnPause = 0.6f;
-      diff.EntitySpawnRates = {
-        {L"ENT_CRCBOMB", 6},
-        {L"ENT_DLPART", 3},
-        {L"ENT_HACK", 1}
-      };
-      diff.NextId = L"DIFF_EASY";
-      diff.NextNeededPoints = 1000;
-
-      mDifficultyMap[L"DIFF_VERYEASY"] = diff;
-    }
-    {
-      CGameDifficulty diff;
-      diff.Name = L"EASY";
-      diff.EntitySpawnPause = 0.3f;
-      diff.EntitySpawnRates = {
-        {L"ENT_CRCBOMB", 5},
-        {L"ENT_DLPART", 2},
-        {L"ENT_HACK", 3}
-      };
-      diff.NextId = L"DIFF_MEDIUM";
-      diff.NextNeededPoints = 3000;
-
-      mDifficultyMap[L"DIFF_EASY"] = diff;
-    }
-    {
-      CGameDifficulty diff;
-      diff.Name = L"MEDIUM";
-      diff.EntitySpawnPause = 0.3f;
-      diff.EntitySpawnRates = {
-        {L"ENT_CRCBOMB", 2},
-        {L"ENT_HACK", 2},
-        {L"ENT_DLPART", 1},
-        {L"ENT_BIGDLPART", 1},
-      };
-      diff.NextId = L"DIFF_HARD";
-      diff.NextNeededPoints = 9000;
-
-      mDifficultyMap[L"DIFF_MEDIUM"] = diff;
-    }
-    {
-      CGameDifficulty diff;
-      diff.Name = L"HARD";
-      diff.EntitySpawnPause = 0.22f;
-      diff.EntitySpawnRates = {
-        {L"ENT_CRCBOMB", 70},
-        {L"ENT_HACK", 10},
-        {L"ENT_LEETHACK", 10},
-        {L"ENT_DLPART", 5},
-        {L"ENT_BIGDLPART", 5},
-      };
-      diff.NextId = L"DIFF_VERYHARD";
-      diff.NextNeededPoints = 27000;
-
-      mDifficultyMap[L"DIFF_HARD"] = diff;
-    }
-    {
-      CGameDifficulty diff;
-      diff.Name = L"VERY HARD";
-      diff.EntitySpawnPause = 0.13f;
-      diff.EntitySpawnRates = {
-        {L"ENT_CRCBOMB", 7},
-        {L"ENT_LEETHACK", 2},
-        {L"ENT_BIGDLPART", 1},
-      };
-      diff.NextId = L"DIFF_HOLYSHIT";
-      diff.NextNeededPoints = 1000000;
-
-      mDifficultyMap[L"DIFF_VERYHARD"] = diff;
-    }
-    {
-      CGameDifficulty diff;
-      diff.Name = L"HOLY SHIT!!!";
-      diff.EntitySpawnPause = 0.08f;
-      diff.EntitySpawnRates = {
-        {L"ENT_CRCBOMB", 4},
-        {L"ENT_LEETHACK", 1},
-      };
-
-      mDifficultyMap[L"DIFF_HOLYSHIT"] = diff;
-    }
 }
 
 CRaceTrack::~CRaceTrack() {
@@ -523,16 +413,16 @@ void CRaceTrack::AddEntity(const cb::string& entityId) {
 }
 
 void CRaceTrack::GenRandomObject() {
-  const CGameDifficulty& diff = mDifficultyMap[mDiffId];
-  if(m_fTime < diff.EntitySpawnPause) {
-    return;
-  }
-  m_fTime -= diff.EntitySpawnPause;
+  //const CGameDifficulty& diff = mDifficultyMap[mDiffId];
+  //if(m_fTime < diff.EntitySpawnPause) {
+  //  return;
+  //}
+  //m_fTime -= diff.EntitySpawnPause;
 
-  Uint32 pos = rand() % diff.GetEntityWeightSum();
-  cb::string typeId = diff.GetEntity(pos);
+  //Uint32 pos = rand() % diff.GetEntityWeightSum();
+  //cb::string typeId = diff.GetEntity(pos);
 
-  AddEntity(typeId);
+  //AddEntity(typeId);
 }
 
 void CRaceTrack::ResetGame() {
@@ -555,22 +445,22 @@ void CRaceTrack::ResetGame() {
 }
 
 void CRaceTrack::CheckDifLevel() {
-  const CGameDifficulty& diff = mDifficultyMap[mDiffId];
-  if(diff.NextNeededPoints == 0)
-    return;
+  //const CGameDifficulty& diff = mDifficultyMap[mDiffId];
+  //if(diff.NextNeededPoints == 0)
+  //  return;
 
-  if(m_uPoints < diff.NextNeededPoints)
-    return;
+  //if(m_uPoints < diff.NextNeededPoints)
+  //  return;
 
-  mDiffId = diff.NextId;
+  //mDiffId = diff.NextId;
 
-  m_uFireCount += 1;
-  m_fDamage += 1.5f;
-  if(m_pRacer->GetModel()->GetType() != this->GetLevelModelType()) {
-    m_pRacer->Free();
-    m_pRacer->Init((Uint32)this->GetLevelModelType());
-  }
-  this->SetUpgScreen(10.0f);
+  //m_uFireCount += 1;
+  //m_fDamage += 1.5f;
+  //if(m_pRacer->GetModel()->GetType() != this->GetLevelModelType()) {
+  //  m_pRacer->Free();
+  //  m_pRacer->Init((Uint32)this->GetLevelModelType());
+  //}
+  //this->SetUpgScreen(10.0f);
 }
 
 unsigned CRaceTrack::GetPoints() {

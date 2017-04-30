@@ -5,25 +5,32 @@
 #include "RaceTrack.h"
 #include "Racer.h"
 #include "UIFont.h"
+#include "FrameTimer.h"
+
+class CConfig;
+class IFileSystem;
+class CInputDeviceMap;
 
 class CUIScreen;
 template<typename _Type> class CUITextNumber;
 class CUIProgressBar;
 class CUIRect;
 
-class CConfig;
-class CInputDeviceMap;
 class CGameEntityType;
-class IFileSystem;
 typedef std::map<cb::string, CGameEntityType> GameEntityTypeMapT;
+class CGameDifficultySetting;
 
 class CGameState :
   public IEngineState {
 private:
   CConfig& mConfig;
-  GameEntityTypeMapT mEntityTypes;
   CInputDeviceMap& mIDevMap;
-  CRaceTrack mRaceTrack;
+
+  GameEntityTypeMapT mEntityTypes;
+  CGameDifficultySetting* mDiffSetting;
+  CFrameTimer mSpawnTimer;
+
+  CRaceTrack mLevel;
   CRacer mRacer;
   CUIFont mFont;
 
@@ -40,7 +47,7 @@ public:
              CInputDeviceMap& inputDevMap);
   virtual ~CGameState();
 
-  const bool Init();
+  const bool LoadResources(IFileSystem& fs);
   void Free();
 
   void ResetGame();

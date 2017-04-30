@@ -1,78 +1,97 @@
 #include "stdafx.h"
 #include "GameState.h"
-#include "InputDevice.h"
 #include "Config.h"
 #include "FileSystem.h"
+#include "InputDevice.h"
 #include "GameEntity.h"
+#include "GameDifficulty.h"
 #include "UIScreen.h"
 #include "UIItems.h"
 #include "UIScreenXml.h"
 
+static const cb::string DEFFONT_FILEPATH = L"font.xml";
+static const cb::string DIFFSETTING_FILEPATH = L"diffSet.xml";
 static const cb::string ENTTYPES_FILEPATH = L"entityTypes.xml";
 static const cb::string ENTTYPES_ROOTNAME = L"EntityTypes";
+static const cb::string UISCREEN_FILEPATH = L"screen.xml";
+static const cb::string UISCREEN_ROOTNAME = L"Screen";
 
 CGameState::CGameState(CConfig& config, 
                        IFileSystem& fileSystem,
                        CInputDeviceMap& inputDevMap)
   : mConfig(config)
   , mIDevMap(inputDevMap) 
-  , mRaceTrack(mEntityTypes)
+  , mDiffSetting(nullptr)
+  , mLevel(mEntityTypes, fileSystem)
   , mPoints(0)
   , mMainUI(nullptr)
 {
-  fileSystem.ReadXml(ENTTYPES_FILEPATH, ENTTYPES_ROOTNAME, mEntityTypes);
-  mFont.Load(fileSystem, L"font.xml");
-
+  mDiffSetting = new CGameDifficultySetting();
   mMainUI = new CUIScreen(config.Screen.GetSize());
-  fileSystem.ReadXml(L"screen.xml", L"Screen", *mMainUI);
+}
+
+CGameState::~CGameState() {
+  delete mDiffSetting;
+  delete mMainUI;
+}
+
+const bool CGameState::LoadResources(IFileSystem& fs) {
+  if(!mFont.Load(fs, DEFFONT_FILEPATH)) {
+    return false;
+  }
+  if(!fs.ReadXml(ENTTYPES_FILEPATH, ENTTYPES_ROOTNAME, mEntityTypes)) {
+    return false;
+  }
+  if(!fs.ReadXml(UISCREEN_FILEPATH, UISCREEN_ROOTNAME, *mMainUI)) {
+    return false;
+  }
+  if(!mDiffSetting->Load(fs, DIFFSETTING_FILEPATH)) {
+    return false;
+  }
+
+  this->mRacer.Init((Uint32)ModelType::MT_HTTP20);
+  this->mRacer.SetColor(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
+  this->mLevel.Init();
+  this->mLevel.SetRacer(&mRacer);
 
   mFPSCounter = mMainUI->GetItem<CUITextNumber<Sint32>>(L"fpsCounter");
   mUIHealthBar = mMainUI->GetItem<CUIProgressBar>(L"healthBar");
   mUIPoints = mMainUI->GetItem<CUITextNumber<Sint32>>(L"pointsDisplay");
-}
 
-CGameState::~CGameState() {}
-
-const bool CGameState::Init() {
-  this->mRacer.Init((Uint32)ModelType::MT_HTTP20);
-  this->mRacer.SetColor(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
-  this->mRaceTrack.Init();
-  this->mRaceTrack.SetRacer(&mRacer);
+  mDiffSetting->Reset();
+  mSpawnTimer.SetLimit(mDiffSetting->GetCurrent().EntitySpawnPause);
 
   return true;
 }
 
 void CGameState::Free() {
-  mRaceTrack.Free();
+  mLevel.Free();
   mRacer.Free();
-  if(mMainUI) {
-    delete mMainUI;
-    mMainUI = nullptr;
-  }
 }
 
 void CGameState::ResetGame() {
-  mRaceTrack.ResetGame();
+  mLevel.ResetGame();
+  mDiffSetting->Reset();
 }
 
 const CRaceTrack & CGameState::GetRaceTrack() const {
-  return mRaceTrack;
+  return mLevel;
 }
 
 const bool CGameState::IsGameOver() const {
-  return mRaceTrack.IsGameOver();
+  return mLevel.IsGameOver();
 }
 
 void CGameState::Update(const float timeDelta) {
   static bool down = false;
-  if(mRaceTrack.IsGameRuning()) {
+  if(mLevel.IsGameRuning()) {
     float xdelta = mIDevMap.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisDelta, (Uint32)MouseAxisId::AxisX) * mConfig.Screen.Width;
     mRacer.ModRotation(xdelta);
     if(mIDevMap.GetState(InputDevice::Mouse, (Uint32)MouseType::ButtonPress, SDL_BUTTON_LEFT)) {
-      mRaceTrack.FireWeapon();
+      mLevel.FireWeapon();
     }
   }
-  //if(mRaceTrack.IsGameOver()) {
+  //if(mLevel.IsGameOver()) {
   //  mMenuProcess.GetMenuManager().ForceSwitchToMenu(CMenuProcess::MENU_MAIN);
   //  mMenuProcess.GetMenuManager().GetMenu(CMenuProcess::MENU_MAIN)->GetMenuItem(CMenuProcess::MI_RETURN)->SetEnable(false);
   //  mHS.SetTempScore(m_RaceTrack.GetPoints());
@@ -89,8 +108,16 @@ void CGameState::Update(const float timeDelta) {
 
   //if(timeDelta > 0.0f)
   //mFPSDT += timeDelta;
-  mRaceTrack.Update(timeDelta);
-  mPoints = mRaceTrack.GetPoints();
+
+  if(mSpawnTimer.Update(timeDelta)) {
+    cb::string entId = mDiffSetting->GetRandomEntity(std::rand());
+    if(!entId.empty()) {
+      mLevel.AddEntity(entId);
+    }
+  }
+
+  mLevel.Update(timeDelta);
+  mPoints = mLevel.GetPoints();
 }
 
 void CGameState::UpdateRender(const float timeDelta) {
@@ -114,7 +141,7 @@ void CGameState::Render() const {
                                     mConfig.Screen.GetAspectRatio(),
                                     1.f, 1000.0f);
 
-  mRaceTrack.Render(proj);
+  mLevel.Render(proj);
 }
 
 void CGameState::RenderUI() const {

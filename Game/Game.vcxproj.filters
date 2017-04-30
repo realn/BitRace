@@ -103,6 +103,12 @@
     <ClCompile Include="UIScreenXml.cpp">
       <Filter>Graphic</Filter>
     </ClCompile>
+    <ClCompile Include="GameDifficulty.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="FrameTimer.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -192,6 +198,12 @@
     </ClInclude>
     <ClInclude Include="UIItems.h">
       <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="GameDifficulty.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameTimer.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

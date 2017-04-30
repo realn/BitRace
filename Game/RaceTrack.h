@@ -7,38 +7,20 @@
 #include "Racer.h"
 #include "GameEntity.h"
 
-class CGameDifficulty {
-public:
-  typedef std::map<cb::string, Uint32> EntitySpawnMapT;
-
-  cb::string Name;
-  float EntitySpawnPause;
-  EntitySpawnMapT EntitySpawnRates;
-  cb::string NextId;
-  Uint32 NextNeededPoints;
-
-  CGameDifficulty();
-
-  const cb::string GetEntity(const Uint32 pos) const;
-  const Uint32 GetEntityWeightSum() const;
-};
-typedef std::map<cb::string, CGameDifficulty> GameDifficultyMapT;
-
 class CGUI;
+class IFileSystem;
 
 class CRaceTrack {
 private:
   const GameEntityTypeMapT& mEntityTypes;
   CLaserGrid	mGridTop;
   CLaserGrid	mGridBottom;
-  GameDifficultyMapT mDifficultyMap;
   CRacer* m_pRacer;
 
   ProjectileVectorT mProjectiles;
   GameEntityVectorT mEntities;
   ProjectileVertexVectorT mProjectileVertices;
 
-  cb::string mDiffId;
   glm::vec2	m_vMove;
   float	m_fMoveX;
   float	m_fTime;
@@ -62,7 +44,6 @@ private:
 
   const glm::vec2 CreateEntityPosition();
 
-  void AddEntity(const cb::string& typeId);
 
   void Engine_Intro(float fDT);
   void Engine_Track(float fDT);
@@ -93,8 +74,11 @@ public:
     IS_ENDSTATE = 4,
     IS_SKIP = 5
   };
-  CRaceTrack(const GameEntityTypeMapT& entityTypes);
+  CRaceTrack(const GameEntityTypeMapT& entityTypes,
+             IFileSystem& fs);
   ~CRaceTrack();
+
+  void AddEntity(const cb::string& typeId);
 
   void Free();
   bool Init();

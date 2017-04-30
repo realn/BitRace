@@ -236,7 +236,7 @@ const bool CEngine::InitGame() {
   CGameState* pState = new CGameState(mConfig,
                                       *mpFileSystem, 
                                       mIDevMap);
-  if(!pState->Init()) {
+  if(!pState->LoadResources(*mpFileSystem)) {
     cb::error(L"Failed to initialize game state.");
     delete pState;
     return false;

@@ -1,0 +1,34 @@
+<DifficultySetting FirstId="DIFF_VERYEASY">
+  <Difficulty Id="DIFF_EASY" Name="EASY" EntitySpawnPause="0.3" NextId="DIFF_MEDIUM" NextNeededPoints="3000">
+    <Spawn EntityId="ENT_CRCBOMB" Rate="5" />
+    <Spawn EntityId="ENT_DLPART" Rate="2" />
+    <Spawn EntityId="ENT_HACK" Rate="3" />
+  </Difficulty>
+  <Difficulty Id="DIFF_HARD" Name="HARD" EntitySpawnPause="0.22" NextId="DIFF_VERYHARD" NextNeededPoints="27000">
+    <Spawn EntityId="ENT_BIGDLPART" Rate="5" />
+    <Spawn EntityId="ENT_CRCBOMB" Rate="70" />
+    <Spawn EntityId="ENT_DLPART" Rate="5" />
+    <Spawn EntityId="ENT_HACK" Rate="10" />
+    <Spawn EntityId="ENT_LEETHACK" Rate="10" />
+  </Difficulty>
+  <Difficulty Id="DIFF_HOLYSHIT" Name="HOLY SHIT!!!" EntitySpawnPause="0.08" NextNeededPoints="0">
+    <Spawn EntityId="ENT_CRCBOMB" Rate="4" />
+    <Spawn EntityId="ENT_LEETHACK" Rate="1" />
+  </Difficulty>
+  <Difficulty Id="DIFF_MEDIUM" Name="MEDIUM" EntitySpawnPause="0.3" NextId="DIFF_HARD" NextNeededPoints="9000">
+    <Spawn EntityId="ENT_BIGDLPART" Rate="1" />
+    <Spawn EntityId="ENT_CRCBOMB" Rate="2" />
+    <Spawn EntityId="ENT_DLPART" Rate="1" />
+    <Spawn EntityId="ENT_HACK" Rate="2" />
+  </Difficulty>
+  <Difficulty Id="DIFF_VERYEASY" Name="VERY EASY" EntitySpawnPause="0.6" NextId="DIFF_EASY" NextNeededPoints="1000">
+    <Spawn EntityId="ENT_CRCBOMB" Rate="6" />
+    <Spawn EntityId="ENT_DLPART" Rate="3" />
+    <Spawn EntityId="ENT_HACK" Rate="1" />
+  </Difficulty>
+  <Difficulty Id="DIFF_VERYHARD" Name="VERY HARD" EntitySpawnPause="0.13" NextId="DIFF_HOLYSHIT" NextNeededPoints="1000000">
+    <Spawn EntityId="ENT_BIGDLPART" Rate="1" />
+    <Spawn EntityId="ENT_CRCBOMB" Rate="7" />
+    <Spawn EntityId="ENT_LEETHACK" Rate="2" />
+  </Difficulty>
+</DifficultySetting>
