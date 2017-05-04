@@ -13,8 +13,6 @@ class IFileSystem;
 class CRaceTrack {
 private:
   const GameEntityTypeMapT& mEntityTypes;
-  CLaserGrid	mGridTop;
-  CLaserGrid	mGridBottom;
   CRacer* m_pRacer;
 
   ProjectileVectorT mProjectiles;

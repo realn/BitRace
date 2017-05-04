@@ -309,11 +309,18 @@ void CEngine::Update() {
   mTimer.Update();
 
   mFrameTime += mTimer.GetTimeDelta();
-  while(mFrameTime > mFrameStepTime) {
-    mIDevMap.Update(mFrameStepTime);
-    UpdateFrame(mFrameStepTime);
+  if(mFrameTime > mFrameStepTime) {
+    while(mFrameTime > mFrameStepTime) {
+      mIDevMap.Update(mFrameStepTime);
+      UpdateFrame(mFrameStepTime);
 
-    mFrameTime -= mFrameStepTime;
+      mFrameTime -= mFrameStepTime;
+    }
+  }
+  else if(mFrameTime > 0.0f) {
+    mIDevMap.Update(mFrameTime);
+    UpdateFrame(mFrameTime);
+    mFrameTime = 0.0f;
   }
 
   if(mState != nullptr) {

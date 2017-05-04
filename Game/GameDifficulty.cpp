@@ -133,15 +133,17 @@ static const cb::string XML_GAMEDIFFICULTY_NEXTID = L"NextId";
 static const cb::string XML_GAMEDIFFICULTY_NEXTPOINTS = L"NextNeededPoints";
 
 CB_DEFINEXMLRW(CGameDifficulty) {
+  if(RWAttribute(XML_GAMEDIFFICULTY_NEXTID, mObject.NextId)) {
+    if(!RWAttribute(XML_GAMEDIFFICULTY_NEXTPOINTS, mObject.NextNeededPoints))
+      return false;
+  }
   return
     RWAttribute(XML_GAMEDIFFICULTY_NAME, mObject.Name) &&
     RWAttribute(XML_GAMEDIFFICULTY_SPAWNPAUSE, mObject.EntitySpawnPause) &&
     RWNodeMap(mObject.EntitySpawnRates,
               XML_GAMEDIFFICULTY_SPAWNRATE,
               XML_GAMEDIFFICULTY_SPAWNRATES_ENTID,
-              XML_GAMEDIFFICULTY_SPAWNRATES_RATE) &&
-    RWAttribute(XML_GAMEDIFFICULTY_NEXTID, mObject.NextId) &&
-    RWAttribute(XML_GAMEDIFFICULTY_NEXTPOINTS, mObject.NextNeededPoints);
+              XML_GAMEDIFFICULTY_SPAWNRATES_RATE);
 }
 
 static const cb::string XML_GAMEDIFFICULTYSETTING_FIRST = L"FirstId";

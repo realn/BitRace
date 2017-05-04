@@ -109,6 +109,9 @@
     <ClCompile Include="FrameTimer.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="LevelBackground.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -204,6 +207,9 @@
     </ClInclude>
     <ClInclude Include="FrameTimer.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="LevelBackground.h">
+      <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

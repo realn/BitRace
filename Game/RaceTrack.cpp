@@ -8,16 +8,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/vector_angle.hpp>
 
-static const glm::vec2 gGridSize(800.0f);
-static const glm::uvec2 gGridSteps(40);
 static const float gMapEdgeFar = -100.0f;
 static const float gMapEdgeNear = 4.0f;
 
 CRaceTrack::CRaceTrack(const GameEntityTypeMapT& entityTypes,
                        IFileSystem& fs)
   : mEntityTypes(entityTypes)
-  , mGridTop(gGridSize, gGridSteps, 0.0f)
-  , mGridBottom(gGridSize, gGridSteps, 0.0f)
   , m_pRacer(NULL),
   m_fMoveX(0.0f),
   m_fTime(0.0f),
@@ -27,7 +23,7 @@ CRaceTrack::CRaceTrack(const GameEntityTypeMapT& entityTypes,
   m_fGameOverTime2(0.0f),
   m_uPoints(0),
   m_uFireCount(1),
-  m_uTrackState(TS_INTRO),
+  m_uTrackState(TS_GAME),
   m_unsignedroState(IS_STATE1),
   m_uGameOverCharCount(0),
   m_bGameOver(false),
@@ -174,11 +170,11 @@ void CRaceTrack::Render_Intro(const glm::mat4& transform) const {
 
       glm::mat4 mat = baseMat *
         glm::translate(glm::vec3(0.0f, 20.0f * m_fIntroTime / 2.0f, 0.0f));
-      mGridTop.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
+      //mGridTop.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
 
       mat = baseMat *
         glm::translate(glm::vec3(0.0f, -20.0f * m_fIntroTime / 2.0f, 0.0f));
-      mGridBottom.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
+      //mGridBottom.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
     }
     break;
 
@@ -191,11 +187,11 @@ void CRaceTrack::Render_Intro(const glm::mat4& transform) const {
 
       glm::mat4 mat = baseMat *
         glm::translate(glm::vec3(0.0f, 20.0f, 0.0f));
-      mGridTop.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
+     // mGridTop.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
 
       mat = baseMat *
         glm::translate(glm::vec3(0.0f, -20.0f, 0.0f));
-      mGridBottom.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
+      //mGridBottom.Render(mat, glm::vec3(0.0f, 1.0f, 0.0f));
     }
     break;
 
@@ -211,11 +207,11 @@ void CRaceTrack::Render_Intro(const glm::mat4& transform) const {
 
       glm::mat4 skyMat = moveMat *
         glm::translate(glm::vec3(0.0f, 20.0f, 0.0f));
-      mGridTop.Render(skyMat, glm::vec3(0.0f, 1.0f, 0.0f));
+      //mGridTop.Render(skyMat, glm::vec3(0.0f, 1.0f, 0.0f));
 
       glm::mat4 groundMat = moveMat *
         glm::translate(glm::vec3(0.0f, -20.0f, 0.0f));
-      mGridBottom.Render(groundMat, glm::vec3(0.0f, 1.0f, 0.0f));
+      //mGridBottom.Render(groundMat, glm::vec3(0.0f, 1.0f, 0.0f));
 
       glm::mat4 racerMat = baseMat *
         glm::translate(glm::vec3(0.0f, -20.0f, 0.0f));

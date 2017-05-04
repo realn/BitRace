@@ -60,6 +60,7 @@ const bool CGameState::LoadResources(IFileSystem& fs) {
 
   mDiffSetting->Reset();
   mSpawnTimer.SetLimit(mDiffSetting->GetCurrent().EntitySpawnPause);
+  mSpawnTimer.SetEnabled(true);
 
   return true;
 }
