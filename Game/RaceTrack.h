@@ -54,7 +54,6 @@ private:
   void CheckDifLevel();
   void SetUpgScreen(float fTimeOut);
   void SetFSQ(float fTimeOut, glm::vec3 vColor);
-  void GenRandomObject();
   void Clear();
   const ModelType GetLevelModelType() const;
 public:

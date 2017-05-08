@@ -233,13 +233,9 @@ void CRaceTrack::Engine_Track(float fDT) {
   m_fFSQTime += fDT;
   m_fUpgTime += fDT;
 
-  GenRandomObject();
-
-  m_pRacer->Engine(fDT);
-
-  this->m_vMove.x -= m_pRacer->GetVec().x;
+  this->m_vMove.x -= m_pRacer->GetVec().x * fDT;
   this->m_vMove.y += 120.0f * fDT;
-  this->m_fMoveX += m_pRacer->GetVec().x;
+  this->m_fMoveX += m_pRacer->GetVec().x * fDT;
 
   if(this->m_vMove.y > 20.0f)
     this->m_vMove.y -= 20.0f;
@@ -259,23 +255,11 @@ void CRaceTrack::Engine_Track(float fDT) {
 }
 
 void CRaceTrack::Render_Track(const glm::mat4& transform) const {
-  glm::mat4 mat = transform *
-    glm::translate(glm::vec3(0.0f, 12.0f, -12.0f)) *
-    glm::rotate(glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-  {
-    glm::mat4 spaceMat = mat *
-      glm::translate(glm::vec3(m_vMove.x, 0.0f, m_vMove.y)) *
-      glm::translate(glm::vec3(0.0f, 20.0f, 0.0f));
-    mGridTop.Render(spaceMat, glm::vec3(0.0f, 1.0f, 0.0f));
-
-    spaceMat *= glm::translate(glm::vec3(0.0f, -40.0f, 0.0f));
-    mGridBottom.Render(spaceMat, glm::vec3(0.0f, 1.0f, 0.0f));
-  }
+  glm::mat4 mat = transform;
 
   mat *= glm::translate(glm::vec3(0.0f, -20.0f, 0.0f));
-  if(m_pRacer != NULL)
-    m_pRacer->Render(mat);
+  //if(m_pRacer != NULL)
+  //  m_pRacer->Render(mat);
 
   mat *= glm::translate(glm::vec3(-m_fMoveX, 3.0f, 0.0));
   RenderProjectiles(mat);
@@ -394,7 +378,7 @@ void CRaceTrack::RenderUI(CGUI& gui) const {
 
 const glm::vec2 CRaceTrack::CreateEntityPosition() {
   float randF = float(rand() % 200 - 100);
-  return glm::vec2(randF / 100.0f * 30.0f + m_fMoveX + (100.0f * this->m_pRacer->GetVec().x), gMapEdgeFar);
+  return glm::vec2(randF / 100.0f * 30.0f + m_fMoveX + (this->m_pRacer->GetVec().x), gMapEdgeFar);
 }
 
 void CRaceTrack::AddEntity(const cb::string& entityId) {
@@ -406,19 +390,6 @@ void CRaceTrack::AddEntity(const cb::string& entityId) {
 
   CGameEntity* pEntity = new CGameEntity(it->second, CreateEntityPosition());
   mEntities.push_back(pEntity);
-}
-
-void CRaceTrack::GenRandomObject() {
-  //const CGameDifficulty& diff = mDifficultyMap[mDiffId];
-  //if(m_fTime < diff.EntitySpawnPause) {
-  //  return;
-  //}
-  //m_fTime -= diff.EntitySpawnPause;
-
-  //Uint32 pos = rand() % diff.GetEntityWeightSum();
-  //cb::string typeId = diff.GetEntity(pos);
-
-  //AddEntity(typeId);
 }
 
 void CRaceTrack::ResetGame() {

@@ -78,10 +78,10 @@ void CRacer::Engine(float fDT) {
   if (glm::abs(this->m_fRotation) > this->s_fMaxRotation)
     this->m_fRotation = this->s_fMaxRotation * (m_fRotation / fabs(m_fRotation));
 
-  this->m_vVec.x = -this->m_Speed.x * (this->m_fRotation / this->s_fMaxRotation) * fDT;
+  this->m_vVec.x = -this->m_Speed.x * (this->m_fRotation / this->s_fMaxRotation);
 }
 
-void CRacer::Render(const glm::mat4& transform) {
+void CRacer::Render(const glm::mat4& transform) const {
   glm::mat4 mat =
     transform *
     glm::translate(glm::vec3(0.0f, s_fConstHeight, 0.0f)) *
@@ -105,7 +105,7 @@ void CRacer::SetColor(const glm::vec4& color) {
 }
 
 glm::vec3 CRacer::GetVec() const {
-  return m_vVec;
+  return glm::vec3(m_vVec.x, 0.0f, 120.0f);
 }
 
 float CRacer::GetBitRate() const {

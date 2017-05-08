@@ -6,6 +6,7 @@
 #include "Racer.h"
 #include "UIFont.h"
 #include "FrameTimer.h"
+#include "LevelBackground.h"
 
 class CConfig;
 class IFileSystem;
@@ -30,6 +31,7 @@ private:
   CGameDifficultySetting* mDiffSetting;
   CFrameTimer mSpawnTimer;
 
+  CLevelBackground mBackground;
   CRaceTrack mLevel;
   CRacer mRacer;
   CUIFont mFont;

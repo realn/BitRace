@@ -117,6 +117,12 @@ void CGameState::Update(const float timeDelta) {
     }
   }
 
+  mRacer.Engine(timeDelta);
+
+  mBackground.SetSepHeight(40.0f);
+  mBackground.SetDynamicVec(mRacer.GetVec() * glm::vec3(-1.0f, 1.0f, 1.0f));
+  mBackground.Update(timeDelta);
+
   mLevel.Update(timeDelta);
   mPoints = mLevel.GetPoints();
 }
@@ -134,6 +140,8 @@ void CGameState::UpdateRender(const float timeDelta) {
   }
   //mFPSDT = 0.0f;
 
+  mBackground.UpdateRender();
+
   mMainUI->UpdateRender(mFont);
 }
 
@@ -141,8 +149,13 @@ void CGameState::Render() const {
   glm::mat4 proj = glm::perspective(glm::radians(50.0f),
                                     mConfig.Screen.GetAspectRatio(),
                                     1.f, 1000.0f);
+  glm::mat4 mat = proj *
+    glm::translate(glm::vec3(0.0f, 12.0f, -12.0f)) *
+    glm::rotate(glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-  mLevel.Render(proj);
+  mBackground.Render(mat);
+  mLevel.Render(mat);
+  mRacer.Render(mat * glm::translate(glm::vec3(0.0f, -20.0f, 0.0f)));
 }
 
 void CGameState::RenderUI() const {
