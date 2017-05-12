@@ -27,7 +27,7 @@ void CRacer::Free() {
   m_vVec = glm::vec3(0.0f);
 }
 
-bool CRacer::Init(unsigned uModelType) {
+bool CRacer::Init(unsigned uModelType, CModelRepository& modelRepo, const cb::string& filename) {
   Free();
 
   switch ((ModelType)uModelType) {
@@ -67,7 +67,7 @@ bool CRacer::Init(unsigned uModelType) {
     return false;
   };
 
-  m_cModel = CModelRepository::Instance.GetModel((ModelType)uModelType);
+  m_cModel = modelRepo.GetModel(filename);
 
   return true;
 }

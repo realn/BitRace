@@ -233,9 +233,12 @@ const bool CEngine::InitGame() {
   }
   std::srand((Uint32)mTimer.GetLastTick());
 
+  mModelRepo = new CModelRepository(mpFileSystem);
+
   CGameState* pState = new CGameState(mConfig,
                                       *mpFileSystem, 
-                                      mIDevMap);
+                                      mIDevMap,
+                                      mModelRepo);
   if(!pState->LoadResources(*mpFileSystem)) {
     cb::error(L"Failed to initialize game state.");
     delete pState;
@@ -301,7 +304,8 @@ void CEngine::FreeGame() {
   }
 
   cb::debug(L"Clearing 3d model cache.");
-  CModelRepository::Instance.Clear();
+  delete mModelRepo;
+  mModelRepo = nullptr;
   cb::info(L"Game freed.");
 }
 

@@ -31,12 +31,12 @@ void CTestState::Render() const {
     glm::translate(glm::vec3(0.0f, 0.0f, -10.0f)) *
     glm::rotate(glm::radians(mRotation), glm::vec3(0.0f, 1.0f, 0.0f));
 
-  CModel* pModel = CModelRepository::Instance.GetModel(ModelType::MT_DL_PART);
+  //CModel* pModel = CModelRepository::Instance.GetModel(ModelType::MT_DL_PART);
 
-  glm::vec4 color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-  glLoadMatrixf(glm::value_ptr(trans));
-  glColor4fv(glm::value_ptr(color));
-  pModel->Render(color, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+  //glm::vec4 color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+  //glLoadMatrixf(glm::value_ptr(trans));
+  //glColor4fv(glm::value_ptr(color));
+  //pModel->Render(color, glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 
 
   //{

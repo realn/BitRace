@@ -68,7 +68,7 @@ CGameEntityType::CGameEntityType()
   , Type(EntityType::ET_NONE)
   , Speed(0.0f)
   , Color(1.0f)
-  , ModelType(ModelType::MT_NONE)
+  , ModelFile()
   , MaxHealth(1.0f)
   , Damage(0.0f)
   , AIPause(0.5f)
@@ -78,6 +78,7 @@ CGameEntityType::CGameEntityType()
 {}
 
 CGameEntity::CGameEntity(const CGameEntityType & type,
+                         CModelRepository& modelRepo,
                          const glm::vec2& pos,
                          const float rotAngle)
   : mName(type.Name)
@@ -97,7 +98,7 @@ CGameEntity::CGameEntity(const CGameEntityType & type,
   , mDeleted(false) 
   , mPoints(type.Points)
 {
-  mModel = CModelRepository::Instance.GetModel(type.ModelType);
+  mModel = modelRepo.GetModel(type.ModelFile);
 }
 
 const float CGameEntity::GetValue() const {
@@ -239,7 +240,7 @@ static const cb::string XML_ENTITYTYPE_NAME = L"Name";
 static const cb::string XML_ENTITYTYPE_TYPE = L"Type";
 static const cb::string XML_ENTITYTYPE_SPEED = L"Speed";
 static const cb::string XML_ENTITYTYPE_COLOR = L"Color";
-static const cb::string XML_ENTITYTYPE_MODELTYPE = L"ModelType";
+static const cb::string XML_ENTITYTYPE_MODELFILE = L"ModelFile";
 static const cb::string XML_ENTITYTYPE_MAXHEALTH = L"MaxHealth";
 static const cb::string XML_ENTITYTYPE_DAMAGE = L"Damage";
 static const cb::string XML_ENTITYTYPE_AIPAUSE = L"AIPause";
@@ -252,7 +253,7 @@ CB_DEFINEXMLREAD(CGameEntityType) {
   GetAttribute(XML_ENTITYTYPE_TYPE, mObject.Type);
   GetAttribute(XML_ENTITYTYPE_SPEED, mObject.Speed);
   GetAttribute(XML_ENTITYTYPE_COLOR, mObject.Color);
-  GetAttribute(XML_ENTITYTYPE_MODELTYPE, mObject.ModelType);
+  GetAttribute(XML_ENTITYTYPE_MODELFILE, mObject.ModelFile);
   GetAttribute(XML_ENTITYTYPE_MAXHEALTH, mObject.MaxHealth);
   GetAttribute(XML_ENTITYTYPE_DAMAGE, mObject.Damage);
   GetAttribute(XML_ENTITYTYPE_AIPAUSE, mObject.AIPause);
@@ -268,7 +269,7 @@ CB_DEFINEXMLWRITE(CGameEntityType) {
   SetAttribute(XML_ENTITYTYPE_TYPE, mObject.Type);
   SetAttribute(XML_ENTITYTYPE_SPEED, mObject.Speed);
   SetAttribute(XML_ENTITYTYPE_COLOR, mObject.Color);
-  SetAttribute(XML_ENTITYTYPE_MODELTYPE, mObject.ModelType);
+  SetAttribute(XML_ENTITYTYPE_MODELFILE, mObject.ModelFile);
   SetAttribute(XML_ENTITYTYPE_MAXHEALTH, mObject.MaxHealth);
   SetAttribute(XML_ENTITYTYPE_DAMAGE, mObject.Damage);
   SetAttribute(XML_ENTITYTYPE_AIPAUSE, mObject.AIPause);

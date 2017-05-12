@@ -1,0 +1,8 @@
+<Mesh>
+  <Vertex Pos="0:-0.5:3" />
+  <Vertex Pos="1:-0.5:0" />
+  <Vertex Pos="-1:-0.5:0" />
+  <Vertex Pos="0:0.5:0" />
+  <Subset Id="Faces" Mode="Triangles" Indices="0,1,2,0,2,3,0,3,1,1,2,3" />
+  <Subset Id="Lines" Mode="Lines" Indices="0,1,1,2,2,0,0,2,2,3,3,0,0,3,3,1,1,0,1,2,2,3,3,1" />
+</Mesh>

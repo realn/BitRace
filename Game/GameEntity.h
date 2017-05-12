@@ -9,7 +9,7 @@
 #include <CBXml/Serialize.h>
 
 class CModel;
-enum class ModelType;
+class CModelRepository;
 
 class CProjectileVertex {
 public:
@@ -61,7 +61,7 @@ public:
   EntityType Type;
   glm::vec2 Speed;
   glm::vec4 Color;
-  ModelType ModelType;
+  cb::string ModelFile;
   float MaxHealth;
   float Damage;
   float AIPause;
@@ -95,6 +95,7 @@ private:
 
 public:
   CGameEntity(const CGameEntityType& type,
+              CModelRepository& modelRepo,
               const glm::vec2& pos = glm::vec2(0.0f),
               const float rotAngle = 0.0f);
 

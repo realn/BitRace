@@ -18,6 +18,7 @@
 
 class IFileSystem;
 class IEngineState;
+class CModelRepository;
 
 class CEngine {
 private:
@@ -40,6 +41,7 @@ private:
   bool mInited;
   bool mRun;
 
+  CModelRepository* mModelRepo;
   IEngineState* mState;
 
 public:

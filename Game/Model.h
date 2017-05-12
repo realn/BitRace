@@ -25,28 +25,44 @@ enum class ModelType {
   MODELTYPE_NUMBER
 };
 
+class IFileSystem;
+
 class CModelData {
 public:
-  typedef std::vector<glm::vec3> vec3vector;
   typedef std::vector<Uint16> indvector;
 
-  vec3vector Vertices;
-  indvector TriangleIndices;
-  indvector LineIndices;
+  enum class RenderMode {
+    Triangles = 0,
+    Lines = 1,
+  };
+  class CVertex {
+  public:
+    glm::vec3 Pos;
+
+    CVertex(const glm::vec3& pos = glm::vec3());
+  };
+  class CSubset {
+  public:
+    RenderMode Mode;
+    indvector Indices;
+
+    CSubset(const RenderMode mode = RenderMode::Triangles);
+  };
+  typedef std::vector<CVertex> VertexVectorT;
+  typedef std::map<cb::string, CSubset> SubsetMapT;
+
+  VertexVectorT Vertices;
+  SubsetMapT  Subsets;
   ModelType Type;
 
   CModelData();
+  ~CModelData();
 
-  const bool Generate(const ModelType type);
-
-  void AddVertex(const float x, const float y, const float z);
-  void AddTriangle(const Uint16 v1, const Uint16 v2, const Uint16 v3);
-  void CreateIndexLines();
+  const bool Save(IFileSystem& fs, const cb::string& filePath) const;
+  const bool Load(IFileSystem& fs, const cb::string& filePath);
 };
 
 class CModel {
-public:
-
 private:
   CGraphicBuffer mVertexBuffer;
   CGraphicBuffer mIndexBuffer;
@@ -68,17 +84,17 @@ public:
 
 class CModelRepository {
 private:
-  typedef std::map<ModelType, CModel*> ModelMapT;
+  typedef std::map<cb::string, CModel*> ModelMapT;
 
   ModelMapT mModelMap;
+  IFileSystem* mFileSystem;
+
 public:
-  CModelRepository();
+  CModelRepository(IFileSystem* pFileSystem);
   ~CModelRepository();
 
-  CModel* GetModel(const ModelType type);
+  CModel* GetModel(const cb::string& filename);
   void Clear();
-
-  static CModelRepository Instance;
 };
 
 extern const cb::string toStr(const ModelType type);

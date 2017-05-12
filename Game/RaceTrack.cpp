@@ -11,9 +11,11 @@
 static const float gMapEdgeFar = -100.0f;
 static const float gMapEdgeNear = 4.0f;
 
-CRaceTrack::CRaceTrack(const GameEntityTypeMapT& entityTypes,
+CRaceTrack::CRaceTrack(CModelRepository* pModelRepo,
+                       const GameEntityTypeMapT& entityTypes,
                        IFileSystem& fs)
-  : mEntityTypes(entityTypes)
+  : mModelRepo(pModelRepo)
+  , mEntityTypes(entityTypes)
   , m_pRacer(NULL),
   m_fMoveX(0.0f),
   m_fTime(0.0f),
@@ -388,7 +390,7 @@ void CRaceTrack::AddEntity(const cb::string& entityId) {
     return;
   }
 
-  CGameEntity* pEntity = new CGameEntity(it->second, CreateEntityPosition());
+  CGameEntity* pEntity = new CGameEntity(it->second, *mModelRepo, CreateEntityPosition());
   mEntities.push_back(pEntity);
 }
 
@@ -407,7 +409,7 @@ void CRaceTrack::ResetGame() {
   m_fFSQTimeOut = 0.0f;
   m_uTrackState = TS_INTRO;
   m_pRacer->Free();
-  m_pRacer->Init((Uint32)ModelType::MT_HTTP20);
+  m_pRacer->Init((Uint32)ModelType::MT_HTTP20, *mModelRepo, L"mdl_http10.xml");
   Clear();
 }
 

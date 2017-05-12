@@ -18,11 +18,13 @@ static const cb::string UISCREEN_ROOTNAME = L"Screen";
 
 CGameState::CGameState(CConfig& config, 
                        IFileSystem& fileSystem,
-                       CInputDeviceMap& inputDevMap)
+                       CInputDeviceMap& inputDevMap,
+                       CModelRepository* pModelRepo)
   : mConfig(config)
   , mIDevMap(inputDevMap) 
+  , mModelRepo(pModelRepo)
   , mDiffSetting(nullptr)
-  , mLevel(mEntityTypes, fileSystem)
+  , mLevel(pModelRepo, mEntityTypes, fileSystem)
   , mPoints(0)
   , mMainUI(nullptr)
 {
@@ -49,7 +51,7 @@ const bool CGameState::LoadResources(IFileSystem& fs) {
     return false;
   }
 
-  this->mRacer.Init((Uint32)ModelType::MT_HTTP20);
+  this->mRacer.Init((Uint32)ModelType::MT_HTTP20, *mModelRepo, L"mdl_http10.xml");
   this->mRacer.SetColor(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
   this->mLevel.Init();
   this->mLevel.SetRacer(&mRacer);

@@ -11,6 +11,7 @@
 class CConfig;
 class IFileSystem;
 class CInputDeviceMap;
+class CModelRepository;
 
 class CUIScreen;
 template<typename _Type> class CUITextNumber;
@@ -26,6 +27,7 @@ class CGameState :
 private:
   CConfig& mConfig;
   CInputDeviceMap& mIDevMap;
+  CModelRepository* mModelRepo;
 
   GameEntityTypeMapT mEntityTypes;
   CGameDifficultySetting* mDiffSetting;
@@ -46,7 +48,8 @@ private:
 public:
   CGameState(CConfig& config,
              IFileSystem& fileSystem,
-             CInputDeviceMap& inputDevMap);
+             CInputDeviceMap& inputDevMap,
+             CModelRepository* pModelRepo);
   virtual ~CGameState();
 
   const bool LoadResources(IFileSystem& fs);

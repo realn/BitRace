@@ -22,7 +22,7 @@ public:
   ~CRacer();
 
   void Free();
-  bool Init(unsigned uModelType);
+  bool Init(unsigned modelType, CModelRepository& modelRepo, const cb::string& filename);
 
   void ModRotation(float fRotation);
   void SetRotation(float fRotation);

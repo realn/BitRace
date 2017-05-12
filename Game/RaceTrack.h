@@ -12,6 +12,8 @@ class IFileSystem;
 
 class CRaceTrack {
 private:
+  CModelRepository* mModelRepo;
+
   const GameEntityTypeMapT& mEntityTypes;
   CRacer* m_pRacer;
 
@@ -71,7 +73,8 @@ public:
     IS_ENDSTATE = 4,
     IS_SKIP = 5
   };
-  CRaceTrack(const GameEntityTypeMapT& entityTypes,
+  CRaceTrack(CModelRepository* pModelRepo,
+             const GameEntityTypeMapT& entityTypes,
              IFileSystem& fs);
   ~CRaceTrack();
 
