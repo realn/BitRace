@@ -51,10 +51,9 @@ const bool CGameState::LoadResources(IFileSystem& fs) {
     return false;
   }
 
-  this->mRacer.Init((Uint32)ModelType::MT_HTTP20, *mModelRepo, L"mdl_http10.xml");
-  this->mRacer.SetColor(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
-  this->mLevel.Init();
-  this->mLevel.SetRacer(&mRacer);
+  mRacer.Init((Uint32)ModelType::MT_HTTP20, *mModelRepo, L"mdl_http10.xml");
+  mRacer.SetColor(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
+  mLevel.Init();
 
   mFPSCounter = mMainUI->GetItem<CUITextNumber<Sint32>>(L"fpsCounter");
   mUIHealthBar = mMainUI->GetItem<CUIProgressBar>(L"healthBar");
@@ -73,44 +72,15 @@ void CGameState::Free() {
 }
 
 void CGameState::ResetGame() {
-  mLevel.ResetGame();
   mDiffSetting->Reset();
 }
 
-const CRaceTrack & CGameState::GetRaceTrack() const {
-  return mLevel;
-}
-
-const bool CGameState::IsGameOver() const {
-  return mLevel.IsGameOver();
-}
-
 void CGameState::Update(const float timeDelta) {
-  static bool down = false;
-  if(mLevel.IsGameRuning()) {
-    float xdelta = mIDevMap.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisDelta, (Uint32)MouseAxisId::AxisX) * mConfig.Screen.Width;
-    mRacer.ModRotation(xdelta);
-    if(mIDevMap.GetState(InputDevice::Mouse, (Uint32)MouseType::ButtonPress, SDL_BUTTON_LEFT)) {
-      mLevel.FireWeapon();
-    }
+  float xdelta = mIDevMap.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisDelta, (Uint32)MouseAxisId::AxisX) * mConfig.Screen.Width;
+  mRacer.ModRotation(xdelta);
+  if(mIDevMap.GetState(InputDevice::Mouse, (Uint32)MouseType::ButtonPress, SDL_BUTTON_LEFT)) {
+    mLevel.FireWeapon();
   }
-  //if(mLevel.IsGameOver()) {
-  //  mMenuProcess.GetMenuManager().ForceSwitchToMenu(CMenuProcess::MENU_MAIN);
-  //  mMenuProcess.GetMenuManager().GetMenu(CMenuProcess::MENU_MAIN)->GetMenuItem(CMenuProcess::MI_RETURN)->SetEnable(false);
-  //  mHS.SetTempScore(m_RaceTrack.GetPoints());
-  //  m_uGameState = GS_HIGH;
-  //  return;
-  //}
-
-  //if(mIDevMap.GetState(InputDevice::Keyboard, (Uint32)KeyboardType::KeyPress, SDL_SCANCODE_ESCAPE)) {
-  //  mMenuProcess.GetMenuManager().ForceSwitchToMenu(CMenuProcess::MENU_MAIN);
-  //  mMenuProcess.GetMenuManager().GetMenu(CMenuProcess::MENU_MAIN)->GetMenuItem(CMenuProcess::MI_RETURN)->SetEnable(true);
-  //  m_uGameState = GS_MENU;
-  //  return;
-  //}
-
-  //if(timeDelta > 0.0f)
-  //mFPSDT += timeDelta;
 
   if(mSpawnTimer.Update(timeDelta)) {
     cb::string entId = mDiffSetting->GetRandomEntity(std::rand());
@@ -125,8 +95,7 @@ void CGameState::Update(const float timeDelta) {
   mBackground.SetDynamicVec(mRacer.GetVec() * glm::vec3(-1.0f, 1.0f, 1.0f));
   mBackground.Update(timeDelta);
 
-  mLevel.Update(timeDelta);
-  mPoints = mLevel.GetPoints();
+  mLevel.Update(mRacer, timeDelta);
 }
 
 void CGameState::UpdateRender(const float timeDelta) {
@@ -140,7 +109,6 @@ void CGameState::UpdateRender(const float timeDelta) {
   if(mUIPoints) {
     mUIPoints->SetValue((Sint32)mPoints);
   }
-  //mFPSDT = 0.0f;
 
   mBackground.UpdateRender();
 
@@ -156,8 +124,11 @@ void CGameState::Render() const {
     glm::rotate(glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
   mBackground.Render(mat);
+  
+  mat *= glm::translate(glm::vec3(0.0f, -17.0f, 0.0f));
+
   mLevel.Render(mat);
-  mRacer.Render(mat * glm::translate(glm::vec3(0.0f, -20.0f, 0.0f)));
+  mRacer.Render(mat);
 }
 
 void CGameState::RenderUI() const {

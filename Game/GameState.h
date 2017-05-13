@@ -2,7 +2,7 @@
 #define __BITRACE_GAMESTATE_H__
 
 #include "EngineState.h"
-#include "RaceTrack.h"
+#include "GameLevel.h"
 #include "Racer.h"
 #include "UIFont.h"
 #include "FrameTimer.h"
@@ -34,7 +34,7 @@ private:
   CFrameTimer mSpawnTimer;
 
   CLevelBackground mBackground;
-  CRaceTrack mLevel;
+  CGameLevel mLevel;
   CRacer mRacer;
   CUIFont mFont;
 
@@ -56,9 +56,6 @@ public:
   void Free();
 
   void ResetGame();
-
-  const CRaceTrack& GetRaceTrack() const;
-  const bool IsGameOver() const;
 
   // Inherited via IEngineState
   virtual void Update(const float timeDelta) override;

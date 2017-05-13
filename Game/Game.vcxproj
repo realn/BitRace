@@ -115,7 +115,7 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="PerfTimer.cpp" />
     <ClCompile Include="Racer.cpp" />
-    <ClCompile Include="RaceTrack.cpp" />
+    <ClCompile Include="GameLevel.cpp" />
     <ClCompile Include="LaserGrid.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -165,7 +165,7 @@
     <ClInclude Include="UIScreen.h" />
     <ClInclude Include="UIScreenXml.h" />
     <ClInclude Include="XmlTypes.h" />
-    <CustomBuild Include="RaceTrack.h" />
+    <CustomBuild Include="GameLevel.h" />
     <ClInclude Include="LaserGrid.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

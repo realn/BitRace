@@ -84,7 +84,6 @@ void CRacer::Engine(float fDT) {
 void CRacer::Render(const glm::mat4& transform) const {
   glm::mat4 mat =
     transform *
-    glm::translate(glm::vec3(0.0f, s_fConstHeight, 0.0f)) *
     glm::rotate(glm::radians(m_fRotation), glm::vec3(0.0f, 0.0f, 1.0f));
 
   glLoadMatrixf(glm::value_ptr(mat));
