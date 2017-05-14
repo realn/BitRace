@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "GameLevel.h"
-#include "MeshFunctions.h"
 #include "GameDifficulty.h"
-#include "Racer.h"
+#include "GamePlayer.h"
+#include "MeshFunctions.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/vector_angle.hpp>
@@ -11,7 +11,7 @@ static const float gMapEdgeFar = -100.0f;
 static const float gMapEdgeNear = 4.0f;
 
 CGameLevel::CGameLevel(CModelRepository* pModelRepo,
-                       const GameEntityTypeMapT& entityTypes,
+                       const CGameEntityType::TypeMapT& entityTypes,
                        IFileSystem& fs)
   : mModelRepo(pModelRepo)
   , mEntityTypes(entityTypes)
@@ -36,10 +36,10 @@ void CGameLevel::Free() {
   Clear();
 }
 
-void CGameLevel::Update(CRacer& racer, const float timeDelta) {
-  m_fMoveX += racer.GetVec().x * timeDelta;
+void CGameLevel::Update(CGamePlayer& player, const float timeDelta) {
+  m_fMoveX += player.GetDirection().x * timeDelta;
 
-  UpdateEntities(racer, timeDelta);
+  UpdateEntities(player, timeDelta);
   UpdateProjectiles(timeDelta);
   UpdateRenderProjectiles();
 }
@@ -93,7 +93,7 @@ const glm::vec2 CGameLevel::CreateEntityPosition() {
 }
 
 void CGameLevel::AddEntity(const cb::string& entityId) {
-  GameEntityTypeMapT::const_iterator it = mEntityTypes.find(entityId);
+  CGameEntityType::TypeMapT::const_iterator it = mEntityTypes.find(entityId);
   if(it == mEntityTypes.end()) {
     cb::error(L"Unknown entity type of id " + entityId);
     return;
@@ -105,7 +105,7 @@ void CGameLevel::AddEntity(const cb::string& entityId) {
   mEntities.push_back(pEntity);
 }
 
-void CGameLevel::UpdateEntities(CRacer& racer, const float timeDelta) {
+void CGameLevel::UpdateEntities(CGamePlayer& player, const float timeDelta) {
   GameEntityVectorT::iterator it = mEntities.begin();
   while(it != mEntities.end()) {
     if((*it)->Update(timeDelta, m_fMoveX, mProjectiles)) {
@@ -121,7 +121,7 @@ void CGameLevel::UpdateEntities(CRacer& racer, const float timeDelta) {
     glm::vec3 vPos = glm::vec3((*it)->GetPos().x, 0.0f, (*it)->GetPos().y);
 
     if(glm::distance(glm::vec3(m_fMoveX, 0.0f, 0.0f), vPos) < 2.0f) {
-      racer.ModBitRate(-(*it)->GetDamage());
+      player.ModHealth(-(*it)->GetDamage());
       if((*it)->GetDamage() > 0.0f) {
         //SetFSQ(0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
       }

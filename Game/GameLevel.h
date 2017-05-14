@@ -6,7 +6,7 @@
 #include "LaserGrid.h"
 #include "GameEntity.h"
 
-class CRacer;
+class CGamePlayer;
 class CGUI;
 class IFileSystem;
 
@@ -14,7 +14,7 @@ class CGameLevel {
 private:
   CModelRepository* mModelRepo;
 
-  const GameEntityTypeMapT& mEntityTypes;
+  const CGameEntityType::TypeMapT& mEntityTypes;
 
   ProjectileVectorT mProjectiles;
   GameEntityVectorT mEntities;
@@ -29,7 +29,7 @@ private:
   void Clear();
 public:
   CGameLevel(CModelRepository* pModelRepo,
-             const GameEntityTypeMapT& entityTypes,
+             const CGameEntityType::TypeMapT& entityTypes,
              IFileSystem& fs);
   ~CGameLevel();
 
@@ -39,12 +39,12 @@ public:
   bool Init();
 
   void Render(const glm::mat4& transform) const;
-  void Update(CRacer& racer, const float timeDelta);
+  void Update(CGamePlayer& player, const float timeDelta);
 
   void FireWeapon();
 
 private:
-  void UpdateEntities(CRacer& racer, const float timeDelta);
+  void UpdateEntities(CGamePlayer& player, const float timeDelta);
   void UpdateProjectiles(const float timeDelta);
   void UpdateRenderProjectiles();
   void RenderProjectiles(const glm::mat4& transform) const;

@@ -2,6 +2,10 @@
 #include "UIScreen.h"
 #include "UIFont.h"
 #include "UIBrush.h"
+#include "UIScreenXml.h"
+#include "FileSystem.h"
+
+static const cb::string XML_UISCREEN_ROOTNAME = L"Screen";
 
 IUIItem::IUIItem() {}
 
@@ -15,18 +19,6 @@ CUIScreen::CUIScreen(const glm::vec2& size, const glm::vec2& margin)
 
 CUIScreen::~CUIScreen() {
   delete mItem;
-}
-
-void CUIScreen::SetItem(IUIItem * pItem) {
-  mItem = pItem;
-  UpdateItemLists();
-}
-
-IUIItem * CUIScreen::GetItemById(const cb::string & id) const {
-  UIItemIdMapT::const_iterator it = mItemIdMap.find(id);
-  if(it == mItemIdMap.end())
-    return nullptr;
-  return it->second;
 }
 
 void CUIScreen::UpdateRender(const CUIFont& font) {
@@ -53,6 +45,14 @@ void CUIScreen::Render(const CUIFont & font) const {
   brush.UnBind();
 }
 
+const bool CUIScreen::Load(IFileSystem & fs, const cb::string & filepath) {
+  return fs.ReadXml(filepath, XML_UISCREEN_ROOTNAME, *this);
+}
+
+const bool CUIScreen::Save(IFileSystem & fs, const cb::string & filepath) const {
+  return fs.WriteXml(filepath, XML_UISCREEN_ROOTNAME, *this);
+}
+
 void CUIScreen::UpdateItemLists() {
   mAllItems.clear();
   mItemIdMap.clear();
@@ -71,5 +71,17 @@ void CUIScreen::UpdateItemLists() {
 
     mItemIdMap[id] = *it;
   }
+}
+
+void CUIScreen::SetItem(IUIItem * pItem) {
+  mItem = pItem;
+  UpdateItemLists();
+}
+
+IUIItem * CUIScreen::GetItemById(const cb::string & id) const {
+  UIItemIdMapT::const_iterator it = mItemIdMap.find(id);
+  if(it == mItemIdMap.end())
+    return nullptr;
+  return it->second;
 }
 

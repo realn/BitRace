@@ -5,16 +5,14 @@
 #include "InputDevice.h"
 #include "GameEntity.h"
 #include "GameDifficulty.h"
+#include "GamePlayer.h"
 #include "UIScreen.h"
 #include "UIItems.h"
-#include "UIScreenXml.h"
 
 static const cb::string DEFFONT_FILEPATH = L"font.xml";
 static const cb::string DIFFSETTING_FILEPATH = L"diffSet.xml";
 static const cb::string ENTTYPES_FILEPATH = L"entityTypes.xml";
-static const cb::string ENTTYPES_ROOTNAME = L"EntityTypes";
 static const cb::string UISCREEN_FILEPATH = L"screen.xml";
-static const cb::string UISCREEN_ROOTNAME = L"Screen";
 
 CGameState::CGameState(CConfig& config, 
                        IFileSystem& fileSystem,
@@ -22,45 +20,66 @@ CGameState::CGameState(CConfig& config,
                        CModelRepository* pModelRepo)
   : mConfig(config)
   , mIDevMap(inputDevMap) 
-  , mModelRepo(pModelRepo)
-  , mDiffSetting(nullptr)
+  , mpModelRepo(pModelRepo)
   , mLevel(pModelRepo, mEntityTypes, fileSystem)
   , mPoints(0)
-  , mMainUI(nullptr)
 {
-  mDiffSetting = new CGameDifficultySetting();
-  mMainUI = new CUIScreen(config.Screen.GetSize());
+  mpDiffSetting = new CGameDifficultySetting();
+  mpMainUI = new CUIScreen(config.Screen.GetSize());
+
+  {
+    CGamePlayerType type;
+    type.Name = L"Http1.0";
+    type.ModelFile = L"mdl_http10.xml";
+    type.MaxHealth = 100.0f;
+    type.Speed = glm::vec2(50.0f, 120.0f);
+    type.Color = glm::vec4(0.0f, 1.0f, 1.0f, 1.0f);
+    type.Weapon.ProjectileNumber = 1;
+    type.Weapon.ProjectileDamage = 15.0f;
+    type.Weapon.ProjectileColor = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+
+    mpPlayer = new CGamePlayer(type);
+
+    CGamePlayerType::TypeMapT playerTypeMap;
+    playerTypeMap[L"http10"] = type;
+
+    CGamePlayerType::Save(playerTypeMap, fileSystem, L"playerTypes.xml");
+  }
+
 }
 
 CGameState::~CGameState() {
-  delete mDiffSetting;
-  delete mMainUI;
+  mpPlayer.Delete();
+  mpDiffSetting.Delete();
+  mpMainUI.Delete();
 }
 
 const bool CGameState::LoadResources(IFileSystem& fs) {
   if(!mFont.Load(fs, DEFFONT_FILEPATH)) {
     return false;
   }
-  if(!fs.ReadXml(ENTTYPES_FILEPATH, ENTTYPES_ROOTNAME, mEntityTypes)) {
+  if(!CGameEntityType::Load(mEntityTypes, fs, ENTTYPES_FILEPATH)) {
     return false;
   }
-  if(!fs.ReadXml(UISCREEN_FILEPATH, UISCREEN_ROOTNAME, *mMainUI)) {
+  
+  if(!mpMainUI->Load(fs, UISCREEN_FILEPATH)) {
     return false;
   }
-  if(!mDiffSetting->Load(fs, DIFFSETTING_FILEPATH)) {
+  if(!mpDiffSetting->Load(fs, DIFFSETTING_FILEPATH)) {
+    return false;
+  }
+  if(!mpPlayer->LoadResources(*mpModelRepo)) {
     return false;
   }
 
-  mRacer.Init((Uint32)ModelType::MT_HTTP20, *mModelRepo, L"mdl_http10.xml");
-  mRacer.SetColor(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
   mLevel.Init();
 
-  mFPSCounter = mMainUI->GetItem<CUITextNumber<Sint32>>(L"fpsCounter");
-  mUIHealthBar = mMainUI->GetItem<CUIProgressBar>(L"healthBar");
-  mUIPoints = mMainUI->GetItem<CUITextNumber<Sint32>>(L"pointsDisplay");
+  mpFPSCounter = mpMainUI->GetItem<CUITextNumber<Sint32>>(L"fpsCounter");
+  mpUIHealthBar = mpMainUI->GetItem<CUIProgressBar>(L"healthBar");
+  mpUIPoints = mpMainUI->GetItem<CUITextNumber<Sint32>>(L"pointsDisplay");
 
-  mDiffSetting->Reset();
-  mSpawnTimer.SetLimit(mDiffSetting->GetCurrent().EntitySpawnPause);
+  mpDiffSetting->Reset();
+  mSpawnTimer.SetLimit(mpDiffSetting->GetCurrent().EntitySpawnPause);
   mSpawnTimer.SetEnabled(true);
 
   return true;
@@ -68,51 +87,52 @@ const bool CGameState::LoadResources(IFileSystem& fs) {
 
 void CGameState::Free() {
   mLevel.Free();
-  mRacer.Free();
+  mpPlayer->Free();
 }
 
 void CGameState::ResetGame() {
-  mDiffSetting->Reset();
+  mpDiffSetting->Reset();
 }
 
 void CGameState::Update(const float timeDelta) {
   float xdelta = mIDevMap.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisDelta, (Uint32)MouseAxisId::AxisX) * mConfig.Screen.Width;
-  mRacer.ModRotation(xdelta);
+  mpPlayer->ModRotation(-xdelta);
   if(mIDevMap.GetState(InputDevice::Mouse, (Uint32)MouseType::ButtonPress, SDL_BUTTON_LEFT)) {
     mLevel.FireWeapon();
   }
 
   if(mSpawnTimer.Update(timeDelta)) {
-    cb::string entId = mDiffSetting->GetRandomEntity(std::rand());
+    cb::string entId = mpDiffSetting->GetRandomEntity(std::rand());
     if(!entId.empty()) {
       mLevel.AddEntity(entId);
     }
   }
 
-  mRacer.Engine(timeDelta);
+  mpPlayer->Update(timeDelta);
 
   mBackground.SetSepHeight(40.0f);
-  mBackground.SetDynamicVec(mRacer.GetVec() * glm::vec3(-1.0f, 1.0f, 1.0f));
+  mBackground.SetDynamicVec(mpPlayer->GetDirection() * glm::vec3(-1.0f, 1.0f, 1.0f));
   mBackground.Update(timeDelta);
 
-  mLevel.Update(mRacer, timeDelta);
+  mLevel.Update(*mpPlayer, timeDelta);
 }
 
 void CGameState::UpdateRender(const float timeDelta) {
-  if(timeDelta > 0.0f && mFPSCounter) {
+  if(timeDelta > 0.0f && mpFPSCounter) {
     Uint32 fps = (Uint32)(1.0f / timeDelta);
-    mFPSCounter->SetValue(fps);
+    mpFPSCounter->SetValue(fps);
   }
-  if(mUIHealthBar) {
-    mUIHealthBar->SetValue(mRacer.GetBitRate());
+  if(mpUIHealthBar) {
+    mpUIHealthBar->SetRange(0.0f, mpPlayer->GetMaxHealth());
+    mpUIHealthBar->SetValue(mpPlayer->GetHealth());
   }
-  if(mUIPoints) {
-    mUIPoints->SetValue((Sint32)mPoints);
+  if(mpUIPoints) {
+    mpUIPoints->SetValue((Sint32)mPoints);
   }
 
   mBackground.UpdateRender();
 
-  mMainUI->UpdateRender(mFont);
+  mpMainUI->UpdateRender(mFont);
 }
 
 void CGameState::Render() const {
@@ -128,11 +148,11 @@ void CGameState::Render() const {
   mat *= glm::translate(glm::vec3(0.0f, -17.0f, 0.0f));
 
   mLevel.Render(mat);
-  mRacer.Render(mat);
+  mpPlayer->Render(mat);
 }
 
 void CGameState::RenderUI() const {
-  mMainUI->Render(mFont);
+  mpMainUI->Render(mFont);
 }
 
 const bool CGameState::IsDone() const {

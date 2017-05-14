@@ -8,7 +8,7 @@
 class CUIFont;
 class CUIBrush;
 class IUIItem;
-
+class IFileSystem;
 
 typedef std::vector<IUIItem*> UIItemVectorT;
 class IUIItem {
@@ -52,6 +52,14 @@ public:
   CUIScreen(const glm::vec2& size, const glm::vec2& margin = glm::vec2(0.0f));
   ~CUIScreen();
 
+  void UpdateRender(const CUIFont& font);
+  void Render(const CUIFont& font) const;
+
+  const bool Load(IFileSystem& fs, const cb::string& filepath);
+  const bool Save(IFileSystem& fs, const cb::string& filepath) const;
+
+  void UpdateItemLists();
+
   void SetItem(IUIItem* pItem);
   IUIItem* GetItemById(const cb::string& id) const;
   template<typename _Type>
@@ -59,14 +67,7 @@ public:
     IUIItem* pItem = GetItemById(id);
     return dynamic_cast<_Type*>(pItem);
   }
-
-  void UpdateRender(const CUIFont& font);
-  void Render(const CUIFont& font) const;
-
-  void UpdateItemLists();
 };
-
-
 
 #endif // !__BITRACE_UISCREEN_H__
 

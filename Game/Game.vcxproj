@@ -114,7 +114,7 @@
     <ClCompile Include="MeshFunctions.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="PerfTimer.cpp" />
-    <ClCompile Include="Racer.cpp" />
+    <ClCompile Include="GamePlayer.cpp" />
     <ClCompile Include="GameLevel.cpp" />
     <ClCompile Include="LaserGrid.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -154,7 +154,7 @@
     <ClInclude Include="MeshFunctions.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="PerfTimer.h" />
-    <ClInclude Include="Racer.h" />
+    <ClInclude Include="GamePlayer.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TestState.h" />
     <ClInclude Include="Texture.h" />

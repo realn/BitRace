@@ -24,9 +24,6 @@
     <ClCompile Include="Intro.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="Racer.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="FGXFile.cpp" />
     <ClCompile Include="IniFiles.cpp" />
@@ -112,6 +109,9 @@
     <ClCompile Include="GameLevel.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="GamePlayer.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -121,9 +121,6 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="Intro.h">
-      <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Racer.h">
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h" />
@@ -209,6 +206,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="LevelBackground.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlayer.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>

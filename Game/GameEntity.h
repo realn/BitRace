@@ -6,10 +6,9 @@
 #include <vector>
 #include <map>
 
-#include <CBXml/Serialize.h>
-
 class CModel;
 class CModelRepository;
+class IFileSystem;
 
 class CProjectileVertex {
 public:
@@ -57,6 +56,8 @@ enum class EntityType {
 
 class CGameEntityType {
 public:
+  typedef std::map<cb::string, CGameEntityType> TypeMapT;
+
   cb::string Name;
   EntityType Type;
   glm::vec2 Speed;
@@ -71,8 +72,14 @@ public:
 
 public:
   CGameEntityType();
+
+  static const bool Save(const TypeMapT& typeMap,
+                         IFileSystem& fs,
+                         const cb::string& filepath);
+  static const bool Load(TypeMapT& typeMap,
+                         IFileSystem& fs,
+                         const cb::string& filepath);
 };
-typedef std::map<cb::string, CGameEntityType> GameEntityTypeMapT;
 
 class CGameEntity {
 private:
@@ -120,11 +127,6 @@ typedef std::vector<CGameEntity*> GameEntityVectorT;
 
 extern const cb::string toStr(const EntityType type);
 extern const bool fromStr(const cb::string& text, EntityType& outType);
-
-CB_DEFINEXMLREAD(CGameEntityType);
-CB_DEFINEXMLWRITE(CGameEntityType);
-CB_DEFINEXMLREAD(GameEntityTypeMapT);
-CB_DEFINEXMLWRITE(GameEntityTypeMapT);
 
 #endif // !__BITRACE_GAMEENTITY_H__
 

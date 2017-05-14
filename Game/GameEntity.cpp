@@ -2,6 +2,7 @@
 #include "GameEntity.h"
 #include "Model.h"
 #include "XmlTypes.h"
+#include "FileSystem.h"
 
 #include <CBXml/Serialize.h>
 #include <CBXml/Node.h>
@@ -11,6 +12,8 @@
 
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/vector_angle.hpp>
+
+static const cb::string XML_ENTITYTYPES_ROOTNAME = L"EntityTypes";
 
 CProjectile::CProjectile(const glm::vec2 & pos,
                          const glm::vec2 & vec,
@@ -76,6 +79,14 @@ CGameEntityType::CGameEntityType()
   , IgnoreProjectiles(false) 
   , Points(0)
 {}
+
+const bool CGameEntityType::Save(const TypeMapT & typeMap, IFileSystem & fs, const cb::string & filepath) {
+  return fs.WriteXml(filepath, XML_ENTITYTYPES_ROOTNAME, typeMap);
+}
+
+const bool CGameEntityType::Load(TypeMapT & typeMap, IFileSystem & fs, const cb::string & filepath) {
+  return fs.ReadXml(filepath, XML_ENTITYTYPES_ROOTNAME, typeMap);
+}
 
 CGameEntity::CGameEntity(const CGameEntityType & type,
                          CModelRepository& modelRepo,
@@ -248,34 +259,18 @@ static const cb::string XML_ENTITYTYPE_ROTSPEED = L"RotSpeed";
 static const cb::string XML_ENTITYTYPE_IGNOREPROJECTILES = L"IgnoreProjectiles";
 static const cb::string XML_ENTITYTYPE_POINTS = L"Points";
 
-CB_DEFINEXMLREAD(CGameEntityType) {
-  GetAttribute(XML_ENTITYTYPE_NAME, mObject.Name);
-  GetAttribute(XML_ENTITYTYPE_TYPE, mObject.Type);
-  GetAttribute(XML_ENTITYTYPE_SPEED, mObject.Speed);
-  GetAttribute(XML_ENTITYTYPE_COLOR, mObject.Color);
-  GetAttribute(XML_ENTITYTYPE_MODELFILE, mObject.ModelFile);
-  GetAttribute(XML_ENTITYTYPE_MAXHEALTH, mObject.MaxHealth);
-  GetAttribute(XML_ENTITYTYPE_DAMAGE, mObject.Damage);
-  GetAttribute(XML_ENTITYTYPE_AIPAUSE, mObject.AIPause);
-  GetAttribute(XML_ENTITYTYPE_ROTSPEED, mObject.RotSpeed);
-  GetAttribute(XML_ENTITYTYPE_IGNOREPROJECTILES, mObject.IgnoreProjectiles);
-  GetAttribute(XML_ENTITYTYPE_POINTS, mObject.Points);
-
-  return true;
-}
-
-CB_DEFINEXMLWRITE(CGameEntityType) {
-  SetAttribute(XML_ENTITYTYPE_NAME, mObject.Name);
-  SetAttribute(XML_ENTITYTYPE_TYPE, mObject.Type);
-  SetAttribute(XML_ENTITYTYPE_SPEED, mObject.Speed);
-  SetAttribute(XML_ENTITYTYPE_COLOR, mObject.Color);
-  SetAttribute(XML_ENTITYTYPE_MODELFILE, mObject.ModelFile);
-  SetAttribute(XML_ENTITYTYPE_MAXHEALTH, mObject.MaxHealth);
-  SetAttribute(XML_ENTITYTYPE_DAMAGE, mObject.Damage);
-  SetAttribute(XML_ENTITYTYPE_AIPAUSE, mObject.AIPause);
-  SetAttribute(XML_ENTITYTYPE_ROTSPEED, mObject.RotSpeed);
-  SetAttribute(XML_ENTITYTYPE_IGNOREPROJECTILES, mObject.IgnoreProjectiles);
-  SetAttribute(XML_ENTITYTYPE_POINTS, mObject.Points);
+CB_DEFINEXMLRW(CGameEntityType) {
+  RWAttribute(XML_ENTITYTYPE_NAME, mObject.Name);
+  RWAttribute(XML_ENTITYTYPE_TYPE, mObject.Type);
+  RWAttribute(XML_ENTITYTYPE_SPEED, mObject.Speed);
+  RWAttribute(XML_ENTITYTYPE_COLOR, mObject.Color);
+  RWAttribute(XML_ENTITYTYPE_MODELFILE, mObject.ModelFile);
+  RWAttribute(XML_ENTITYTYPE_MAXHEALTH, mObject.MaxHealth);
+  RWAttribute(XML_ENTITYTYPE_DAMAGE, mObject.Damage);
+  RWAttribute(XML_ENTITYTYPE_AIPAUSE, mObject.AIPause);
+  RWAttribute(XML_ENTITYTYPE_ROTSPEED, mObject.RotSpeed);
+  RWAttribute(XML_ENTITYTYPE_IGNOREPROJECTILES, mObject.IgnoreProjectiles);
+  RWAttribute(XML_ENTITYTYPE_POINTS, mObject.Points);
 
   return true;
 }
@@ -283,12 +278,7 @@ CB_DEFINEXMLWRITE(CGameEntityType) {
 static const cb::string XML_ENTITYTYPEMAP_ELEM = L"EntityType";
 static const cb::string XML_ENTITYTYPEMAP_KEY = L"Id";
 
-CB_DEFINEXMLREAD(GameEntityTypeMapT) {
+CB_DEFINEXMLRW(CGameEntityType::TypeMapT) {
   return
-    GetNodeMap(mObject, XML_ENTITYTYPEMAP_ELEM, XML_ENTITYTYPEMAP_KEY);
-}
-
-CB_DEFINEXMLWRITE(GameEntityTypeMapT) {
-  return
-    SetNodeMap(mObject, XML_ENTITYTYPEMAP_ELEM, XML_ENTITYTYPEMAP_KEY);
+    RWNodeMap(mObject, XML_ENTITYTYPEMAP_ELEM, XML_ENTITYTYPEMAP_KEY);
 }

@@ -1,9 +1,10 @@
 #ifndef __BITRACE_GAMESTATE_H__
 #define __BITRACE_GAMESTATE_H__
 
+#include <CBIO/Ptr.h>
+
 #include "EngineState.h"
 #include "GameLevel.h"
-#include "Racer.h"
 #include "UIFont.h"
 #include "FrameTimer.h"
 #include "LevelBackground.h"
@@ -14,36 +15,37 @@ class CInputDeviceMap;
 class CModelRepository;
 
 class CUIScreen;
-template<typename _Type> class CUITextNumber;
 class CUIProgressBar;
 class CUIRect;
+template<typename _Type> class CUITextNumber;
 
 class CGameEntityType;
-typedef std::map<cb::string, CGameEntityType> GameEntityTypeMapT;
 class CGameDifficultySetting;
+class CGamePlayer;
+typedef std::map<cb::string, CGameEntityType> GameEntityTypeMapT;
 
 class CGameState :
   public IEngineState {
 private:
   CConfig& mConfig;
   CInputDeviceMap& mIDevMap;
-  CModelRepository* mModelRepo;
+  cb::ptr<CModelRepository> mpModelRepo;
 
   GameEntityTypeMapT mEntityTypes;
-  CGameDifficultySetting* mDiffSetting;
+  cb::ptr<CGameDifficultySetting> mpDiffSetting;
   CFrameTimer mSpawnTimer;
 
   CLevelBackground mBackground;
   CGameLevel mLevel;
-  CRacer mRacer;
+  cb::ptr<CGamePlayer> mpPlayer;
   CUIFont mFont;
 
   Uint32 mPoints;
 
-  CUIScreen* mMainUI;
-  CUITextNumber<Sint32>* mFPSCounter;
-  CUIProgressBar* mUIHealthBar;
-  CUITextNumber<Sint32>* mUIPoints;
+  cb::ptr<CUIScreen> mpMainUI;
+  cb::ptr<CUITextNumber<Sint32>> mpFPSCounter;
+  cb::ptr<CUIProgressBar> mpUIHealthBar;
+  cb::ptr<CUITextNumber<Sint32>> mpUIPoints;
 
 public:
   CGameState(CConfig& config,
