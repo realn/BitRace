@@ -103,13 +103,16 @@
     <ClCompile Include="FrameTimer.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="LevelBackground.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="GameLevel.cpp">
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="GamePlayer.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicDefines.cpp">
+      <Filter>Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="GameSkyBox.cpp">
       <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
@@ -205,10 +208,13 @@
     <ClInclude Include="FrameTimer.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="LevelBackground.h">
+    <ClInclude Include="GamePlayer.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="GamePlayer.h">
+    <ClInclude Include="GraphicDefines.h">
+      <Filter>Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="GameSkyBox.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>

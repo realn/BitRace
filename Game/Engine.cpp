@@ -236,7 +236,6 @@ const bool CEngine::InitGame() {
   mModelRepo = new CModelRepository(mpFileSystem);
 
   CGameState* pState = new CGameState(mConfig,
-                                      *mpFileSystem, 
                                       mIDevMap,
                                       mModelRepo);
   if(!pState->LoadResources(*mpFileSystem)) {

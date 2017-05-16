@@ -12,6 +12,7 @@ class IFileSystem;
 class CGameWeapon {
 public:
   float ProjectileDamage;
+  float ProjectileSpeed;
   Uint32 ProjectileNumber;
   glm::vec4 ProjectileColor;
 
@@ -71,5 +72,5 @@ public:
   const glm::vec3& GetDirection() const;
   const float GetHealth() const;
   const float GetMaxHealth() const;
-
+  const CGameWeapon& GetWeapon() const;
 };

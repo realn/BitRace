@@ -4,42 +4,47 @@
 #include <CBIO/Ptr.h>
 
 #include "EngineState.h"
-#include "GameLevel.h"
-#include "UIFont.h"
 #include "FrameTimer.h"
-#include "LevelBackground.h"
 
 class CConfig;
 class IFileSystem;
 class CInputDeviceMap;
 class CModelRepository;
 
+class CUIFont;
 class CUIScreen;
 class CUIProgressBar;
 class CUIRect;
 template<typename _Type> class CUITextNumber;
 
+class CGameSkyBox;
+class CGameLevel;
 class CGameEntityType;
 class CGameDifficultySetting;
+class CGamePlayerType;
 class CGamePlayer;
-typedef std::map<cb::string, CGameEntityType> GameEntityTypeMapT;
+class CGameWeapon;
 
 class CGameState :
   public IEngineState {
+public:
+  typedef std::map<cb::string, CGameEntityType> EntityTypeMapT;
+  typedef std::map<cb::string, CGamePlayerType> PlayerTypeMapT;
+
 private:
   CConfig& mConfig;
   CInputDeviceMap& mIDevMap;
+
+  cb::ptr<CUIFont> mpFont;
   cb::ptr<CModelRepository> mpModelRepo;
-
-  GameEntityTypeMapT mEntityTypes;
   cb::ptr<CGameDifficultySetting> mpDiffSetting;
-  CFrameTimer mSpawnTimer;
-
-  CLevelBackground mBackground;
-  CGameLevel mLevel;
+  cb::ptr<CGameSkyBox> mpSkyBox;
+  cb::ptr<CGameLevel> mpLevel;
   cb::ptr<CGamePlayer> mpPlayer;
-  CUIFont mFont;
 
+  EntityTypeMapT mEntityTypes;
+  PlayerTypeMapT mPlayerTypes;
+  CFrameTimer mSpawnTimer;
   Uint32 mPoints;
 
   cb::ptr<CUIScreen> mpMainUI;
@@ -49,15 +54,11 @@ private:
 
 public:
   CGameState(CConfig& config,
-             IFileSystem& fileSystem,
              CInputDeviceMap& inputDevMap,
              CModelRepository* pModelRepo);
   virtual ~CGameState();
 
   const bool LoadResources(IFileSystem& fs);
-  void Free();
-
-  void ResetGame();
 
   // Inherited via IEngineState
   virtual void Update(const float timeDelta) override;
@@ -71,6 +72,9 @@ public:
   virtual const bool IsDone() const override;
 
   virtual IEngineState * GetNext(CEngine & engine) override;
+
+private:
+  void FireWeapon(const CGameWeapon& weapon);
 };
 
 #endif // !__BITRACE_GAMESTATE_H__

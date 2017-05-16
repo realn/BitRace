@@ -7,9 +7,11 @@
     Color="1:1:0:1" 
     ModelFile="mdl_dlpart2.xml" 
     MaxHealth="1" 
-    Damage="-20" 
+    Damage="20" 
     AIPause="0.5" 
     IgnoreProjectiles="false" 
+    Points="500" 
+    OnEntityCollision="AddPoints,HealEntity" 
     />
   <EntityType 
     Id="ENT_CRCBOMB" 
@@ -21,7 +23,9 @@
     MaxHealth="20" 
     Damage="20" 
     AIPause="0.5" 
-    IgnoreProjectiles="true" />
+    IgnoreProjectiles="true" 
+    OnEntityCollision="DamageEntity"
+    />
   <EntityType 
     Id="ENT_DLPART" 
     Name="DownloadPart" 
@@ -43,6 +47,7 @@
     MaxHealth="30" 
     Damage="20" 
     AIPause="0.4" 
+    Points="100" 
     IgnoreProjectiles="false" />
   <EntityType 
     Id="ENT_LEETHACK" 

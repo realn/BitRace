@@ -3,7 +3,7 @@
 
 #include "LaserGrid.h"
 
-class CLevelBackground {
+class CGameSkyBox {
 private:
   CLaserGrid mGridTop;
   CLaserGrid mGridBottom;
@@ -14,7 +14,7 @@ private:
   float mSepHeight;
 
 public:
-  CLevelBackground();
+  CGameSkyBox();
 
   void SetDynamicVec(const glm::vec3& vec);
   void SetSepHeight(const float val);

@@ -2,50 +2,58 @@
 
 #include <SDL_types.h>
 #include <glm/glm.hpp>
+#include <vector>
+#include <map>
 
 #include "LaserGrid.h"
-#include "GameEntity.h"
 
-class CGamePlayer;
-class CGUI;
 class IFileSystem;
+class CProjectile;
+class CProjectileVertex;
+class CGameEntity;
+class CGameEntityType;
+class CModelRepository;
 
 class CGameLevel {
-private:
-  CModelRepository* mModelRepo;
+public:
+  typedef std::map<cb::string, CGameEntityType> EntityTypeMapT;
+  typedef std::vector<CGameEntity> EntityVectorT;
+  typedef std::vector<CProjectile> ProjectileVectorT;
+  typedef std::vector<CProjectileVertex> ProjectileVertexVectorT;
 
-  const CGameEntityType::TypeMapT& mEntityTypes;
+private:
+  CModelRepository* mpModelRepo;
+  const EntityTypeMapT* mpEntityTypes;
 
   ProjectileVectorT mProjectiles;
-  GameEntityVectorT mEntities;
   ProjectileVertexVectorT mProjectileVertices;
+  EntityVectorT mEntities;
 
-  float	m_fMoveX;
-  float	m_fDamage;
-  unsigned	m_uFireCount;
-
-  const glm::vec2 CreateEntityPosition();
-
-  void Clear();
 public:
   CGameLevel(CModelRepository* pModelRepo,
-             const CGameEntityType::TypeMapT& entityTypes,
-             IFileSystem& fs);
+             const EntityTypeMapT* pEntityTypes);
   ~CGameLevel();
 
   void AddEntity(const cb::string& typeId);
+  void AddProjectile(const glm::vec2& startPos,
+                     const glm::vec2& dir,
+                     const glm::vec4& color,
+                     const float speed,
+                     const float damage);
 
-  void Free();
-  bool Init();
+  void Clear();
 
+  void Update(const glm::vec2& playerVec, const float timeDelta);
+  void UpdateRender();
   void Render(const glm::mat4& transform) const;
-  void Update(CGamePlayer& player, const float timeDelta);
 
-  void FireWeapon();
+  const Uint32 CheckProjectileCollisions();
+  const float CheckEntityCollisions(const float playerRadius);
 
 private:
-  void UpdateEntities(CGamePlayer& player, const float timeDelta);
-  void UpdateProjectiles(const float timeDelta);
+  void UpdateEntities(const glm::vec2& playerVec, const float timeDelta);
+  void UpdateProjectiles(const glm::vec2& playerVec, const float timeDelta);
   void UpdateRenderProjectiles();
   void RenderProjectiles(const glm::mat4& transform) const;
+  const glm::vec2 CreateEntityPosition();
 };

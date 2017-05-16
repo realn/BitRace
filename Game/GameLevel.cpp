@@ -1,148 +1,140 @@
 #include "stdafx.h"
 #include "GameLevel.h"
-#include "GameDifficulty.h"
-#include "GamePlayer.h"
+#include "GameEntity.h"
 #include "MeshFunctions.h"
 
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/vector_angle.hpp>
+#include <glm/gtx/closest_point.hpp>
 
 static const float gMapEdgeFar = -100.0f;
 static const float gMapEdgeNear = 4.0f;
 
 CGameLevel::CGameLevel(CModelRepository* pModelRepo,
-                       const CGameEntityType::TypeMapT& entityTypes,
-                       IFileSystem& fs)
-  : mModelRepo(pModelRepo)
-  , mEntityTypes(entityTypes)
-  , m_fMoveX(0.0f)
-  , m_fDamage(15.0f)
-  , m_uFireCount(1)
+                       const EntityTypeMapT* pEntityTypes)
+  : mpModelRepo(pModelRepo)
+  , mpEntityTypes(pEntityTypes)
 {}
 
 CGameLevel::~CGameLevel() {
-  Free();
-}
-
-bool CGameLevel::Init() {
-
-  return true;
-}
-
-void CGameLevel::Free() {
-  m_fMoveX = 0.0f;
-  m_uFireCount = 1;
-  m_fDamage = 15.0f;
   Clear();
 }
 
-void CGameLevel::Update(CGamePlayer& player, const float timeDelta) {
-  m_fMoveX += player.GetDirection().x * timeDelta;
+void CGameLevel::Update(const glm::vec2& playerVec, const float timeDelta) {
+  UpdateEntities(playerVec, timeDelta);
+  UpdateProjectiles(playerVec, timeDelta);
+}
 
-  UpdateEntities(player, timeDelta);
-  UpdateProjectiles(timeDelta);
+void CGameLevel::UpdateRender() {
   UpdateRenderProjectiles();
 }
 
 void CGameLevel::Render(const glm::mat4& transform) const {
-  glm::mat4 mat = transform * glm::translate(glm::vec3(-m_fMoveX, 0.0f, 0.0));
-
-  RenderProjectiles(mat);
-  for(GameEntityVectorT::const_iterator it = mEntities.begin(); it != mEntities.end(); it++) {
-    (*it)->Render(mat);
+  RenderProjectiles(transform);
+  for(EntityVectorT::const_iterator it = mEntities.begin(); it != mEntities.end(); it++) {
+    it->Render(transform);
   }
 }
 
-void CGameLevel::FireWeapon() {
-  float fSpeed = 50.0f;
-  unsigned i;
-  glm::vec2 vStPos = glm::vec2(m_fMoveX, -2.0f);
-  glm::vec2 vVec;
-  for(i = 0; i < m_uFireCount; ++i) {
-    if(m_uFireCount == 1) {
-      vVec = glm::vec2(0.0f, -1.0f);
+const Uint32 CGameLevel::CheckProjectileCollisions() {
+  Uint32 points = 0;
+
+  for(EntityVectorT::iterator entIt = mEntities.begin(); 
+      entIt != mEntities.end(); entIt++) {
+    if(entIt->IsDeleted()) {
+      continue;
     }
-    else {
-      vVec = glm::rotate(glm::vec2(0.0f, -1.0f),
-                         glm::radians(-6.0f * float(m_uFireCount - 1) / 2.0f + float(i) * 6.0f));
+    if(entIt->GetIgnoreProjectiles()) {
+      continue;
     }
 
-    mProjectiles.push_back(CProjectile(vStPos,
-                                       vVec,
-                                       glm::vec4(0.0f, 0.0f, 1.0f, 1.0f),
-                                       fSpeed,
-                                       m_fDamage));
+    for(ProjectileVectorT::iterator prIt = mProjectiles.begin(); 
+        prIt != mProjectiles.end(); prIt++) {
+      if(prIt->IsDeleted()) {
+        continue;
+      }
+
+      glm::vec2 pA = prIt->GetPos();
+      glm::vec2 pB = (prIt->GetDir() * prIt->GetLength()) + pA;
+
+      glm::vec2 point = glm::closestPointOnLine(entIt->GetPos(), pA, pB);
+      if(glm::distance(point, entIt->GetPos()) < entIt->GetCollRadius()) {
+        prIt->Delete();
+        entIt->ModHealth(-prIt->GetDamage());
+
+        if(entIt->GetHealth() == 0.0f) {
+          points += entIt->GetPoints();
+          entIt->Delete();
+        }
+      }
+    }
   }
+  
+  return points;
+}
+
+const float CGameLevel::CheckEntityCollisions(const float playerRadius) {
+  float damage = 0.0f;
+  glm::vec2 playerPos(0.0f);
+
+  for(EntityVectorT::iterator it = mEntities.begin(); it != mEntities.end(); it++) {
+    if(it->IsDeleted()) {
+      continue;
+    }
+
+    if(glm::distance(it->GetPos(), playerPos) < it->GetCollRadius() + playerRadius) {
+      damage += it->GetDamage();
+      it->Delete();
+    }
+  }
+
+  return damage;
 }
 
 void CGameLevel::Clear() {
-  for(GameEntityVectorT::iterator it = mEntities.begin();
-      it != mEntities.end();
-      it++) {
-    delete (*it);
-  }
   mEntities.clear();
-
   mProjectiles.clear();
   mProjectileVertices.clear();
 }
 
-const glm::vec2 CGameLevel::CreateEntityPosition() {
-  float randF = float(rand() % 200 - 100);
-  return glm::vec2(randF / 100.0f * 30.0f + m_fMoveX, gMapEdgeFar);
-}
 
 void CGameLevel::AddEntity(const cb::string& entityId) {
-  CGameEntityType::TypeMapT::const_iterator it = mEntityTypes.find(entityId);
-  if(it == mEntityTypes.end()) {
+  CGameEntityType::TypeMapT::const_iterator it = mpEntityTypes->find(entityId);
+  if(it == mpEntityTypes->end()) {
     cb::error(L"Unknown entity type of id " + entityId);
     return;
   }
 
-  CGameEntity* pEntity = new CGameEntity(it->second, 
-                                         *mModelRepo, 
-                                         CreateEntityPosition());
-  mEntities.push_back(pEntity);
+  mEntities.push_back(CGameEntity(it->second,
+                                  *mpModelRepo,
+                                  CreateEntityPosition()));
 }
 
-void CGameLevel::UpdateEntities(CGamePlayer& player, const float timeDelta) {
-  GameEntityVectorT::iterator it = mEntities.begin();
+void CGameLevel::AddProjectile(const glm::vec2 & startPos, 
+                               const glm::vec2 & dir, 
+                               const glm::vec4 & color, 
+                               const float speed, 
+                               const float damage) {
+  mProjectiles.push_back(CProjectile(startPos, dir, color, speed, damage));
+}
+
+void CGameLevel::UpdateEntities(const glm::vec2& playerVec, const float timeDelta) {
+  EntityVectorT::iterator it = mEntities.begin();
   while(it != mEntities.end()) {
-    if((*it)->Update(timeDelta, m_fMoveX, mProjectiles)) {
-      //m_uPoints += 100;
-    }
+    it->Update(playerVec, timeDelta);
 
-    if((*it)->IsDeleted()) {
-      delete *it;
+    if(it->IsDeleted() || it->GetPos().y > gMapEdgeNear) {
       it = mEntities.erase(it);
-      continue;
     }
-
-    glm::vec3 vPos = glm::vec3((*it)->GetPos().x, 0.0f, (*it)->GetPos().y);
-
-    if(glm::distance(glm::vec3(m_fMoveX, 0.0f, 0.0f), vPos) < 2.0f) {
-      player.ModHealth(-(*it)->GetDamage());
-      if((*it)->GetDamage() > 0.0f) {
-        //SetFSQ(0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-      }
-      else {
-        //SetFSQ(0.8f, glm::vec3(0.0f, 1.0f, 0.0));
-      }
-      (*it)->Delete();
+    else {  
+      it++;
     }
-
-    if((*it)->GetPos().y > gMapEdgeNear) {
-      (*it)->Delete();
-    }
-
-    it++;
   }
 }
 
-void CGameLevel::UpdateProjectiles(const float timeDelta) {
+void CGameLevel::UpdateProjectiles(const glm::vec2& playerVec, const float timeDelta) {
   ProjectileVectorT::iterator it = mProjectiles.begin();
   while(it != mProjectiles.end()) {
-    it->Update(timeDelta);
+    it->Update(playerVec, timeDelta);
 
     if(it->IsDeleted() || it->GetPos().y < gMapEdgeFar) {
       it = mProjectiles.erase(it);
@@ -185,3 +177,7 @@ void CGameLevel::RenderProjectiles(const glm::mat4 & transform) const {
   glDisableClientState(GL_COLOR_ARRAY);
 }
 
+const glm::vec2 CGameLevel::CreateEntityPosition() {
+  float randF = float(rand() % 200 - 100);
+  return glm::vec2(randF / 100.0f * 30.0f, gMapEdgeFar);
+}

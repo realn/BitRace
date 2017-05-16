@@ -1,5 +1,5 @@
 <PlayerTypes>
   <GamePlayer Id="http10" Name="Http1.0" MaxHealth="100" Speed="50:120" Color="0:1:1:1" ModelFile="mdl_http10.xml">
-    <Weapon ProjectileDamage="15" ProjectileNumber="1" ProjectileColor="0:0:1:1" />
+    <Weapon ProjectileDamage="15" ProjectileSpeed="50" ProjectileNumber="1" ProjectileColor="0:0:1:1" />
   </GamePlayer>
 </PlayerTypes>

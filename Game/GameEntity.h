@@ -22,7 +22,7 @@ typedef std::vector<CProjectileVertex> ProjectileVertexVectorT;
 class CProjectile {
 private:
   glm::vec2 mPos;
-  glm::vec2	mVec;
+  glm::vec2	mDir;
   glm::vec4 mColor;
   float mSpeed;
   float mDamage;
@@ -30,17 +30,19 @@ private:
 
 public:
   CProjectile(const glm::vec2& pos,
-              const glm::vec2& vec,
+              const glm::vec2& dir,
               const glm::vec4& color,
               const float speed,
               const float damage);
 
   const glm::vec2& GetPos() const;
-  const glm::vec2& GetVec() const;
+  const glm::vec2& GetDir() const;
+  const float GetSpeed() const;
   const float GetDamage() const;
+  const float GetLength() const;
   const bool IsDeleted() const;
 
-  void Update(const float timeDelta);
+  void Update(const glm::vec2& playerVec, const float timeDelta);
   void UpdateRender(CProjectileVertex& outVertex);
 
   void Delete();
@@ -53,6 +55,27 @@ enum class EntityType {
   ET_OBSTACLE,
   ET_ENEMY
 };
+
+enum class EntityEvent {
+  EE_ONDEATH = 0,
+  EE_ONENTITYCOLLISION,
+  EE_ONPROJECTILECOLLISION,
+};
+
+enum class EntityEventAction {
+  EEA_NONE = 0,
+  EEA_KILLSELF,
+  EEA_KILLENTITY,
+  EEA_ADDPOINTS,
+  EEA_REMPOINTS,
+  EEA_DAMAGESELF,
+  EEA_DAMAGEENTITY,
+  EEA_HEALSELF,
+  EEA_HEALENTITY,
+};
+
+typedef std::vector<EntityEventAction> EntityEventActionVecT;
+typedef std::map<EntityEvent, EntityEventActionVecT> EntityEventMapT;
 
 class CGameEntityType {
 public:
@@ -69,6 +92,7 @@ public:
   float RotSpeed;
   bool IgnoreProjectiles;
   Uint32 Points;
+  EntityEventMapT EventMap;
 
 public:
   CGameEntityType();
@@ -96,9 +120,11 @@ private:
   float mAITime;
   float mRotAngle;
   float mRotSpeed;
+  float mCollRadius;
   bool mIgnoreProjectiles;
   bool mDeleted;
   Uint32 mPoints;
+  EntityEventMapT mEventMap;
 
 public:
   CGameEntity(const CGameEntityType& type,
@@ -106,27 +132,35 @@ public:
               const glm::vec2& pos = glm::vec2(0.0f),
               const float rotAngle = 0.0f);
 
+  void ModHealth(const float value);
+
   const float	GetValue() const;
   const float	GetHealth() const;
   const float GetDamage() const;
+  const float GetCollRadius() const;
   const EntityType	GetType() const;
   const glm::vec2&	GetPos() const;
   const glm::vec2   GetDir() const;
   const glm::vec2   GetVec() const;
+  const bool GetIgnoreProjectiles() const;
   const bool IsDeleted() const;
   const Uint32 GetPoints() const;
+  const EntityEventMapT& GetEventMap() const;
 
-  const bool	Update(const float timeDelta,
-                     const float racerPosX,
-                     ProjectileVectorT& projectiles);
-  void	Render(const glm::mat4& transform) const;
+  void Update(const glm::vec2& playerVec, const float timeDelta);
+  void Render(const glm::mat4& transform) const;
 
   void Delete();
 };
 typedef std::vector<CGameEntity*> GameEntityVectorT;
 
 extern const cb::string toStr(const EntityType type);
+extern const cb::string toStr(const EntityEvent event);
+extern const cb::string toStr(const EntityEventAction action);
+
 extern const bool fromStr(const cb::string& text, EntityType& outType);
+extern const bool fromStr(const cb::string& text, EntityEvent& outEvent);
+extern const bool fromStr(const cb::string& text, EntityEventAction& outAction);
 
 #endif // !__BITRACE_GAMEENTITY_H__
 

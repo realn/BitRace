@@ -3,76 +3,69 @@
 #include "Config.h"
 #include "FileSystem.h"
 #include "InputDevice.h"
+#include "GameSkyBox.h"
+#include "GameLevel.h"
 #include "GameEntity.h"
 #include "GameDifficulty.h"
 #include "GamePlayer.h"
+#include "UIFont.h"
 #include "UIScreen.h"
 #include "UIItems.h"
+
+#include <glm/gtx/vector_angle.hpp>
 
 static const cb::string DEFFONT_FILEPATH = L"font.xml";
 static const cb::string DIFFSETTING_FILEPATH = L"diffSet.xml";
 static const cb::string ENTTYPES_FILEPATH = L"entityTypes.xml";
 static const cb::string UISCREEN_FILEPATH = L"screen.xml";
+static const cb::string PLAYERTYPES_FILEPATH = L"playerTypes.xml";
 
-CGameState::CGameState(CConfig& config, 
-                       IFileSystem& fileSystem,
+CGameState::CGameState(CConfig& config,
                        CInputDeviceMap& inputDevMap,
                        CModelRepository* pModelRepo)
   : mConfig(config)
-  , mIDevMap(inputDevMap) 
+  , mIDevMap(inputDevMap)
   , mpModelRepo(pModelRepo)
-  , mLevel(pModelRepo, mEntityTypes, fileSystem)
-  , mPoints(0)
-{
+  , mPoints(0) {
+  mpFont = new CUIFont();
   mpDiffSetting = new CGameDifficultySetting();
+
+  mpSkyBox = new CGameSkyBox();
+  mpLevel = new CGameLevel(mpModelRepo, &mEntityTypes);
+
   mpMainUI = new CUIScreen(config.Screen.GetSize());
-
-  {
-    CGamePlayerType type;
-    type.Name = L"Http1.0";
-    type.ModelFile = L"mdl_http10.xml";
-    type.MaxHealth = 100.0f;
-    type.Speed = glm::vec2(50.0f, 120.0f);
-    type.Color = glm::vec4(0.0f, 1.0f, 1.0f, 1.0f);
-    type.Weapon.ProjectileNumber = 1;
-    type.Weapon.ProjectileDamage = 15.0f;
-    type.Weapon.ProjectileColor = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
-
-    mpPlayer = new CGamePlayer(type);
-
-    CGamePlayerType::TypeMapT playerTypeMap;
-    playerTypeMap[L"http10"] = type;
-
-    CGamePlayerType::Save(playerTypeMap, fileSystem, L"playerTypes.xml");
-  }
-
 }
 
 CGameState::~CGameState() {
-  mpPlayer.Delete();
-  mpDiffSetting.Delete();
   mpMainUI.Delete();
+  mpSkyBox.Delete();
+  mpLevel.Delete();
+  mpDiffSetting.Delete();
+  mpFont.Delete();
 }
 
 const bool CGameState::LoadResources(IFileSystem& fs) {
-  if(!mFont.Load(fs, DEFFONT_FILEPATH)) {
+  if(!mpFont->Load(fs, DEFFONT_FILEPATH)) {
     return false;
   }
-  if(!CGameEntityType::Load(mEntityTypes, fs, ENTTYPES_FILEPATH)) {
-    return false;
-  }
-  
   if(!mpMainUI->Load(fs, UISCREEN_FILEPATH)) {
     return false;
   }
   if(!mpDiffSetting->Load(fs, DIFFSETTING_FILEPATH)) {
     return false;
   }
-  if(!mpPlayer->LoadResources(*mpModelRepo)) {
+  if(!CGameEntityType::Load(mEntityTypes, fs, ENTTYPES_FILEPATH)) {
+    return false;
+  }
+  if(!CGamePlayerType::Load(mPlayerTypes, fs, PLAYERTYPES_FILEPATH)) {
     return false;
   }
 
-  mLevel.Init();
+  mpPlayer.Delete();
+  mpPlayer = new CGamePlayer(mPlayerTypes[L"http10"]);
+  if(!mpPlayer->LoadResources(*mpModelRepo)) {
+    return false;
+  }
 
   mpFPSCounter = mpMainUI->GetItem<CUITextNumber<Sint32>>(L"fpsCounter");
   mpUIHealthBar = mpMainUI->GetItem<CUIProgressBar>(L"healthBar");
@@ -85,36 +78,34 @@ const bool CGameState::LoadResources(IFileSystem& fs) {
   return true;
 }
 
-void CGameState::Free() {
-  mLevel.Free();
-  mpPlayer->Free();
-}
-
-void CGameState::ResetGame() {
-  mpDiffSetting->Reset();
-}
-
 void CGameState::Update(const float timeDelta) {
   float xdelta = mIDevMap.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisDelta, (Uint32)MouseAxisId::AxisX) * mConfig.Screen.Width;
   mpPlayer->ModRotation(-xdelta);
   if(mIDevMap.GetState(InputDevice::Mouse, (Uint32)MouseType::ButtonPress, SDL_BUTTON_LEFT)) {
-    mLevel.FireWeapon();
+    FireWeapon(mpPlayer->GetWeapon());
   }
 
   if(mSpawnTimer.Update(timeDelta)) {
     cb::string entId = mpDiffSetting->GetRandomEntity(std::rand());
     if(!entId.empty()) {
-      mLevel.AddEntity(entId);
+      mpLevel->AddEntity(entId);
     }
   }
 
   mpPlayer->Update(timeDelta);
 
-  mBackground.SetSepHeight(40.0f);
-  mBackground.SetDynamicVec(mpPlayer->GetDirection() * glm::vec3(-1.0f, 1.0f, 1.0f));
-  mBackground.Update(timeDelta);
+  mpSkyBox->SetSepHeight(40.0f);
+  mpSkyBox->SetDynamicVec(mpPlayer->GetDirection() * glm::vec3(-1.0f, 1.0f, 1.0f));
+  mpSkyBox->Update(timeDelta);
 
-  mLevel.Update(*mpPlayer, timeDelta);
+  mpLevel->Update(mpPlayer->GetDirection(), timeDelta);
+
+  mPoints += mpLevel->CheckProjectileCollisions();
+
+  float damage = mpLevel->CheckEntityCollisions(2.0f);
+  if(damage != 0.0f) {
+    mpPlayer->ModHealth(-damage);
+  }
 }
 
 void CGameState::UpdateRender(const float timeDelta) {
@@ -130,9 +121,9 @@ void CGameState::UpdateRender(const float timeDelta) {
     mpUIPoints->SetValue((Sint32)mPoints);
   }
 
-  mBackground.UpdateRender();
-
-  mpMainUI->UpdateRender(mFont);
+  mpSkyBox->UpdateRender();
+  mpLevel->UpdateRender();
+  mpMainUI->UpdateRender(*mpFont);
 }
 
 void CGameState::Render() const {
@@ -143,16 +134,16 @@ void CGameState::Render() const {
     glm::translate(glm::vec3(0.0f, 12.0f, -12.0f)) *
     glm::rotate(glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-  mBackground.Render(mat);
-  
+  mpSkyBox->Render(mat);
+
   mat *= glm::translate(glm::vec3(0.0f, -17.0f, 0.0f));
 
-  mLevel.Render(mat);
+  mpLevel->Render(mat);
   mpPlayer->Render(mat);
 }
 
 void CGameState::RenderUI() const {
-  mpMainUI->Render(mFont);
+  mpMainUI->Render(*mpFont);
 }
 
 const bool CGameState::IsDone() const {
@@ -161,4 +152,26 @@ const bool CGameState::IsDone() const {
 
 IEngineState * CGameState::GetNext(CEngine & engine) {
   return nullptr;
+}
+
+void CGameState::FireWeapon(const CGameWeapon& weapon) {
+  glm::vec2 startPos = glm::vec2(0.0f, -2.0f);
+  glm::vec2 dir = glm::vec2(0.0f, -1.0f);
+  if(weapon.ProjectileNumber == 1) {
+    mpLevel->AddProjectile(startPos, dir,
+                           weapon.ProjectileColor,
+                           weapon.ProjectileSpeed,
+                           weapon.ProjectileDamage);
+  }
+  else {
+    for(Uint32 i = 0; i < weapon.ProjectileNumber; i++) {
+      float angle = -6.0f * float(weapon.ProjectileNumber - 1) / 2.0f + float(i) * 6.0f;
+      dir = glm::rotate(glm::vec2(0.0f, -1.0f), glm::radians(angle));
+
+      mpLevel->AddProjectile(startPos, dir,
+                             weapon.ProjectileColor,
+                             weapon.ProjectileSpeed,
+                             weapon.ProjectileDamage);
+    }
+  }
 }

@@ -4,6 +4,7 @@
 #include "Model.h"
 #include "XmlTypes.h"
 #include "FileSystem.h"
+#include "GraphicDefines.h"
 
 const float CGamePlayer::sMaxRotation = 75.0f;
 const float CGamePlayer::sRotationSpeed = 120.0f;
@@ -12,13 +13,14 @@ static const cb::string XML_GAMEPLAYERTYPEMAP_ROOT = L"PlayerTypes";
 
 CGameWeapon::CGameWeapon()
   : ProjectileDamage(1.0f)
+  , ProjectileSpeed(10.0f)
   , ProjectileNumber(1)
-  , ProjectileColor(1.0f, 0.0f, 0.0f, 1.0f) {}
+  , ProjectileColor(gColorRed) {}
 
 CGamePlayerType::CGamePlayerType()
   : Name(L"Sample")
   , Speed(60.0f, 50.0f)
-  , Color(0.0f, 1.0f, 0.0f, 1.0f)
+  , Color(gColorGreen)
   , ModelFile(L"mdl_sample.xml") {}
 
 const bool CGamePlayerType::Save(const TypeMapT& typeMap,
@@ -70,10 +72,10 @@ void CGamePlayer::Update(const float timeDelta) {
 void CGamePlayer::Render(const glm::mat4& transform) const {
   glm::mat4 mat =
     transform *
-    glm::rotate(glm::radians(mRotation), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::rotate(glm::radians(mRotation), gAxis3DZ);
 
   glLoadMatrixf(glm::value_ptr(mat));
-  mModel->Render(mColor, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+  mModel->Render(mColor, gColorBlack);
 }
 
 void CGamePlayer::ModRotation(const float value) {
@@ -96,14 +98,20 @@ const float CGamePlayer::GetMaxHealth() const {
   return mMaxHealth;
 }
 
+const CGameWeapon & CGamePlayer::GetWeapon() const {
+  return mWeapon;
+}
+
 
 static const cb::string XML_GAMEWEAPON_PROJECTILEDAMAGE = L"ProjectileDamage";
+static const cb::string XML_GAMEWEAPON_PROJECTILESPEED = L"ProjectileSpeed";
 static const cb::string XML_GAMEWEAPON_PROJECTILENUMBER = L"ProjectileNumber";
 static const cb::string XML_GAMEWEAPON_PROJECTILECOLOR = L"ProjectileColor";
 
 CB_DEFINEXMLRW(CGameWeapon) {
   return
     RWAttribute(XML_GAMEWEAPON_PROJECTILEDAMAGE, mObject.ProjectileDamage) &&
+    RWAttribute(XML_GAMEWEAPON_PROJECTILESPEED, mObject.ProjectileSpeed) &&
     RWAttribute(XML_GAMEWEAPON_PROJECTILENUMBER, mObject.ProjectileNumber) &&
     RWAttribute(XML_GAMEWEAPON_PROJECTILECOLOR, mObject.ProjectileColor);
 }
