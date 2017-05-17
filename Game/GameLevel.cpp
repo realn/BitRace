@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "GameLevel.h"
 #include "GameEntity.h"
+#include "GameProjectile.h"
 #include "MeshFunctions.h"
 
 #include <glm/gtc/type_ptr.hpp>
@@ -114,7 +115,7 @@ void CGameLevel::AddProjectile(const glm::vec2 & startPos,
                                const glm::vec4 & color, 
                                const float speed, 
                                const float damage) {
-  mProjectiles.push_back(CProjectile(startPos, dir, color, speed, damage));
+  mProjectiles.push_back(CGameProjectile(startPos, dir, color, speed, damage));
 }
 
 void CGameLevel::UpdateEntities(const glm::vec2& playerVec, const float timeDelta) {
@@ -165,7 +166,7 @@ void CGameLevel::RenderProjectiles(const glm::mat4 & transform) const {
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_COLOR_ARRAY);
 
-  const size_t vertSize = sizeof(CProjectileVertex) / 2;
+  const size_t vertSize = sizeof(CGameProjectileVertex) / 2;
   const cb::byte* vertPtr = cb::vectorcastptr<cb::byte>(mProjectileVertices);
 
   glVertexPointer(3, GL_FLOAT, vertSize, vertPtr);

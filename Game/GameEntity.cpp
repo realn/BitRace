@@ -15,71 +15,11 @@
 #include <glm/gtx/vector_angle.hpp>
 
 static const cb::string XML_ENTITYTYPES_ROOTNAME = L"EntityTypes";
-static const float PROJECTILE_LENGTH = 3.0f;
 static const float MAX_ENTITY_ROTATION = 70.0f;
-
-CProjectile::CProjectile(const glm::vec2 & pos,
-                         const glm::vec2 & dir,
-                         const glm::vec4 & color,
-                         const float speed,
-                         const float damage)
-  : mPos(pos)
-  , mDir(dir)
-  , mColor(color)
-  , mSpeed(speed)
-  , mDamage(damage)
-  , mDeleted(false) {}
-
-const glm::vec2 & CProjectile::GetPos() const {
-  return mPos;
-}
-
-const glm::vec2 & CProjectile::GetDir() const {
-  return mDir;
-}
-
-const float CProjectile::GetSpeed() const {
-  return mSpeed;
-}
-
-const float CProjectile::GetDamage() const {
-  return mDamage;
-}
-
-const float CProjectile::GetLength() const {
-  return PROJECTILE_LENGTH;
-}
-
-const bool CProjectile::IsDeleted() const {
-  return mDeleted;
-}
-
-void CProjectile::Update(const glm::vec2& playerVec, const float timeDelta) {
-  if(mDeleted)
-    return;
-
-  mPos += ((mDir * mSpeed) - playerVec) * timeDelta;
-}
-
-void CProjectile::UpdateRender(CProjectileVertex & outVertex) {
-  if(mDeleted)
-    return;
-
-  glm::vec2 endPos = mDir * PROJECTILE_LENGTH + mPos;
-  outVertex.StartPos = glm::vec3(mPos.x, 0.0f, mPos.y);
-  outVertex.EndPos = glm::vec3(endPos.x, 0.0f, endPos.y);
-
-  outVertex.StartColor = mColor;
-  outVertex.EndColor = mColor;
-}
-
-void CProjectile::Delete() {
-  mDeleted = true;
-}
 
 CGameEntityType::CGameEntityType()
   : Name(L"")
-  , Type(EntityType::ET_NONE)
+  , Type(EntityType::None)
   , Speed(0.0f)
   , Color(1.0f)
   , ModelFile()
@@ -89,11 +29,7 @@ CGameEntityType::CGameEntityType()
   , RotSpeed(20.0f)
   , IgnoreProjectiles(false) 
   , Points(0)
-{
-  EventMap[EntityEvent::EE_ONDEATH] = {EntityEventAction::EEA_NONE};
-  EventMap[EntityEvent::EE_ONENTITYCOLLISION] = {EntityEventAction::EEA_NONE};
-  EventMap[EntityEvent::EE_ONPROJECTILECOLLISION] = {EntityEventAction::EEA_NONE};
-}
+{}
 
 const bool CGameEntityType::Save(const TypeMapT & typeMap, IFileSystem & fs, const cb::string & filepath) {
   return fs.WriteXml(filepath, XML_ENTITYTYPES_ROOTNAME, typeMap);
@@ -107,11 +43,9 @@ CGameEntity::CGameEntity(const CGameEntityType & type,
                          CModelRepository& modelRepo,
                          const glm::vec2& pos,
                          const float rotAngle)
-  : mName(type.Name)
-  , mType(type.Type)
-  , mPos(pos)
-  , mSpeed(type.Speed)
-  , mColor(type.Color)
+  : CGameObject(GameObjectType::Entity, pos, glm::vec2(0.0f, 1.0f), type.Speed, type.Color)
+  , mName(type.Name)
+  , mEntityType(type.Type)
   , mModel(nullptr)
   , mMaxHealth(type.MaxHealth)
   , mHealth(type.MaxHealth)
@@ -122,19 +56,15 @@ CGameEntity::CGameEntity(const CGameEntityType & type,
   , mRotSpeed(type.RotSpeed)
   , mCollRadius(0.7f)
   , mIgnoreProjectiles(type.IgnoreProjectiles)
-  , mDeleted(false) 
   , mPoints(type.Points)
-  , mEventMap(type.EventMap)
 {
   mModel = modelRepo.GetModel(type.ModelFile);
 }
 
+CGameEntity::~CGameEntity() {}
+
 void CGameEntity::ModHealth(const float value) {
   mHealth = glm::clamp(mHealth + value, 0.0f, mMaxHealth);
-}
-
-const float CGameEntity::GetValue() const {
-  return 0.0f;
 }
 
 const float CGameEntity::GetHealth() const {
@@ -149,56 +79,38 @@ const float CGameEntity::GetCollRadius() const {
   return mCollRadius;
 }
 
-const EntityType CGameEntity::GetType() const {
-  return mType;
-}
-
-const glm::vec2 & CGameEntity::GetPos() const {
-  return mPos;
-}
-
-const glm::vec2 CGameEntity::GetDir() const {
-  return glm::rotate(glm::vec2(0.0f, 1.0f), glm::radians(mRotAngle));
-}
-
-const glm::vec2 CGameEntity::GetVec() const {
-  return GetDir() * mSpeed;
+const EntityType CGameEntity::GetEntityType() const {
+  return mEntityType;
 }
 
 const bool CGameEntity::GetIgnoreProjectiles() const {
   return mIgnoreProjectiles;
 }
 
-const bool CGameEntity::IsDeleted() const {
-  return mDeleted;
-}
-
 const Uint32 CGameEntity::GetPoints() const {
   return mPoints;
 }
 
-const EntityEventMapT & CGameEntity::GetEventMap() const {
-  return mEventMap;
-}
-
 void CGameEntity::Update(const glm::vec2& playerVec,
                          const float timeDelta) {
-  if(mDeleted)
+  if(mIsDeleted)
     return;
 
   glm::vec2 racerPos(0.0f);
+
+  mDir = glm::rotate(glm::vec2(0.0f, 1.0f), glm::radians(mRotAngle));
   mPos += (GetVec() - playerVec) * timeDelta;
 
-  switch(mType) {
+  switch(mEntityType) {
   default:
-  case EntityType::ET_NONE:
+  case EntityType::None:
     return;
-  case EntityType::ET_ITEM:
-  case EntityType::ET_OBSTACLE:
+  case EntityType::Item:
+  case EntityType::Obstacle:
     mRotAngle += timeDelta * mRotSpeed;
     break;
 
-  case EntityType::ET_ENEMY:
+  case EntityType::Enemy:
     {
       mAITime += timeDelta;
       if(mAITime > mAIPause) {
@@ -216,7 +128,7 @@ void CGameEntity::Update(const glm::vec2& playerVec,
 }
 
 void CGameEntity::Render(const glm::mat4 & transform) const {
-  if(mDeleted)
+  if(mIsDeleted)
     return;
 
   glm::mat4 mat = transform *
@@ -227,38 +139,14 @@ void CGameEntity::Render(const glm::mat4 & transform) const {
   mModel->Render(mColor, gColorBlack);
 }
 
-void CGameEntity::Delete() {
-  mDeleted = true;
-}
-
 
 typedef std::map<cb::string, EntityType> _EntityTypeNameMapT;
-typedef std::map<cb::string, EntityEvent> _EntityEventNameMapT;
-typedef std::map<cb::string, EntityEventAction> _EntityEventActionNameMapT;
 
 static const _EntityTypeNameMapT gEntityTypeNameMap = {
-  {L"None", EntityType::ET_NONE},
-  {L"Item", EntityType::ET_ITEM},
-  {L"Obstacle", EntityType::ET_OBSTACLE},
-  {L"Enemy", EntityType::ET_ENEMY}
-};
-
-static const _EntityEventNameMapT gEntityEventNameMap = {
-  {L"OnDeath", EntityEvent::EE_ONDEATH},
-  {L"OnEntityCollision", EntityEvent::EE_ONENTITYCOLLISION},
-  {L"OnProjectileCollision", EntityEvent::EE_ONPROJECTILECOLLISION}
-};
-
-static const _EntityEventActionNameMapT gEntityEventActionNameMap = {
-  {L"None", EntityEventAction::EEA_NONE},
-  {L"KillSelf", EntityEventAction::EEA_KILLSELF},
-  {L"KillEntity", EntityEventAction::EEA_KILLENTITY},
-  {L"AddPoints", EntityEventAction::EEA_ADDPOINTS},
-  {L"RemPoints", EntityEventAction::EEA_REMPOINTS},
-  {L"DamageSelf", EntityEventAction::EEA_DAMAGESELF},
-  {L"DamageEntity", EntityEventAction::EEA_DAMAGEENTITY},
-  {L"HealSelf", EntityEventAction::EEA_HEALSELF},
-  {L"HealEntity", EntityEventAction::EEA_HEALENTITY},
+  {L"None", EntityType::None},
+  {L"Item", EntityType::Item},
+  {L"Obstacle", EntityType::Obstacle},
+  {L"Enemy", EntityType::Enemy}
 };
 
 template<typename _Type, typename _TypeMapT = std::map<cb::string, _Type>>
@@ -288,26 +176,9 @@ const cb::string toStr(const EntityType type) {
   return _toStrTempl(gEntityTypeNameMap, type, L"None");
 }
 
-const cb::string toStr(const EntityEvent event) {
-  return _toStrTempl(gEntityEventNameMap, event, cb::string());
-}
-
-const cb::string toStr(const EntityEventAction action) {
-  return _toStrTempl(gEntityEventActionNameMap, action, L"None");
-}
-
 const bool fromStr(const cb::string & text, EntityType & outType) {
   return _fromStrTempl(gEntityTypeNameMap, text, outType);
 }
-
-const bool fromStr(const cb::string & text, EntityEvent & outEvent) {
-  return _fromStrTempl(gEntityEventNameMap, text, outEvent);
-}
-
-const bool fromStr(const cb::string & text, EntityEventAction & outAction) {
-  return _fromStrTempl(gEntityEventActionNameMap, text, outAction);
-}
-
 
 
 static const cb::string XML_ENTITYTYPE_NAME = L"Name";
@@ -334,7 +205,6 @@ CB_DEFINEXMLRW(CGameEntityType) {
   RWAttribute(XML_ENTITYTYPE_ROTSPEED, mObject.RotSpeed);
   RWAttribute(XML_ENTITYTYPE_IGNOREPROJECTILES, mObject.IgnoreProjectiles);
   RWAttribute(XML_ENTITYTYPE_POINTS, mObject.Points);
-  RWAttribute(mObject.EventMap);
 
   return true;
 }

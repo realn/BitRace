@@ -5,6 +5,8 @@
 #include <CBStr/Defines.h>
 #include <map>
 
+#include "GameObject.h"
+
 class CModel;
 class CModelRepository;
 class IFileSystem;
@@ -40,16 +42,15 @@ public:
                          const cb::string& filepath);
 };
 
-class CGamePlayer {
+class CGamePlayer 
+  : public CGameObject
+{
 private:
   cb::string mName;
   cb::string mModelFile;
   float mMaxHealth;
   float mHealth;
   float mRotation;
-  glm::vec3 mSpeed;
-  glm::vec3 mDirection;
-  glm::vec4 mColor;
   CGameWeapon mWeapon;
   CModel* mModel;
 
@@ -61,7 +62,6 @@ public:
   ~CGamePlayer();
 
   const bool LoadResources(CModelRepository& modelRepo);
-  void Free();
 
   void Update(const float timeDelta);
   void Render(const glm::mat4& transform) const;
@@ -69,7 +69,6 @@ public:
   void ModRotation(const float rotation);
   void ModHealth(const float value);
 
-  const glm::vec3& GetDirection() const;
   const float GetHealth() const;
   const float GetMaxHealth() const;
   const CGameWeapon& GetWeapon() const;

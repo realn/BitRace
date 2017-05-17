@@ -93,12 +93,13 @@ void CGameState::Update(const float timeDelta) {
   }
 
   mpPlayer->Update(timeDelta);
+  glm::vec3 skyBoxDir(-mpPlayer->GetDir().x, 0.0f, mpPlayer->GetDir().y);
 
   mpSkyBox->SetSepHeight(40.0f);
-  mpSkyBox->SetDynamicVec(mpPlayer->GetDirection() * glm::vec3(-1.0f, 1.0f, 1.0f));
+  mpSkyBox->SetDynamicVec(skyBoxDir);
   mpSkyBox->Update(timeDelta);
 
-  mpLevel->Update(mpPlayer->GetDirection(), timeDelta);
+  mpLevel->Update(glm::vec2(mpPlayer->GetDir().x, 0.0f), timeDelta);
 
   mPoints += mpLevel->CheckProjectileCollisions();
 

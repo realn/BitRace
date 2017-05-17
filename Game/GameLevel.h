@@ -8,8 +8,8 @@
 #include "LaserGrid.h"
 
 class IFileSystem;
-class CProjectile;
-class CProjectileVertex;
+class CGameProjectile;
+class CGameProjectileVertex;
 class CGameEntity;
 class CGameEntityType;
 class CModelRepository;
@@ -18,8 +18,8 @@ class CGameLevel {
 public:
   typedef std::map<cb::string, CGameEntityType> EntityTypeMapT;
   typedef std::vector<CGameEntity> EntityVectorT;
-  typedef std::vector<CProjectile> ProjectileVectorT;
-  typedef std::vector<CProjectileVertex> ProjectileVertexVectorT;
+  typedef std::vector<CGameProjectile> ProjectileVectorT;
+  typedef std::vector<CGameProjectileVertex> ProjectileVertexVectorT;
 
 private:
   CModelRepository* mpModelRepo;
