@@ -115,13 +115,16 @@
     <ClCompile Include="GameSkyBox.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="GameEntityEvent.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="GameObject.cpp">
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="GameProjectile.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjectEvent.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObjectEventXml.cpp">
       <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
@@ -226,13 +229,19 @@
     <ClInclude Include="GameSkyBox.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="GameEntityEvent.h">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="GameObject.h">
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="GameProjectile.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjectEvent.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjectEventXml.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjectDefines.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>

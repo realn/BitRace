@@ -5,6 +5,7 @@
 
 #include "EngineState.h"
 #include "FrameTimer.h"
+#include "GameObjectDefines.h"
 
 class CConfig;
 class IFileSystem;
@@ -24,12 +25,17 @@ class CGameDifficultySetting;
 class CGamePlayerType;
 class CGamePlayer;
 class CGameWeapon;
+class CGameObject;
+class CGameObjectEvent;
 
-class CGameState :
-  public IEngineState {
+class CGameState 
+  : public IEngineState 
+  , public IGameObjectEventObserver
+{
 public:
   typedef std::map<cb::string, CGameEntityType> EntityTypeMapT;
   typedef std::map<cb::string, CGamePlayerType> PlayerTypeMapT;
+  typedef std::vector<CGameObjectEvent> EventVecT;
 
 private:
   CConfig& mConfig;
@@ -60,6 +66,8 @@ public:
 
   const bool LoadResources(IFileSystem& fs);
 
+  void ModPlayerPoints(const Sint32 value);
+
   // Inherited via IEngineState
   virtual void Update(const float timeDelta) override;
 
@@ -75,6 +83,17 @@ public:
 
 private:
   void FireWeapon(const CGameWeapon& weapon);
+  void CheckCollisions(const float playerRadius);
+  void ExecuteEvents(CGameObject& thisObj, CGameObject* pSenderObj, const EventVecT& events);  
+  void ExecuteEvent(CGameObject& thisObj, CGameObject* pSenderObj, const CGameObjectEvent& event);
+  void ExecuteEventAction(const GameEventActionType type, 
+                          CGameObject* pTargetObj, const float value);
+  CGameObject* GetEventActionTarget(const GameEventActionTarget target,
+                                    CGameObject& thisObj,
+                                    CGameObject* pSenderObj);
+
+  // Inherited via IGameObjectEventObserver
+  virtual void TriggerEvent(const GameEventTrigger triggerType, CGameObject & thisObj, CGameObject * pSenderObj = nullptr) override;
 };
 
 #endif // !__BITRACE_GAMESTATE_H__

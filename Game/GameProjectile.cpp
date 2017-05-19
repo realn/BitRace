@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "GameProjectile.h"
+#include "GameObjectDefines.h"
 
 static const float PROJECTILE_LENGTH = 3.0f;
 

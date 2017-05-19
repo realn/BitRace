@@ -13,15 +13,16 @@ static const float gMapEdgeNear = 4.0f;
 CGameLevel::CGameLevel(CModelRepository* pModelRepo,
                        const EntityTypeMapT* pEntityTypes)
   : mpModelRepo(pModelRepo)
-  , mpEntityTypes(pEntityTypes)
-{}
+  , mpEntityTypes(pEntityTypes) {}
 
 CGameLevel::~CGameLevel() {
   Clear();
 }
 
-void CGameLevel::Update(const glm::vec2& playerVec, const float timeDelta) {
-  UpdateEntities(playerVec, timeDelta);
+void CGameLevel::Update(const glm::vec2& playerVec,
+                        IGameObjectEventObserver& observer,
+                        const float timeDelta) {
+  UpdateEntities(playerVec, observer, timeDelta);
   UpdateProjectiles(playerVec, timeDelta);
 }
 
@@ -36,59 +37,56 @@ void CGameLevel::Render(const glm::mat4& transform) const {
   }
 }
 
-const Uint32 CGameLevel::CheckProjectileCollisions() {
-  Uint32 points = 0;
-
-  for(EntityVectorT::iterator entIt = mEntities.begin(); 
-      entIt != mEntities.end(); entIt++) {
-    if(entIt->IsDeleted()) {
-      continue;
-    }
-    if(entIt->GetIgnoreProjectiles()) {
-      continue;
-    }
-
-    for(ProjectileVectorT::iterator prIt = mProjectiles.begin(); 
-        prIt != mProjectiles.end(); prIt++) {
-      if(prIt->IsDeleted()) {
-        continue;
-      }
-
-      glm::vec2 pA = prIt->GetPos();
-      glm::vec2 pB = (prIt->GetDir() * prIt->GetLength()) + pA;
-
-      glm::vec2 point = glm::closestPointOnLine(entIt->GetPos(), pA, pB);
-      if(glm::distance(point, entIt->GetPos()) < entIt->GetCollRadius()) {
-        prIt->Delete();
-        entIt->ModHealth(-prIt->GetDamage());
-
-        if(entIt->GetHealth() == 0.0f) {
-          points += entIt->GetPoints();
-          entIt->Delete();
-        }
-      }
-    }
-  }
-  
-  return points;
+CGameLevel::EntityVectorT & CGameLevel::GetEntities() {
+  return mEntities;
 }
 
-const float CGameLevel::CheckEntityCollisions(const float playerRadius) {
-  float damage = 0.0f;
-  glm::vec2 playerPos(0.0f);
+const CGameLevel::EntityVectorT & CGameLevel::GetEntities() const {
+  return mEntities;
+}
 
-  for(EntityVectorT::iterator it = mEntities.begin(); it != mEntities.end(); it++) {
+void CGameLevel::CheckProjectileCollisions(CGameObject& object,
+                                           const float objectRadius,
+                                           IGameObjectEventObserver& observer) {
+  for(ProjectileVectorT::iterator it = mProjectiles.begin();
+      it != mProjectiles.end(); it++) {
     if(it->IsDeleted()) {
       continue;
     }
 
-    if(glm::distance(it->GetPos(), playerPos) < it->GetCollRadius() + playerRadius) {
-      damage += it->GetDamage();
-      it->Delete();
-    }
-  }
+    glm::vec2 pA = it->GetPos();
+    glm::vec2 pB = (it->GetDir() * it->GetLength()) + pA;
 
-  return damage;
+    glm::vec2 point = glm::closestPointOnLine(object.GetPos(), pA, pB);
+    if(glm::distance(point, object.GetPos()) > objectRadius) {
+      continue;
+    }
+
+    observer.TriggerEvent(GameEventTrigger::OnCollision, *it, &object);
+  }
+}
+
+void CGameLevel::CheckEntityCollisions(CGameObject& object,
+                                       const float objectRadius,
+                                       IGameObjectEventObserver& observer) {
+  for(EntityVectorT::iterator it = mEntities.begin(); it != mEntities.end(); it++) {
+    if(&*it == &object) {
+      continue;
+    }
+
+    if(it->IsDeleted()) {
+      continue;
+    }
+
+    float dist = glm::distance(it->GetPos(), object.GetPos());
+    float colldist = it->GetCollRadius() + objectRadius;
+
+    if(dist > colldist) {
+      continue;
+    }
+
+    observer.TriggerEvent(GameEventTrigger::OnCollision, *it, &object);
+  }
 }
 
 void CGameLevel::Clear() {
@@ -110,23 +108,34 @@ void CGameLevel::AddEntity(const cb::string& entityId) {
                                   CreateEntityPosition()));
 }
 
-void CGameLevel::AddProjectile(const glm::vec2 & startPos, 
-                               const glm::vec2 & dir, 
-                               const glm::vec4 & color, 
-                               const float speed, 
+void CGameLevel::AddProjectile(const glm::vec2 & startPos,
+                               const glm::vec2 & dir,
+                               const glm::vec4 & color,
+                               const float speed,
                                const float damage) {
   mProjectiles.push_back(CGameProjectile(startPos, dir, color, speed, damage));
 }
 
-void CGameLevel::UpdateEntities(const glm::vec2& playerVec, const float timeDelta) {
+void CGameLevel::UpdateEntities(const glm::vec2& playerVec,
+                                IGameObjectEventObserver& observer,
+                                const float timeDelta) {
   EntityVectorT::iterator it = mEntities.begin();
   while(it != mEntities.end()) {
+    if(!it->IsDeleted()) {
+      if(it->GetHealth() == 0.0f) {
+        observer.TriggerEvent(GameEventTrigger::OnDeath, *it);
+      }
+      if(it->GetHealth() == 0.0f) {
+        it->Delete();
+      }
+    }
+
     it->Update(playerVec, timeDelta);
 
     if(it->IsDeleted() || it->GetPos().y > gMapEdgeNear) {
       it = mEntities.erase(it);
     }
-    else {  
+    else {
       it++;
     }
   }

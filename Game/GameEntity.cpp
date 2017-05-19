@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "GameEntity.h"
+#include "GameObjectEvent.h"
+#include "GameObjectEventXml.h"
 #include "Model.h"
 #include "XmlTypes.h"
 #include "FileSystem.h"
@@ -57,6 +59,7 @@ CGameEntity::CGameEntity(const CGameEntityType & type,
   , mCollRadius(0.7f)
   , mIgnoreProjectiles(type.IgnoreProjectiles)
   , mPoints(type.Points)
+  , mEvents(type.Events)
 {
   mModel = modelRepo.GetModel(type.ModelFile);
 }
@@ -89,6 +92,22 @@ const bool CGameEntity::GetIgnoreProjectiles() const {
 
 const Uint32 CGameEntity::GetPoints() const {
   return mPoints;
+}
+
+const CGameEntity::EventVecT CGameEntity::GetEvents() const {
+  return mEvents;
+}
+
+const CGameEntity::EventVecT CGameEntity::GetEvents(const GameEventTrigger trigger, const GameObjectType senderType) const {
+  EventVecT result;
+  for(EventVecT::const_iterator it = mEvents.begin(); it != mEvents.end(); it++) {
+    if(it->Trigger != trigger)
+      continue;
+    if(it->SenderIs != senderType && it->SenderIs != GameObjectType::Unknown)
+      continue;
+    result.push_back(*it);
+  }
+  return result;
 }
 
 void CGameEntity::Update(const glm::vec2& playerVec,
@@ -140,44 +159,21 @@ void CGameEntity::Render(const glm::mat4 & transform) const {
 }
 
 
-typedef std::map<cb::string, EntityType> _EntityTypeNameMapT;
+typedef std::map<EntityType, cb::string> _EntityTypeNameMapT;
 
 static const _EntityTypeNameMapT gEntityTypeNameMap = {
-  {L"None", EntityType::None},
-  {L"Item", EntityType::Item},
-  {L"Obstacle", EntityType::Obstacle},
-  {L"Enemy", EntityType::Enemy}
+  {EntityType::None, L"None"},
+  {EntityType::Item, L"Item"},
+  {EntityType::Obstacle, L"Obstacle"},
+  {EntityType::Enemy, L"Enemy"}
 };
 
-template<typename _Type, typename _TypeMapT = std::map<cb::string, _Type>>
-const cb::string _toStrTempl(const _TypeMapT& typeMap, 
-                             const _Type& value, 
-                             const cb::string& defReturn) {
-  for(_TypeMapT::const_iterator it = typeMap.begin(); it != typeMap.end(); it++) {
-    if(it->second == value) {
-      return it->first;
-    }
-  }
-  return defReturn;
-}
-
-template<typename _Type, typename _TypeMapT = std::map<cb::string, _Type>>
-const bool _fromStrTempl(const _TypeMapT& typeMap, const cb::string& text, _Type& outValue) {
-  typename _TypeMapT::const_iterator it = typeMap.find(text);
-  if(it != typeMap.end()) {
-    outValue = it->second;
-    return true;
-  }
-  return false;
-}
-
-
 const cb::string toStr(const EntityType type) {
-  return _toStrTempl(gEntityTypeNameMap, type, L"None");
+  return cb::templToStr(gEntityTypeNameMap, type, L"None");
 }
 
 const bool fromStr(const cb::string & text, EntityType & outType) {
-  return _fromStrTempl(gEntityTypeNameMap, text, outType);
+  return cb::templFromStr(gEntityTypeNameMap, text, outType);
 }
 
 
@@ -192,6 +188,7 @@ static const cb::string XML_ENTITYTYPE_AIPAUSE = L"AIPause";
 static const cb::string XML_ENTITYTYPE_ROTSPEED = L"RotSpeed";
 static const cb::string XML_ENTITYTYPE_IGNOREPROJECTILES = L"IgnoreProjectiles";
 static const cb::string XML_ENTITYTYPE_POINTS = L"Points";
+static const cb::string XML_ENTITYTYPE_EVENT = L"OnEvent";
 
 CB_DEFINEXMLRW(CGameEntityType) {
   RWAttribute(XML_ENTITYTYPE_NAME, mObject.Name);
@@ -205,6 +202,7 @@ CB_DEFINEXMLRW(CGameEntityType) {
   RWAttribute(XML_ENTITYTYPE_ROTSPEED, mObject.RotSpeed);
   RWAttribute(XML_ENTITYTYPE_IGNOREPROJECTILES, mObject.IgnoreProjectiles);
   RWAttribute(XML_ENTITYTYPE_POINTS, mObject.Points);
+  RWNodeList(mObject.Events, XML_ENTITYTYPE_EVENT);
 
   return true;
 }

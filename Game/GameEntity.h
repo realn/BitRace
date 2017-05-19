@@ -7,6 +7,7 @@
 #include <map>
 
 #include "GameObject.h"
+#include "GameObjectEvent.h"
 
 class CModel;
 class CModelRepository;
@@ -22,6 +23,7 @@ enum class EntityType {
 class CGameEntityType {
 public:
   typedef std::map<cb::string, CGameEntityType> TypeMapT;
+  typedef std::vector<CGameObjectEvent> EventVecT;
 
   cb::string Name;
   EntityType Type;
@@ -34,6 +36,7 @@ public:
   float RotSpeed;
   bool IgnoreProjectiles;
   Uint32 Points;
+  EventVecT Events;
 
 public:
   CGameEntityType();
@@ -49,6 +52,9 @@ public:
 class CGameEntity 
   : public CGameObject
 {
+public:
+  typedef std::vector<CGameObjectEvent> EventVecT;
+
 private:
   cb::string mName;
   EntityType mEntityType;
@@ -63,6 +69,7 @@ private:
   float mCollRadius;
   bool mIgnoreProjectiles;
   Uint32 mPoints;
+  EventVecT mEvents;
 
 public:
   CGameEntity(const CGameEntityType& type,
@@ -79,6 +86,9 @@ public:
   const EntityType	GetEntityType() const;
   const bool GetIgnoreProjectiles() const;
   const Uint32 GetPoints() const;
+  const EventVecT GetEvents() const override;
+  const EventVecT GetEvents(const GameEventTrigger trigger,
+                            const GameObjectType senderType = GameObjectType::Unknown) const override;
 
   void Update(const glm::vec2& playerVec, const float timeDelta);
   void Render(const glm::mat4& transform) const;

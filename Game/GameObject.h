@@ -4,14 +4,15 @@
 #include <SDL_types.h>
 #include <glm/fwd.hpp>
 
-enum class GameObjectType {
-  Unknown = 0,
-  Player = 1,
-  Entity = 2,
-  Projectile = 3,
-};
+enum class GameObjectType;
+enum class GameEventTrigger;
+
+class CGameObjectEvent;
 
 class CGameObject {
+public:
+  typedef std::vector<CGameObjectEvent> EventVectT;
+
 protected:
   GameObjectType mType;
   glm::vec2 mPos;
@@ -37,7 +38,14 @@ public:
   const glm::vec2 GetVec() const;
   const glm::vec4& GetColor() const;
   const bool IsDeleted() const;
+
+  virtual const EventVectT GetEvents() const;
+  virtual const EventVectT GetEvents(const GameEventTrigger trigger, 
+                                     const GameObjectType senderType) const;
 };
+
+extern const cb::string toStr(const GameObjectType value);
+extern const bool fromStr(const cb::string& text, GameObjectType& outValue);
 
 #endif // !__BITRACE_GAMEOBJECT_H__
 

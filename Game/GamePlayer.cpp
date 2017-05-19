@@ -5,6 +5,7 @@
 #include "XmlTypes.h"
 #include "FileSystem.h"
 #include "GraphicDefines.h"
+#include "GameObjectDefines.h"
 
 const float CGamePlayer::sMaxRotation = 75.0f;
 const float CGamePlayer::sRotationSpeed = 120.0f;

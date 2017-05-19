@@ -7,12 +7,16 @@
     Color="1:1:0:1" 
     ModelFile="mdl_dlpart2.xml" 
     MaxHealth="1" 
-    Damage="20" 
+    Damage="-20" 
     AIPause="0.5" 
     IgnoreProjectiles="false" 
-    Points="500" 
-    OnEntityCollision="AddPoints,HealEntity" 
-    />
+    Points="500">
+    <OnEvent Trigger="Collision" SenderIs="Player">
+        <Action Type="AddPoints" Value="500" />
+        <Action Type="Heal" Target="Sender" Value="20" />
+        <Action Type="Kill" Target="This" />
+    </OnEvent>
+  </EntityType>
   <EntityType 
     Id="ENT_CRCBOMB" 
     Name="CRC ERR B0MB" 
@@ -24,7 +28,6 @@
     Damage="20" 
     AIPause="0.5" 
     IgnoreProjectiles="true" 
-    OnEntityCollision="DamageEntity"
     />
   <EntityType 
     Id="ENT_DLPART" 
@@ -36,7 +39,14 @@
     MaxHealth="1" 
     Damage="-20" 
     AIPause="0.5" 
-    IgnoreProjectiles="false" />
+    IgnoreProjectiles="false" 
+    AddPoints="OnCollision">
+    <OnEvent Trigger="Collision" SenderIs="Player">
+        <Action Type="AddPoints" Value="500" />
+        <Action Type="Heal" Target="Sender" Value="20" />
+        <Action Type="Kill" Target="This" />
+    </OnEvent>
+  </EntityType>
   <EntityType 
     Id="ENT_HACK" 
     Name="H4X0R" 

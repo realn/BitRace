@@ -78,6 +78,21 @@ const bool CGameState::LoadResources(IFileSystem& fs) {
   return true;
 }
 
+void CGameState::ModPlayerPoints(const Sint32 value) {
+  Uint32 val = (Uint32)glm::abs(value);
+  if(value < 0) {
+    if(mPoints <= val) {
+      mPoints = 0;
+    }
+    else {
+      mPoints -= val;
+    }
+  }
+  else {
+    mPoints += val;
+  }
+}
+
 void CGameState::Update(const float timeDelta) {
   float xdelta = mIDevMap.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisDelta, (Uint32)MouseAxisId::AxisX) * mConfig.Screen.Width;
   mpPlayer->ModRotation(-xdelta);
@@ -99,14 +114,9 @@ void CGameState::Update(const float timeDelta) {
   mpSkyBox->SetDynamicVec(skyBoxDir);
   mpSkyBox->Update(timeDelta);
 
-  mpLevel->Update(glm::vec2(mpPlayer->GetDir().x, 0.0f), timeDelta);
+  mpLevel->Update(glm::vec2(mpPlayer->GetDir().x, 0.0f), *this, timeDelta);
 
-  mPoints += mpLevel->CheckProjectileCollisions();
-
-  float damage = mpLevel->CheckEntityCollisions(2.0f);
-  if(damage != 0.0f) {
-    mpPlayer->ModHealth(-damage);
-  }
+  CheckCollisions(2.0f);
 }
 
 void CGameState::UpdateRender(const float timeDelta) {
@@ -174,5 +184,78 @@ void CGameState::FireWeapon(const CGameWeapon& weapon) {
                              weapon.ProjectileSpeed,
                              weapon.ProjectileDamage);
     }
+  }
+}
+
+void CGameState::CheckCollisions(const float playerRadius) {
+  mpLevel->CheckEntityCollisions(*mpPlayer, playerRadius, *this);
+  mpLevel->CheckProjectileCollisions(*mpPlayer, playerRadius, *this);
+
+  typedef std::vector<CGameEntity> EntityVectorT;
+  EntityVectorT& entities = mpLevel->GetEntities();
+  for(EntityVectorT::iterator it = entities.begin(); it != entities.end(); it++) {
+    if(it->IsDeleted()) {
+      continue;
+    }
+
+    mpLevel->CheckEntityCollisions(*it, it->GetCollRadius(), *this);
+    mpLevel->CheckProjectileCollisions(*it, it->GetCollRadius(), *this);
+  }
+}
+
+void CGameState::ExecuteEvents(CGameObject & thisObj, CGameObject * pSenderObj, const EventVecT & events) {
+  for(EventVecT::const_iterator it = events.begin(); it != events.end(); it++) {
+    ExecuteEvent(thisObj, pSenderObj, *it);
+  }
+}
+
+void CGameState::ExecuteEvent(CGameObject & thisObj, CGameObject * pSenderObj, const CGameObjectEvent & event) {
+  for(CGameObjectEvent::ActionVectorT::const_iterator it = event.Actions.begin();
+      it != event.Actions.end(); it++) {
+    CGameObject* pTargetObj = GetEventActionTarget(it->Target,
+                                                   thisObj,
+                                                   pSenderObj);
+    ExecuteEventAction(it->Action, pTargetObj, it->Value);
+  }
+}
+
+void CGameState::ExecuteEventAction(const GameEventActionType type, CGameObject * pTargetObj, const float value) {
+  switch(type) {
+  case GameEventActionType::AddPoints:  
+    ModPlayerPoints((Sint32)value);
+    break;
+    
+  case GameEventActionType::RemPoints:
+    ModPlayerPoints(-(Sint32)value);
+    break;
+
+  case GameEventActionType::Kill:
+    {
+    }
+    break;
+
+  default:
+    break;
+  }
+}
+
+CGameObject * CGameState::GetEventActionTarget(const GameEventActionTarget target, CGameObject & thisObj, CGameObject * pSenderObj) {
+  switch(target) {
+  case GameEventActionTarget::This:   return &thisObj;
+  case GameEventActionTarget::Sender: return pSenderObj;
+  case GameEventActionTarget::Player: return mpPlayer;
+  default:
+    return nullptr;
+  }
+}
+
+void CGameState::TriggerEvent(const GameEventTrigger triggerType, 
+                              CGameObject & thisObj, 
+                              CGameObject * pSenderObj) {
+  GameObjectType senderType =
+    (pSenderObj == nullptr) ? GameObjectType::Unknown : pSenderObj->GetType();
+  EventVecT events = thisObj.GetEvents(triggerType, senderType);
+  if(!events.empty()) {
+    ExecuteEvents(thisObj, pSenderObj, events);
   }
 }

@@ -101,8 +101,9 @@
     <ClCompile Include="FrameTimer.cpp" />
     <ClCompile Include="GameDifficulty.cpp" />
     <ClCompile Include="GameEntity.cpp" />
-    <ClCompile Include="GameEntityEvent.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GameObjectEvent.cpp" />
+    <ClCompile Include="GameObjectEventXml.cpp" />
     <ClCompile Include="GameProjectile.cpp" />
     <ClCompile Include="GameState.cpp" />
     <ClCompile Include="GraphicBuffer.cpp" />
@@ -144,8 +145,10 @@
     <ClInclude Include="FrameTimer.h" />
     <ClInclude Include="GameDifficulty.h" />
     <ClInclude Include="GameEntity.h" />
-    <ClInclude Include="GameEntityEvent.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GameObjectEvent.h" />
+    <ClInclude Include="GameObjectDefines.h" />
+    <ClInclude Include="GameObjectEventXml.h" />
     <ClInclude Include="GameProjectile.h" />
     <ClInclude Include="GameState.h" />
     <ClInclude Include="GLDefines.h" />
