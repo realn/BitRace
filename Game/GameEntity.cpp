@@ -26,11 +26,9 @@ CGameEntityType::CGameEntityType()
   , Color(1.0f)
   , ModelFile()
   , MaxHealth(1.0f)
-  , Damage(0.0f)
   , AIPause(0.5f)
   , RotSpeed(20.0f)
   , IgnoreProjectiles(false) 
-  , Points(0)
 {}
 
 const bool CGameEntityType::Save(const TypeMapT & typeMap, IFileSystem & fs, const cb::string & filepath) {
@@ -42,45 +40,27 @@ const bool CGameEntityType::Load(TypeMapT & typeMap, IFileSystem & fs, const cb:
 }
 
 CGameEntity::CGameEntity(const CGameEntityType & type,
-                         CModelRepository& modelRepo,
                          const glm::vec2& pos,
                          const float rotAngle)
-  : CGameObject(GameObjectType::Entity, pos, glm::vec2(0.0f, 1.0f), type.Speed, type.Color)
-  , mName(type.Name)
+  : CGameActor(type.Name,
+               type.ModelFile,
+               GameObjectType::Entity, 
+               pos, 
+               glm::vec2(0.0f, 1.0f), 
+               type.Speed, 
+               type.Color,
+               type.MaxHealth,
+               0.7f)
   , mEntityType(type.Type)
-  , mModel(nullptr)
-  , mMaxHealth(type.MaxHealth)
-  , mHealth(type.MaxHealth)
-  , mDamage(type.Damage)
   , mAIPause(type.AIPause)
   , mAITime(0.0f)
   , mRotAngle(rotAngle)
   , mRotSpeed(type.RotSpeed)
-  , mCollRadius(0.7f)
   , mIgnoreProjectiles(type.IgnoreProjectiles)
-  , mPoints(type.Points)
   , mEvents(type.Events)
-{
-  mModel = modelRepo.GetModel(type.ModelFile);
-}
+{}
 
 CGameEntity::~CGameEntity() {}
-
-void CGameEntity::ModHealth(const float value) {
-  mHealth = glm::clamp(mHealth + value, 0.0f, mMaxHealth);
-}
-
-const float CGameEntity::GetHealth() const {
-  return mHealth;
-}
-
-const float CGameEntity::GetDamage() const {
-  return mDamage;
-}
-
-const float CGameEntity::GetCollRadius() const {
-  return mCollRadius;
-}
 
 const EntityType CGameEntity::GetEntityType() const {
   return mEntityType;
@@ -90,24 +70,8 @@ const bool CGameEntity::GetIgnoreProjectiles() const {
   return mIgnoreProjectiles;
 }
 
-const Uint32 CGameEntity::GetPoints() const {
-  return mPoints;
-}
-
 const CGameEntity::EventVecT CGameEntity::GetEvents() const {
   return mEvents;
-}
-
-const CGameEntity::EventVecT CGameEntity::GetEvents(const GameEventTrigger trigger, const GameObjectType senderType) const {
-  EventVecT result;
-  for(EventVecT::const_iterator it = mEvents.begin(); it != mEvents.end(); it++) {
-    if(it->Trigger != trigger)
-      continue;
-    if(it->SenderIs != senderType && it->SenderIs != GameObjectType::Unknown)
-      continue;
-    result.push_back(*it);
-  }
-  return result;
 }
 
 void CGameEntity::Update(const glm::vec2& playerVec,
@@ -155,7 +119,7 @@ void CGameEntity::Render(const glm::mat4 & transform) const {
     glm::rotate(glm::radians(mRotAngle), gAxis3DY);
 
   glLoadMatrixf(glm::value_ptr(mat));
-  mModel->Render(mColor, gColorBlack);
+  mpModel->Render(mColor, gColorBlack);
 }
 
 
@@ -183,11 +147,9 @@ static const cb::string XML_ENTITYTYPE_SPEED = L"Speed";
 static const cb::string XML_ENTITYTYPE_COLOR = L"Color";
 static const cb::string XML_ENTITYTYPE_MODELFILE = L"ModelFile";
 static const cb::string XML_ENTITYTYPE_MAXHEALTH = L"MaxHealth";
-static const cb::string XML_ENTITYTYPE_DAMAGE = L"Damage";
 static const cb::string XML_ENTITYTYPE_AIPAUSE = L"AIPause";
 static const cb::string XML_ENTITYTYPE_ROTSPEED = L"RotSpeed";
 static const cb::string XML_ENTITYTYPE_IGNOREPROJECTILES = L"IgnoreProjectiles";
-static const cb::string XML_ENTITYTYPE_POINTS = L"Points";
 static const cb::string XML_ENTITYTYPE_EVENT = L"OnEvent";
 
 CB_DEFINEXMLRW(CGameEntityType) {
@@ -197,11 +159,9 @@ CB_DEFINEXMLRW(CGameEntityType) {
   RWAttribute(XML_ENTITYTYPE_COLOR, mObject.Color);
   RWAttribute(XML_ENTITYTYPE_MODELFILE, mObject.ModelFile);
   RWAttribute(XML_ENTITYTYPE_MAXHEALTH, mObject.MaxHealth);
-  RWAttribute(XML_ENTITYTYPE_DAMAGE, mObject.Damage);
   RWAttribute(XML_ENTITYTYPE_AIPAUSE, mObject.AIPause);
   RWAttribute(XML_ENTITYTYPE_ROTSPEED, mObject.RotSpeed);
   RWAttribute(XML_ENTITYTYPE_IGNOREPROJECTILES, mObject.IgnoreProjectiles);
-  RWAttribute(XML_ENTITYTYPE_POINTS, mObject.Points);
   RWNodeList(mObject.Events, XML_ENTITYTYPE_EVENT);
 
   return true;

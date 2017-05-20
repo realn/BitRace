@@ -12,7 +12,7 @@ enum class UIOrientation;
 class CUIScreen;
 class IUIItem;
 class CUIText;
-template<typename _Type> class CUITextNumber;
+template<typename _Type> class CUITextValue;
 class CUIRect;
 class CUIPanel;
 class CUIStack;
@@ -33,8 +33,9 @@ namespace cb {
 
 CB_DEFINEXMLREAD(CUIScreen);
 CB_DEFINEXMLREAD(CUIText);
-CB_DEFINEXMLREAD(CUITextNumber<Sint32>);
-CB_DEFINEXMLREAD(CUITextNumber<float>);
+CB_DEFINEXMLREAD(CUITextValue<Sint32>);
+CB_DEFINEXMLREAD(CUITextValue<float>);
+CB_DEFINEXMLREAD(CUITextValue<cb::string>);
 CB_DEFINEXMLREAD(CUIRect);
 CB_DEFINEXMLREAD(CUIPanel);
 CB_DEFINEXMLREAD(CUIStack);

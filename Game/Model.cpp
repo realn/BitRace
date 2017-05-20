@@ -72,7 +72,7 @@ void CModel::Free() {
   mType = ModelType::MT_NONE;
 }
 
-void CModel::Render(const glm::vec4& lineColor, const glm::vec4& triColor) {
+void CModel::Render(const glm::vec4& lineColor, const glm::vec4& triColor) const {
   mVertexBuffer.Bind();
 
   glEnableClientState(GL_VERTEX_ARRAY);

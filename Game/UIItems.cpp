@@ -77,10 +77,9 @@ CUIText::CUIText(const cb::string & text,
                  const glm::vec2& margin)
   : CUIItemBase(glm::vec2(0.0f), margin)
   , mText(text)
-  , mColor(color) 
+  , mColor(color)
   , mScale(1.0f)
-  , mAutoSize(true)
-{}
+  , mAutoSize(true) {}
 
 CUIText::~CUIText() {}
 

@@ -16,7 +16,7 @@ class CUIFont;
 class CUIScreen;
 class CUIProgressBar;
 class CUIRect;
-template<typename _Type> class CUITextNumber;
+template<typename _Type> class CUITextValue;
 
 class CGameSkyBox;
 class CGameLevel;
@@ -54,9 +54,10 @@ private:
   Uint32 mPoints;
 
   cb::ptr<CUIScreen> mpMainUI;
-  cb::ptr<CUITextNumber<Sint32>> mpFPSCounter;
+  cb::ptr<CUITextValue<Sint32>> mpFPSCounter;
   cb::ptr<CUIProgressBar> mpUIHealthBar;
-  cb::ptr<CUITextNumber<Sint32>> mpUIPoints;
+  cb::ptr<CUITextValue<Sint32>> mpUIPoints;
+  cb::ptr<CUITextValue<cb::string>> mpUILevel;
 
 public:
   CGameState(CConfig& config,

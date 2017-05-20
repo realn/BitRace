@@ -67,9 +67,10 @@ const bool CGameState::LoadResources(IFileSystem& fs) {
     return false;
   }
 
-  mpFPSCounter = mpMainUI->GetItem<CUITextNumber<Sint32>>(L"fpsCounter");
+  mpFPSCounter = mpMainUI->GetItem<CUITextValue<Sint32>>(L"fpsCounter");
   mpUIHealthBar = mpMainUI->GetItem<CUIProgressBar>(L"healthBar");
-  mpUIPoints = mpMainUI->GetItem<CUITextNumber<Sint32>>(L"pointsDisplay");
+  mpUIPoints = mpMainUI->GetItem<CUITextValue<Sint32>>(L"pointsDisplay");
+  mpUILevel = mpMainUI->GetItem<CUITextValue<cb::string>>(L"levelDisplay");
 
   mpDiffSetting->Reset();
   mSpawnTimer.SetLimit(mpDiffSetting->GetCurrent().EntitySpawnPause);
@@ -79,17 +80,15 @@ const bool CGameState::LoadResources(IFileSystem& fs) {
 }
 
 void CGameState::ModPlayerPoints(const Sint32 value) {
-  Uint32 val = (Uint32)glm::abs(value);
-  if(value < 0) {
-    if(mPoints <= val) {
+  if(value < 0 && (Uint32)glm::abs(value) >= mPoints) {
       mPoints = 0;
-    }
-    else {
-      mPoints -= val;
-    }
   }
   else {
-    mPoints += val;
+    mPoints += value;
+  }
+  if(mpDiffSetting->CanPass(mPoints)) {
+    mpDiffSetting->Next();
+    mSpawnTimer.SetLimit(mpDiffSetting->GetCurrent().EntitySpawnPause);
   }
 }
 
@@ -130,6 +129,9 @@ void CGameState::UpdateRender(const float timeDelta) {
   }
   if(mpUIPoints) {
     mpUIPoints->SetValue((Sint32)mPoints);
+  }
+  if(mpUILevel) {
+    mpUILevel->SetValue(mpDiffSetting->GetCurrent().Name);
   }
 
   mpSkyBox->UpdateRender();
@@ -198,8 +200,8 @@ void CGameState::CheckCollisions(const float playerRadius) {
       continue;
     }
 
-    mpLevel->CheckEntityCollisions(*it, it->GetCollRadius(), *this);
-    mpLevel->CheckProjectileCollisions(*it, it->GetCollRadius(), *this);
+    mpLevel->CheckEntityCollisions(*it, it->GetCollisionRadius(), *this);
+    mpLevel->CheckProjectileCollisions(*it, it->GetCollisionRadius(), *this);
   }
 }
 
@@ -221,16 +223,44 @@ void CGameState::ExecuteEvent(CGameObject & thisObj, CGameObject * pSenderObj, c
 
 void CGameState::ExecuteEventAction(const GameEventActionType type, CGameObject * pTargetObj, const float value) {
   switch(type) {
-  case GameEventActionType::AddPoints:  
+  case GameEventActionType::AddPoints:
     ModPlayerPoints((Sint32)value);
     break;
-    
+
   case GameEventActionType::RemPoints:
     ModPlayerPoints(-(Sint32)value);
     break;
 
+  case GameEventActionType::Heal:
+    {
+      CGameActor* pActor = dynamic_cast<CGameActor*>(pTargetObj);
+      if(pActor) {
+        pActor->ModHealth(value);
+      }
+    }
+    break;
+
+  case GameEventActionType::Damage:
+    {
+      CGameActor* pActor = dynamic_cast<CGameActor*>(pTargetObj);
+      if(pActor) {
+        pActor->ModHealth(-value);
+      }
+    }
+    break;
+
   case GameEventActionType::Kill:
     {
+      CGameActor* pActor = dynamic_cast<CGameActor*>(pTargetObj);
+      if(pActor) {
+        pActor->SetHealth(0.0f);
+      }
+    }
+    break;
+
+  case GameEventActionType::Delete:
+    if(pTargetObj) {
+      pTargetObj->Delete();
     }
     break;
 
@@ -249,8 +279,8 @@ CGameObject * CGameState::GetEventActionTarget(const GameEventActionTarget targe
   }
 }
 
-void CGameState::TriggerEvent(const GameEventTrigger triggerType, 
-                              CGameObject & thisObj, 
+void CGameState::TriggerEvent(const GameEventTrigger triggerType,
+                              CGameObject & thisObj,
                               CGameObject * pSenderObj) {
   GameObjectType senderType =
     (pSenderObj == nullptr) ? GameObjectType::Unknown : pSenderObj->GetType();

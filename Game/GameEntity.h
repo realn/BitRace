@@ -8,6 +8,7 @@
 
 #include "GameObject.h"
 #include "GameObjectEvent.h"
+#include "GameActor.h"
 
 class CModel;
 class CModelRepository;
@@ -31,11 +32,9 @@ public:
   glm::vec4 Color;
   cb::string ModelFile;
   float MaxHealth;
-  float Damage;
   float AIPause;
   float RotSpeed;
   bool IgnoreProjectiles;
-  Uint32 Points;
   EventVecT Events;
 
 public:
@@ -50,45 +49,29 @@ public:
 };
 
 class CGameEntity 
-  : public CGameObject
+  : public CGameActor
 {
 public:
   typedef std::vector<CGameObjectEvent> EventVecT;
 
 private:
-  cb::string mName;
   EntityType mEntityType;
-  CModel* mModel;
-  float mMaxHealth;
-  float mHealth;
-  float mDamage;
   float mAIPause;
   float mAITime;
   float mRotAngle;
   float mRotSpeed;
-  float mCollRadius;
   bool mIgnoreProjectiles;
-  Uint32 mPoints;
   EventVecT mEvents;
 
 public:
   CGameEntity(const CGameEntityType& type,
-              CModelRepository& modelRepo,
               const glm::vec2& pos = glm::vec2(0.0f),
               const float rotAngle = 0.0f);
   virtual ~CGameEntity();
 
-  void ModHealth(const float value);
-
-  const float	GetHealth() const;
-  const float GetDamage() const;
-  const float GetCollRadius() const;
   const EntityType	GetEntityType() const;
   const bool GetIgnoreProjectiles() const;
-  const Uint32 GetPoints() const;
   const EventVecT GetEvents() const override;
-  const EventVecT GetEvents(const GameEventTrigger trigger,
-                            const GameObjectType senderType = GameObjectType::Unknown) const override;
 
   void Update(const glm::vec2& playerVec, const float timeDelta);
   void Render(const glm::mat4& transform) const;

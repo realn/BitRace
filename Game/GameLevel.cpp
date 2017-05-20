@@ -79,7 +79,7 @@ void CGameLevel::CheckEntityCollisions(CGameObject& object,
     }
 
     float dist = glm::distance(it->GetPos(), object.GetPos());
-    float colldist = it->GetCollRadius() + objectRadius;
+    float colldist = it->GetCollisionRadius() + objectRadius;
 
     if(dist > colldist) {
       continue;
@@ -103,9 +103,10 @@ void CGameLevel::AddEntity(const cb::string& entityId) {
     return;
   }
 
-  mEntities.push_back(CGameEntity(it->second,
-                                  *mpModelRepo,
-                                  CreateEntityPosition()));
+  CGameEntity entity(it->second, CreateEntityPosition());
+  if(entity.LoadResources(*mpModelRepo)) {
+    mEntities.push_back(entity);
+  }
 }
 
 void CGameLevel::AddProjectile(const glm::vec2 & startPos,
@@ -113,7 +114,18 @@ void CGameLevel::AddProjectile(const glm::vec2 & startPos,
                                const glm::vec4 & color,
                                const float speed,
                                const float damage) {
-  mProjectiles.push_back(CGameProjectile(startPos, dir, color, speed, damage));
+  CGameObjectEvent::ActionVectorT actions = {
+    CGameObjectEventAction(GameEventActionType::Damage, GameEventActionTarget::Sender, damage),
+    CGameObjectEventAction(GameEventActionType::Delete, GameEventActionTarget::This)
+  };
+  CGameProjectile::EventVectT events = {
+    CGameObjectEvent(GameEventTrigger::OnCollision, GameObjectType::Entity, actions)
+  };
+  mProjectiles.push_back(CGameProjectile(startPos, 
+                                         dir, 
+                                         color, 
+                                         speed, 
+                                         events));
 }
 
 void CGameLevel::UpdateEntities(const glm::vec2& playerVec,

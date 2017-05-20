@@ -22,6 +22,7 @@ enum class GameEventActionType {
   Heal,
   Damage,
   Kill,
+  Delete,
 };
 
 enum class GameEventActionTarget {

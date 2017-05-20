@@ -55,7 +55,16 @@ const CGameObject::EventVectT CGameObject::GetEvents() const {
 }
 
 const CGameObject::EventVectT CGameObject::GetEvents(const GameEventTrigger trigger, const GameObjectType senderType) const {
-  return EventVectT();
+  EventVectT list = GetEvents();
+  EventVectT result;
+  for(EventVectT::const_iterator it = list.begin(); it != list.end(); it++) {
+    if(it->Trigger != trigger)
+      continue;
+    if(it->SenderIs != senderType && it->SenderIs != GameObjectType::Unknown)
+      continue;
+    result.push_back(*it);
+  }
+  return result;
 }
 
 

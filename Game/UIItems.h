@@ -89,21 +89,20 @@ public:
 };
 
 template<typename _Type>
-class CUITextNumber
-  : public CUIText
-{
+class CUITextValue
+  : public CUIText {
 private:
   cb::string mFormat;
   _Type mValue;
 
 public:
-  CUITextNumber(const cb::string& format = L"{0}",
-                const glm::vec4& color = glm::vec4(1.0f),
-                const glm::vec2& margin = glm::vec2(0.0f))
+  CUITextValue(const cb::string& format = L"{0}",
+               const glm::vec4& color = glm::vec4(1.0f),
+               const glm::vec2& margin = glm::vec2(0.0f))
     : CUIText(cb::string(), color, margin)
     , mFormat(format)
-    , mValue(_Type(0)) {}
-  virtual ~CUITextNumber() {}
+    , mValue(_Type()) {}
+  virtual ~CUITextValue() {}
 
   void SetFormat(const cb::string& format) { mFormat = format; }
   void SetValue(const _Type& value) { mValue = value; }
@@ -117,8 +116,9 @@ public:
     CUIText::UpdateRender(size, brush);
   }
 };
-typedef CUITextNumber<Sint32> CUITextInt;
-typedef CUITextNumber<float> CUITextFloat;
+typedef CUITextValue<Sint32> CUITextInt;
+typedef CUITextValue<float> CUITextFloat;
+typedef CUITextValue<cb::string> CUITextStr;
 
 class CUIRect
   : public CUIItemBase {

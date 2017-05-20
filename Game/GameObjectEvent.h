@@ -18,6 +18,9 @@ public:
   float Value;
 
   CGameObjectEventAction();
+  CGameObjectEventAction(const GameEventActionType type,
+                         const GameEventActionTarget target,
+                         const float value = 0.0f);
 };
 
 class CGameObjectEvent {
@@ -30,6 +33,9 @@ public:
   ActionVectorT Actions;
 
   CGameObjectEvent();
+  CGameObjectEvent(const GameEventTrigger trigger,
+                   const GameObjectType senderIs,
+                   const ActionVectorT& actions = ActionVectorT());
 };
 
 extern const cb::string toStr(const GameEventTrigger value);

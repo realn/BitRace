@@ -127,6 +127,9 @@
     <ClCompile Include="GameObjectEventXml.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="GameActor.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -242,6 +245,9 @@
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="GameObjectDefines.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="GameActor.h">
       <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>

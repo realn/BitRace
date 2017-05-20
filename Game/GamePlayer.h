@@ -6,6 +6,7 @@
 #include <map>
 
 #include "GameObject.h"
+#include "GameActor.h"
 
 class CModel;
 class CModelRepository;
@@ -43,16 +44,11 @@ public:
 };
 
 class CGamePlayer 
-  : public CGameObject
+  : public CGameActor
 {
 private:
-  cb::string mName;
-  cb::string mModelFile;
-  float mMaxHealth;
-  float mHealth;
   float mRotation;
   CGameWeapon mWeapon;
-  CModel* mModel;
 
 public:
   static const float sMaxRotation;
@@ -61,15 +57,10 @@ public:
   CGamePlayer(const CGamePlayerType& playerType);
   ~CGamePlayer();
 
-  const bool LoadResources(CModelRepository& modelRepo);
-
   void Update(const float timeDelta);
   void Render(const glm::mat4& transform) const;
 
   void ModRotation(const float rotation);
-  void ModHealth(const float value);
 
-  const float GetHealth() const;
-  const float GetMaxHealth() const;
   const CGameWeapon& GetWeapon() const;
 };

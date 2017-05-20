@@ -8,19 +8,19 @@ CGameProjectile::CGameProjectile(const glm::vec2 & pos,
                                  const glm::vec2 & dir,
                                  const glm::vec4 & color,
                                  const float speed,
-                                 const float damage)
+                                 const CGameProjectile::EventVectT& events)
   : CGameObject(GameObjectType::Projectile, pos, dir, glm::vec2(speed), color)
-  , mDamage(damage)
+  , mEvents(events)
 {}
 
 CGameProjectile::~CGameProjectile() {}
 
-const float CGameProjectile::GetDamage() const {
-  return mDamage;
-}
-
 const float CGameProjectile::GetLength() const {
   return PROJECTILE_LENGTH;
+}
+
+const CGameProjectile::EventVectT CGameProjectile::GetEvents() const {
+  return mEvents;
 }
 
 void CGameProjectile::Update(const glm::vec2& playerVec, const float timeDelta) {

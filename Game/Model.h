@@ -79,7 +79,7 @@ public:
   const bool Load(CModelData& data);
   void Free();
 
-  void Render(const glm::vec4& lineColor, const glm::vec4& triColor);
+  void Render(const glm::vec4& lineColor, const glm::vec4& triColor) const;
 };
 
 class CModelRepository {

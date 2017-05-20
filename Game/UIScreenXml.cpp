@@ -110,6 +110,7 @@ public:
 static const cb::string XMLUIITEMTYPE_TEXT = L"Text";
 static const cb::string XMLUIITEMTYPE_TEXTINT = L"TextInt";
 static const cb::string XMLUIITEMTYPE_TEXTFLOAT = L"TextFloat";
+static const cb::string XMLUIITEMTYPE_TEXTSTR = L"TextStr";
 static const cb::string XMLUIITEMTYPE_RECT = L"Rect";
 static const cb::string XMLUIITEMTYPE_PANEL = L"Panel";
 static const cb::string XMLUIITEMTYPE_STACK = L"Stack";
@@ -117,8 +118,9 @@ static const cb::string XMLUIITEMTYPE_ITEMLIST = L"ItemList";
 static const cb::string XMLUIITEMTYPE_PROGRESSBAR = L"ProgressBar";
 
 static const CXmlUIItemFactory<CUIText> gXmlUIItemFactoryText;
-static const CXmlUIItemFactory<CUITextNumber<Sint32>> gXmlUIItemFactoryTextInt;
-static const CXmlUIItemFactory<CUITextNumber<float>> gXmlUIItemFactoryTextFloat;
+static const CXmlUIItemFactory<CUITextValue<Sint32>> gXmlUIItemFactoryTextInt;
+static const CXmlUIItemFactory<CUITextValue<float>> gXmlUIItemFactoryTextFloat;
+static const CXmlUIItemFactory<CUITextValue<cb::string>> gXmlUIItemFactoryTextStr;
 static const CXmlUIItemFactory<CUIRect> gXmlUIItemFactoryRect;
 static const CXmlUIItemFactory<CUIPanel> gXmlUIItemFactoryPanel;
 static const CXmlUIItemFactory<CUIStack> gXmlUIItemFactoryStack;
@@ -130,6 +132,7 @@ IUIItem* CreateItemFromNode(cb::CXmlNode& node) {
     {XMLUIITEMTYPE_TEXT, &gXmlUIItemFactoryText},
     {XMLUIITEMTYPE_TEXTINT, &gXmlUIItemFactoryTextInt},
     {XMLUIITEMTYPE_TEXTFLOAT, &gXmlUIItemFactoryTextFloat},
+    {XMLUIITEMTYPE_TEXTSTR, &gXmlUIItemFactoryTextStr},
     {XMLUIITEMTYPE_RECT, &gXmlUIItemFactoryRect},
     {XMLUIITEMTYPE_PANEL, &gXmlUIItemFactoryPanel},
     {XMLUIITEMTYPE_STACK, &gXmlUIItemFactoryStack},
@@ -212,7 +215,7 @@ CB_DEFINEXMLREAD(CUIText) {
 static const cb::string XML_UITEXTNUMBER_FORMAT = L"Format";
 static const cb::string XML_UITEXTNUMBER_VALUE = L"Value";
 
-CB_DEFINEXMLREAD(CUITextNumber<Sint32>) {
+CB_DEFINEXMLREAD(CUITextValue<Sint32>) {
   if(!cb::ReadXmlObject(mNode, (CUIText&)mObject)) {
     return false;
   }
@@ -227,12 +230,27 @@ CB_DEFINEXMLREAD(CUITextNumber<Sint32>) {
   return true;
 }
 
-CB_DEFINEXMLREAD(CUITextNumber<float>) {
+CB_DEFINEXMLREAD(CUITextValue<float>) {
   if(!cb::ReadXmlObject(mNode, (CUIText&)mObject)) {
     return false;
   }
   cb::string format;
   float value;
+  if(GetAttribute(XML_UITEXTNUMBER_FORMAT, format)) {
+    mObject.SetFormat(format);
+  }
+  if(GetAttribute(XML_UITEXTNUMBER_VALUE, value)) {
+    mObject.SetValue(value);
+  }
+  return true;
+}
+
+CB_DEFINEXMLREAD(CUITextValue<cb::string>) {
+  if(!cb::ReadXmlObject(mNode, (CUIText&)mObject)) {
+    return false;
+  }
+  cb::string format;
+  cb::string value;
   if(GetAttribute(XML_UITEXTNUMBER_FORMAT, format)) {
     mObject.SetFormat(format);
   }

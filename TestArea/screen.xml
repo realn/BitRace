@@ -4,7 +4,7 @@
             <Panel HorAlign="Left" VerAlign="Top" Size="360:40" Color="0.4:0.4:1:0.6">
                 <Stack Orientation="Vertical" Margin="10:5">
                     <TextInt Id="pointsDisplay" Format="POINTS: {0}" Value="0" />
-                    <Text Text="DIFFICULTY LEVEL: EASY" />
+                    <TextStr Id="levelDisplay" Format="DIFFICULTY LEVEL: {0}" Value="EASY" />
                 </Stack>
             </Panel>
             <TextInt Id="fpsCounter" HorAlign="Right" VerAlign="Top" Format="FPS: {0}" />

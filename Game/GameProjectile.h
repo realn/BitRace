@@ -5,6 +5,7 @@
 #include <glm/fwd.hpp>
 
 #include "GameObject.h"
+#include "GameObjectEvent.h"
 
 class CGameProjectileVertex {
 public:
@@ -18,18 +19,18 @@ class CGameProjectile
   : public CGameObject
 {
 private:
-  float mDamage;
+  EventVectT mEvents;
 
 public:
   CGameProjectile(const glm::vec2& pos,
                   const glm::vec2& dir,
                   const glm::vec4& color,
                   const float speed,
-                  const float damage);
+                  const EventVectT& events);
   virtual ~CGameProjectile();
 
-  const float GetDamage() const;
   const float GetLength() const;
+  const EventVectT GetEvents() const override;
 
   void Update(const glm::vec2& playerVec, const float timeDelta);
   void UpdateRender(CGameProjectileVertex& outVertex);

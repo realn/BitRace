@@ -37,22 +37,19 @@ const bool CGamePlayerType::Load(TypeMapT& typeMap,
 }
 
 CGamePlayer::CGamePlayer(const CGamePlayerType& playerType) 
-  : CGameObject(GameObjectType::Player, glm::vec2(), glm::vec2(), playerType.Speed, playerType.Color)
-  , mName(playerType.Name)
-  , mModelFile(playerType.ModelFile)
-  , mMaxHealth(playerType.MaxHealth)
-  , mHealth(playerType.MaxHealth)
+  : CGameActor(playerType.Name,
+               playerType.ModelFile,
+               GameObjectType::Player, 
+               glm::vec2(), glm::vec2(), 
+               playerType.Speed, 
+               playerType.Color,
+               playerType.MaxHealth,
+               1.4f)
   , mRotation(0.0f)
   , mWeapon(playerType.Weapon)
-  , mModel(nullptr)
 {}
 
 CGamePlayer::~CGamePlayer() {}
-
-const bool CGamePlayer::LoadResources(CModelRepository & modelRepo) {
-  mModel = modelRepo.GetModel(mModelFile);
-  return mModel != nullptr;
-}
 
 void CGamePlayer::Update(const float timeDelta) {
   if (glm::abs(mRotation) > 0.0f)
@@ -69,23 +66,11 @@ void CGamePlayer::Render(const glm::mat4& transform) const {
     glm::rotate(glm::radians(mRotation), gAxis3DZ);
 
   glLoadMatrixf(glm::value_ptr(mat));
-  mModel->Render(mColor, gColorBlack);
+  mpModel->Render(mColor, gColorBlack);
 }
 
 void CGamePlayer::ModRotation(const float value) {
   mRotation = glm::clamp(mRotation + value, -sMaxRotation, sMaxRotation);
-}
-
-void CGamePlayer::ModHealth(const float value) {
-  mHealth = glm::clamp(mHealth + value, 0.0f, mMaxHealth);
-}
-
-const float CGamePlayer::GetHealth() const {
-  return mHealth;
-}
-
-const float CGamePlayer::GetMaxHealth() const {
-  return mMaxHealth;
 }
 
 const CGameWeapon & CGamePlayer::GetWeapon() const {
