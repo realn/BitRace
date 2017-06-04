@@ -113,6 +113,7 @@
     <ClCompile Include="HighScore.cpp" />
     <ClCompile Include="IniFiles.cpp" />
     <ClCompile Include="InputDevice.cpp" />
+    <ClCompile Include="InputSystem.cpp" />
     <ClCompile Include="Intro.cpp" />
     <ClCompile Include="GameSkyBox.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -159,7 +160,9 @@
     <ClInclude Include="GUI.h" />
     <ClInclude Include="HighScore.h" />
     <ClInclude Include="IniFiles.h" />
+    <ClInclude Include="InputDefines.h" />
     <ClInclude Include="InputDevice.h" />
+    <ClInclude Include="InputSystem.h" />
     <ClInclude Include="Intro.h" />
     <ClInclude Include="GameSkyBox.h" />
     <ClInclude Include="MathHelper.h" />
