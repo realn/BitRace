@@ -13,6 +13,9 @@
     <Filter Include="Engine">
       <UniqueIdentifier>{069eb28b-29cb-4d21-86e2-e271230fc8e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Core\Input">
+      <UniqueIdentifier>{fb47f85f-b16b-4475-bf92-9e553f5df7d9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GUI.cpp">
@@ -44,9 +47,6 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="PerfTimer.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="InputDevice.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Menu.cpp">
@@ -130,8 +130,23 @@
     <ClCompile Include="GameActor.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="InputDevice.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
     <ClCompile Include="InputSystem.cpp">
-      <Filter>Core</Filter>
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="InputBindings.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="InputDeviceEvents.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="InputEvents.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="InputStandardDevices.cpp">
+      <Filter>Core\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -167,9 +182,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="PerfTimer.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="InputDevice.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Menu.h">
@@ -253,11 +265,26 @@
     <ClInclude Include="GameActor.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="InputSystem.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="InputDefines.h">
-      <Filter>Core</Filter>
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputDevice.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputSystem.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputBindings.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputDeviceEvents.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputEvents.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputStandardDevices.h">
+      <Filter>Core\Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

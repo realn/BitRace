@@ -112,7 +112,11 @@
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="HighScore.cpp" />
     <ClCompile Include="IniFiles.cpp" />
+    <ClCompile Include="InputBindings.cpp" />
     <ClCompile Include="InputDevice.cpp" />
+    <ClCompile Include="InputDeviceEvents.cpp" />
+    <ClCompile Include="InputEvents.cpp" />
+    <ClCompile Include="InputStandardDevices.cpp" />
     <ClCompile Include="InputSystem.cpp" />
     <ClCompile Include="Intro.cpp" />
     <ClCompile Include="GameSkyBox.cpp" />
@@ -160,8 +164,12 @@
     <ClInclude Include="GUI.h" />
     <ClInclude Include="HighScore.h" />
     <ClInclude Include="IniFiles.h" />
+    <ClInclude Include="InputBindings.h" />
     <ClInclude Include="InputDefines.h" />
     <ClInclude Include="InputDevice.h" />
+    <ClInclude Include="InputDeviceEvents.h" />
+    <ClInclude Include="InputEvents.h" />
+    <ClInclude Include="InputStandardDevices.h" />
     <ClInclude Include="InputSystem.h" />
     <ClInclude Include="Intro.h" />
     <ClInclude Include="GameSkyBox.h" />

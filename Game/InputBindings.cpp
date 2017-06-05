@@ -3,82 +3,100 @@
 
 class CInputBindings::CBinding {
 public:
-  InputDevice Device;
+  InputDeviceType DeviceType;
+  Sint32 DeviceId;
   Uint32 EventId;
-  Uint32 TargetId;
+  cb::string Target;
 
-  CBinding(const InputDevice device,
+  CBinding(const InputDeviceType device,
+           const Sint32 deviceId,
            const Uint32 eventId,
-           const Uint32 targetId);
+           const cb::string& target);
+
+  const bool Match(const InputDeviceType deviceType,
+                   const Uint32 deviceId,
+                   const Uint32 eventId) const;
 
   const bool operator==(const CBinding& other) const;
-  const bool operator!=(const CBinding& other) const;
 };
 
-CInputBindings::CBinding::CBinding(const InputDevice device,
-                                  const Uint32 eventId,
-                                  const Uint32 targetId)
-  : Device(device)
+CInputBindings::CBinding::CBinding(const InputDeviceType deviceType,
+                                   const Sint32 deviceId,
+                                   const Uint32 eventId,
+                                   const cb::string& target)
+  : DeviceType(deviceType)
+  , DeviceId(deviceId)
   , EventId(eventId)
-  , TargetId(targetId) {}
+  , Target(target) {}
+
+const bool CInputBindings::CBinding::Match(const InputDeviceType deviceType, const Uint32 deviceId, const Uint32 eventId) const {
+  if(DeviceType != deviceType || EventId != eventId) {
+    return false;
+  }
+  if(DeviceId >= 0 && (Uint32)DeviceId == deviceId) {
+    return false;
+  }
+  return true;
+}
 
 const bool CInputBindings::CBinding::operator==(const CBinding & other) const {
   return
-    Device == other.Device &&
+    DeviceType == other.DeviceType &&
+    DeviceId == other.DeviceId &&
     EventId == other.EventId &&
-    TargetId == other.TargetId;
+    Target == other.Target;
 }
 
-const bool CInputBindings::CBinding::operator!=(const CBinding & other) const {
-  return !(*this == other);
-}
 
 
 CInputBindings::CInputBindings() {}
 
-void CInputBindings::RegisterTarget(const Uint32 id) {
-  if(std::find(mTargets.begin(), mTargets.end(), id) != mTargets.end()) {
+void CInputBindings::AddTarget(const cb::string& target) {
+  if(std::find(mTargets.begin(), mTargets.end(), target) != mTargets.end()) {
     return;
   }
-  mTargets.push_back(id);
+  mTargets.push_back(target);
 }
 
-void CInputBindings::UnregisterTarget(const Uint32 id) {
-  TargetVecT::iterator it = std::find(mTargets.begin(), mTargets.end(), id);
+void CInputBindings::RemoveTarget(const cb::string& target) {
+  InputTargetVecT::iterator it = std::find(mTargets.begin(), mTargets.end(), target);
   if(it == mTargets.end()) {
     return;
   }
   mTargets.erase(it);
 }
 
-void CInputBindings::Bind(const InputDevice device,
-                         const Uint32 eventId,
-                         const Uint32 targetId) {
-  CBinding binding(device, eventId, targetId);
+void CInputBindings::Bind(const InputDeviceType deviceType,
+                          const Sint32 deviceId,
+                          const Uint32 eventId,
+                          const cb::string& target) {
+  CBinding binding(deviceType, deviceId, eventId, target);
   if(std::find(mBindings.begin(), mBindings.end(), binding) != mBindings.end()) {
     return;
   }
   mBindings.push_back(binding);
 }
 
-void CInputBindings::Unbind(const InputDevice device,
-                           const Uint32 eventId,
-                           const Uint32 targetId) {
-  CBinding binding(device, eventId, targetId);
+void CInputBindings::Unbind(const InputDeviceType deviceType,
+                            const Sint32 deviceId,
+                            const Uint32 eventId,
+                            const cb::string& target) {
+  CBinding binding(deviceType, deviceId, eventId, target);
   BindVecT::iterator it = std::find(mBindings.begin(), mBindings.end(), binding);
   if(it != mBindings.end()) {
     mBindings.erase(it);
   }
 }
 
-const CInputBindings::TargetVecT CInputBindings::Map(const InputDevice device,
-                                                   const Uint32 eventId) const {
-  TargetVecT ids;
+const InputTargetVecT CInputBindings::Map(const InputDeviceType deviceType, 
+                                          const Uint32 deviceId,
+                                          const Uint32 eventId) const {
+  InputTargetVecT targets;
   for(BindVecT::const_iterator it = mBindings.begin(); it != mBindings.end(); it++) {
-    if(it->Device == device && it->EventId == eventId) {
-      ids.push_back(it->TargetId);
+    if(it->Match(deviceType, deviceId, eventId)) {
+      targets.push_back(it->Target);
     }
   }
-  return ids;
+  return targets;
 }
 

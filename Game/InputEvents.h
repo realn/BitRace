@@ -13,32 +13,35 @@ public:
     _Type ValuePrev;
   };
 
-  Uint32 Id;
-  cb::string ContextName;
+  cb::string Id;
+  cb::string Context;
   InputEventType Type;
   union {
     CData<bool> State;
     CData<float> Range;
   } Data;
 
-  CInputEvent(const Uint32 id, const cb::string& ctxName);
-  CInputEvent(const Uint32 id,
+  CInputEvent(const cb::string& id, const cb::string& ctxName);
+  CInputEvent(const cb::string& id,
               const cb::string& ctxName,
               const bool state,
               const bool statePrev);
-  CInputEvent(const Uint32 id,
+  CInputEvent(const cb::string& id,
               const cb::string& ctxName,
               const float range,
               const float rangePrev);
 };
 
 class IInputEventObserver {
-protected:
-  IInputEventObserver();
 public:
+  IInputEventObserver();
   virtual ~IInputEventObserver();
 
   virtual void OnInputEvent(const CInputEvent& event) = 0;
+
+protected:
+  IInputEventObserver(const IInputEventObserver&) = delete;
+  IInputEventObserver& operator=(IInputEventObserver&) = delete;
 };
 
 #endif // !__BITRACE_INPUTEVENTS_H__

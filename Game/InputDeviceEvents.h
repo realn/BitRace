@@ -15,26 +15,42 @@ public:
     _Type ValuePrev;
   };
 
+  InputDeviceType DeviceType;
+  Uint32 DeviceId;
+  Uint32 Id;
   InputEventType Type;
   union {
     CData<bool> State;
     CData<float> Range;
   } Data;
 
-  CInputDeviceEvent();
-  CInputDeviceEvent(const bool state, const bool statePrev);
-  CInputDeviceEvent(const float range, const float rangePrev);
+  CInputDeviceEvent(const InputDeviceType deviceType, 
+                    const Uint32 deviceId, 
+                    const Uint32 id);
+  CInputDeviceEvent(const InputDeviceType deviceType, 
+                    const Uint32 deviceId, 
+                    const Uint32 id, 
+                    const bool state, 
+                    const bool statePrev);
+  CInputDeviceEvent(const InputDeviceType deviceType, 
+                    const Uint32 deviceId, 
+                    const Uint32 id, 
+                    const float range, 
+                    const float rangePrev);
 };
 typedef std::vector<CInputDeviceEvent> InputDeviceEventVecT;
 
-class IInputDeviceObserver {
+class IInputDeviceHandler {
 public:
-  virtual void SendEvents(const InputDevice device,
-                          const Uint32 id,
-                          const InputDeviceEventVecT& events) = 0;
-  virtual void SendEvent(const InputDevice device,
-                         const Uint32 id,
-                         const CInputDeviceEvent& event) = 0;
+  IInputDeviceHandler();
+  virtual ~IInputDeviceHandler();
+
+  virtual void SendEvents(const InputDeviceEventVecT& events) = 0;
+  virtual void SendEvent(const CInputDeviceEvent& event) = 0;
+
+protected:
+  IInputDeviceHandler(const IInputDeviceHandler&) = delete;
+  IInputDeviceHandler& operator=(IInputDeviceHandler&) = delete;
 };
 
 #endif // !__BITRACE_INPUTDEVICEEVENTS_H__

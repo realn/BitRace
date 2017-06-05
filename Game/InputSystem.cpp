@@ -2,6 +2,7 @@
 #include "InputSystem.h"
 #include "InputBindings.h"
 #include "InputEvents.h"
+#include "InputStandardDevices.h"
 
 class CInputSystem::CContext {
 public:
@@ -24,20 +25,10 @@ void CInputSystem::CContext::SendEvent(const CInputEvent& event) {
   }
 }
 
-CInputSystem::CInputSystem() {}
+CInputSystem::CInputSystem() {
+}
 
 CInputSystem::~CInputSystem() {}
-
-void CInputSystem::AddContext(const cb::string & id) {
-  GetContext(id);
-}
-
-void CInputSystem::RemoveContext(const cb::string & id) {
-  ContextMapT::iterator it = mContexts.find(id);
-  if(it != mContexts.end()) {
-    mContexts.erase(it);
-  }
-}
 
 void CInputSystem::SetContextBindings(const cb::string & id, const CInputBindings & bindings) {
   CContext& ctx = GetContext(id);
@@ -57,22 +48,27 @@ const bool CInputSystem::IsContextEnabled(const cb::string & id) const {
   return false;
 }
 
-void CInputSystem::RegisterObserver(const cb::string& ctxId, IInputEventObserver * pObserver) {
-  CContext& ctx = GetContext(ctxId);
-  ObserverVecT& observers = ctx.Observers;
-
-  if(std::find(observers.begin(), observers.end(), pObserver) != observers.end())
+void CInputSystem::RegisterObserver(IInputEventObserver * pObserver) {
+  if(std::find(mObservers.begin(), mObservers.end(), pObserver) != mObservers.end()) {
     return;
-  observers.push_back(pObserver);
+  }
+  mObservers.push_back(pObserver);
 }
 
-void CInputSystem::UnregisterObserver(const cb::string& ctxId, IInputEventObserver * pObserver) {
-  CContext& ctx = GetContext(ctxId);
-  ObserverVecT& observers = ctx.Observers;
+void CInputSystem::UnregisterObserver(IInputEventObserver * pObserver) {
+  ObserverVecT::iterator it = std::find(mObservers.begin(), mObservers.end(), pObserver);
+  if(it != mObservers.end()) {
+    mObservers.erase(it);
+  }
+}
 
-  ObserverVecT::iterator it = std::find(observers.begin(), observers.end(), pObserver);
-  if(it != observers.end()) {
-    observers.erase(it);
+const bool CInputSystem::ProcessEvent(const SDL_Event & event) {
+  return mDevReg.ProcessEvent(event, *this);
+}
+
+void CInputSystem::Update(const float timeDelta) {
+  for(ObserverVecT::iterator it = mObservers.begin(); it != mObservers.end(); it++) {
+    SendEventsToObserver(mEventQueue, *it);
   }
 }
 
@@ -83,9 +79,15 @@ CInputSystem::CContext & CInputSystem::GetContext(const cb::string & id) {
   return mContexts[id];
 }
 
-void CInputSystem::SendEvents(const InputDevice device,
-                              const Uint32 id,
-                              const InputDeviceEventVecT & events) {
+void CInputSystem::SendEvents(const InputDeviceEventVecT & events) {
+  if(mContexts.empty())
+    return;
+  for(InputDeviceEventVecT::const_iterator it = events.begin(); it != events.end(); it++) {
+    SendEvent(*it);
+  }
+}
+
+void CInputSystem::SendEvent(const CInputDeviceEvent & event) {
   if(mContexts.empty()) {
     return;
   }
@@ -94,68 +96,37 @@ void CInputSystem::SendEvents(const InputDevice device,
     if(!it->second.Enabled) {
       continue;
     }
-
-    IdVecT targets = it->second.Bindings.Map(device, id);
+    InputTargetVecT targets = it->second.Bindings.Map(event.DeviceType, event.DeviceId, event.Id);
     if(targets.empty()) {
       continue;
     }
-
-    
-
-    SendEventsToObservers(it->first, 
-                          targets, 
-                          events, 
-                          it->second.Observers);
+    AddEventToQueue(targets, it->first, event);
   }
 }
 
-void CInputSystem::SendEvent(const InputDevice device,
-                             const Uint32 id,
-                             const CInputDeviceEvent & event) {
-  InputDeviceEventVecT events = {event};
-  SendEvents(device, id, events);
-}
-
-const CInputSystem::EventVecT CInputSystem::TranslateEvents(const cb::string& ctxId, 
-                                                            const IdVecT & targets,
-                                                            const InputDeviceEventVecT & events) {
-  EventVecT result;
-  for(InputDeviceEventVecT::const_iterator eit = events.begin();
-      eit != events.end(); eit++) {
-    for(IdVecT::const_iterator it = targets.begin(); it != targets.end(); it++) {
-      result.push_back(TranslateEvent(ctxId, *it, *eit));
-    }
+void CInputSystem::AddEventToQueue(const InputTargetVecT & targets, const cb::string& context, const CInputDeviceEvent & event) {
+  for(InputTargetVecT::const_iterator it = targets.begin(); it != targets.end(); it++) {
+    mEventQueue.push_back(TranslateEvent(*it, context, event));
   }
-  return result;
 }
 
-const CInputEvent CInputSystem::TranslateEvent(const cb::string & ctxId, const Uint32 target, const CInputDeviceEvent & event) {
+const CInputEvent CInputSystem::TranslateEvent(const cb::string& target, const cb::string& context, const CInputDeviceEvent& event) const {
   switch(event.Type) {
   default:
-  case InputEventType::Action: return CInputEvent(target, ctxId);
+  case InputEventType::Action: return CInputEvent(target, context);
   case InputEventType::State: return CInputEvent(target,
-                                                 ctxId,
+                                                 context,
                                                  event.Data.State.Value,
                                                  event.Data.State.ValuePrev);
   case InputEventType::Range: return CInputEvent(target,
-                                                 ctxId,
+                                                 context,
                                                  event.Data.Range.Value,
                                                  event.Data.Range.ValuePrev);
   }
 }
 
-void CInputSystem::SendEventsToObservers(const cb::string & ctxId, 
-                                        const IdVecT & targetIds, 
-                                        const InputDeviceEventVecT & events, 
-                                        ObserverVecT & observers) {
-  for(ObserverVecT::iterator oit = observers.begin(); oit != observers.end(); oit++) {
-    for(InputDeviceEventVecT::const_iterator eit = events.begin();
-        eit != events.end(); eit++) {
-      for(IdVecT::const_iterator tit = targetIds.begin();
-          tit != targetIds.end(); tit++) {
-        SendEventToObserver(ctxId, *tit, *eit, **oit);
-      }
-    }
+void CInputSystem::SendEventsToObserver(const EventVecT & events, IInputEventObserver * pObserver) {
+  for(EventVecT::const_iterator it = events.begin(); it != events.end(); it++) {
+    pObserver->OnInputEvent(*it);
   }
 }
-

@@ -3,13 +3,14 @@
 
 #include <SDL_types.h>
 
-enum class InputDevice {
+enum class InputDeviceType {
   Keyboard = 0,
   Mouse = 1,
+  GamePad = 2,
+  Touch = 3
 };
 
-// SDL_ScanCode keys
-enum class MouseEventId {
+enum class InputMouseEventId {
   AxisX = 0,
   AxisY,
   AxisZ,
