@@ -11,6 +11,7 @@
 #include "InputDeviceEvents.h"
 #include "InputDevice.h"
 
+class IFileSystem;
 class CInputEvent;
 class CInputBindings;
 class IInputEventObserver;
@@ -33,10 +34,20 @@ public:
   CInputSystem();
   virtual ~CInputSystem();
 
+  void AddContext(const cb::string& id);
+  void RemoveContext(const cb::string& id);
+  void ClearContext(const cb::string& id);
+  void ClearContexts();
+
   void SetContextBindings(const cb::string& id, const CInputBindings& bindings);
   void SetContextEnabled(const cb::string& id, const bool enable = true);
 
   const bool IsContextEnabled(const cb::string& id) const;
+
+  const bool LoadConfig(IFileSystem& fs, const cb::string& filepath);
+  const bool SaveConfig(IFileSystem& fs, const cb::string& filepath) const;
+
+  CInputDeviceRegistry& GetDeviceRegistry();
 
   void RegisterObserver(IInputEventObserver* pObserver);
   void UnregisterObserver(IInputEventObserver* pObserver);

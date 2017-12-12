@@ -1,13 +1,12 @@
 #include "stdafx.h"
 #include "GameState.h"
-#include "Config.h"
-#include "FileSystem.h"
-#include "InputDevice.h"
 #include "GameSkyBox.h"
 #include "GameLevel.h"
 #include "GameEntity.h"
 #include "GameDifficulty.h"
 #include "GamePlayer.h"
+#include "GameInputDefines.h"
+#include "Config.h"
 #include "UIFont.h"
 #include "UIScreen.h"
 #include "UIItems.h"
@@ -21,10 +20,8 @@ static const cb::string UISCREEN_FILEPATH = L"screen.xml";
 static const cb::string PLAYERTYPES_FILEPATH = L"playerTypes.xml";
 
 CGameState::CGameState(CConfig& config,
-                       CInputDeviceMap& inputDevMap,
                        CModelRepository* pModelRepo)
   : mConfig(config)
-  , mIDevMap(inputDevMap)
   , mpModelRepo(pModelRepo)
   , mPoints(0) {
   mpFont = new CUIFont();
@@ -93,12 +90,6 @@ void CGameState::ModPlayerPoints(const Sint32 value) {
 }
 
 void CGameState::Update(const float timeDelta) {
-  float xdelta = mIDevMap.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisDelta, (Uint32)MouseAxisId::AxisX) * mConfig.Screen.Width;
-  mpPlayer->ModRotation(-xdelta);
-  if(mIDevMap.GetState(InputDevice::Mouse, (Uint32)MouseType::ButtonPress, SDL_BUTTON_LEFT)) {
-    FireWeapon(mpPlayer->GetWeapon());
-  }
-
   if(mSpawnTimer.Update(timeDelta)) {
     cb::string entId = mpDiffSetting->GetRandomEntity(std::rand());
     if(!entId.empty()) {
@@ -140,19 +131,23 @@ void CGameState::UpdateRender(const float timeDelta) {
 }
 
 void CGameState::Render() const {
+  static const glm::mat4 transSkybox =  
+    glm::translate(glm::vec3(0.0f, 12.0f, -12.0f)) *
+    glm::rotate(glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+  static const glm::mat4 transLevel =
+    transSkybox *
+    glm::translate(glm::vec3(0.0f, -17.0f, 0.0f));
+
   glm::mat4 proj = glm::perspective(glm::radians(50.0f),
                                     mConfig.Screen.GetAspectRatio(),
                                     1.f, 1000.0f);
-  glm::mat4 mat = proj *
-    glm::translate(glm::vec3(0.0f, 12.0f, -12.0f)) *
-    glm::rotate(glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+  mpSkyBox->Render(proj * transSkybox);
 
-  mpSkyBox->Render(mat);
-
-  mat *= glm::translate(glm::vec3(0.0f, -17.0f, 0.0f));
-
-  mpLevel->Render(mat);
-  mpPlayer->Render(mat);
+  {
+    glm::mat4 trans = proj * transLevel;
+    mpLevel->Render(trans);
+    mpPlayer->Render(trans);
+  }
 }
 
 void CGameState::RenderUI() const {
@@ -287,5 +282,20 @@ void CGameState::TriggerEvent(const GameEventTrigger triggerType,
   EventVecT events = thisObj.GetEvents(triggerType, senderType);
   if(!events.empty()) {
     ExecuteEvents(thisObj, pSenderObj, events);
+  }
+}
+
+void CGameState::OnInputEvent(const CInputEvent & event) {
+  if(event.Context != INPUT_CTX_PLAYER)
+    return;
+
+  if(event.Id == INPUT_TGT_PLAYER_ROTATEX && 
+     event.Type == InputEventType::Range) {
+    float xdelta = event.Data.Range.Value - event.Data.Range.ValuePrev;
+    mpPlayer->ModRotation(-xdelta * (float)mConfig.Screen.Width);
+  }
+  else if(event.Id == INPUT_TGT_PLAYER_ATTACK && 
+          event.Type == InputEventType::Action) {
+    FireWeapon(mpPlayer->GetWeapon());
   }
 }

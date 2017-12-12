@@ -6,6 +6,7 @@
 #include "EngineState.h"
 #include "FrameTimer.h"
 #include "GameObjectDefines.h"
+#include "InputEvents.h"
 
 class CConfig;
 class IFileSystem;
@@ -31,6 +32,7 @@ class CGameObjectEvent;
 class CGameState 
   : public IEngineState 
   , public IGameObjectEventObserver
+  , public IInputEventObserver
 {
 public:
   typedef std::map<cb::string, CGameEntityType> EntityTypeMapT;
@@ -39,7 +41,6 @@ public:
 
 private:
   CConfig& mConfig;
-  CInputDeviceMap& mIDevMap;
 
   cb::ptr<CUIFont> mpFont;
   cb::ptr<CModelRepository> mpModelRepo;
@@ -61,7 +62,6 @@ private:
 
 public:
   CGameState(CConfig& config,
-             CInputDeviceMap& inputDevMap,
              CModelRepository* pModelRepo);
   virtual ~CGameState();
 
@@ -95,6 +95,9 @@ private:
 
   // Inherited via IGameObjectEventObserver
   virtual void TriggerEvent(const GameEventTrigger triggerType, CGameObject & thisObj, CGameObject * pSenderObj = nullptr) override;
+
+  // Inherited via IInputEventObserver
+  virtual void OnInputEvent(const CInputEvent & event) override;
 };
 
 #endif // !__BITRACE_GAMESTATE_H__

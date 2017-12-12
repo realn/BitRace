@@ -365,18 +365,18 @@ const bool CGUIMenuItem::Update(const CInputDeviceMap& input, const float fDT) {
   this->m_pRectItem->SetColor(glm::vec4(glm::vec3(1.0f), this->m_FocusLight));
   this->m_pTextItem->SetColor(glm::vec4(glm::vec3(1.0f - this->m_FocusLight), 1.0f));
 
-  glm::vec2 vMousePos = glm::vec2(
-    input.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisPos, (Uint32)MouseAxisId::AxisX),
-    input.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisPos, (Uint32)MouseAxisId::AxisY)
-    ) * m_pMenu->GetScreen()->GetSize();
-  if(this->m_pTextItem->Contains(vMousePos)) {
-    this->SetFocus(true);
-    if(input.GetState(InputDevice::Mouse, (Uint32)MouseType::ButtonPress, SDL_BUTTON_LEFT)) {
-      return true;
-    }
-  }
-  else
-    this->SetFocus(false);
+  //glm::vec2 vMousePos = glm::vec2(
+  //  input.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisPos, (Uint32)MouseAxisId::AxisX),
+  //  input.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisPos, (Uint32)MouseAxisId::AxisY)
+  //  ) * m_pMenu->GetScreen()->GetSize();
+  //if(this->m_pTextItem->Contains(vMousePos)) {
+  //  this->SetFocus(true);
+  //  if(input.GetState(InputDevice::Mouse, (Uint32)MouseType::ButtonPress, SDL_BUTTON_LEFT)) {
+  //    return true;
+  //  }
+  //}
+  //else
+  //  this->SetFocus(false);
 
   return false;
 }
@@ -697,10 +697,10 @@ const glm::vec2 & CGUIMenuManager::GetSize() const {
 }
 
 bool CGUIMenuManager::Update(const CInputDeviceMap& input, float timeDelta) {
-  this->m_MousePos = glm::vec2(
-    input.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisPos, (Uint32)MouseAxisId::AxisX),
-    input.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisPos, (Uint32)MouseAxisId::AxisY)
-  ) * m_Size;
+  //this->m_MousePos = glm::vec2(
+  //  input.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisPos, (Uint32)MouseAxisId::AxisX),
+  //  input.GetRange(InputDevice::Mouse, (Uint32)MouseType::AxisPos, (Uint32)MouseAxisId::AxisY)
+  //) * m_Size;
   
 
   if (m_MousePos.x < 0.0f)

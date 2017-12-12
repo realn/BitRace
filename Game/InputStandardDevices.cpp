@@ -97,6 +97,10 @@ const bool CKeyboardInputDevice::ProcessEvent(const SDL_Event & event,
   return true;
 }
 
+const InputDeviceType CKeyboardInputDevice::GetType() const {
+  return InputDeviceType::Keyboard;
+}
+
 void CKeyboardInputDevice::Update(const float timeDelta) {}
 
 
@@ -104,7 +108,10 @@ void CKeyboardInputDevice::Update(const float timeDelta) {}
 CMouseInputDevice::CButtonState::CButtonState()
   : State(false), StatePrev(false) {}
 
-void CMouseInputDevice::CButtonState::Set(const bool value) {}
+void CMouseInputDevice::CButtonState::Set(const bool value) {
+  StatePrev = State;
+  State = value;
+}
 
 const bool CMouseInputDevice::CButtonState::Pressed() const {
   return State && !StatePrev;
@@ -204,6 +211,10 @@ const bool CMouseInputDevice::ProcessEvent(const SDL_Event & event,
   }
 
   return false;
+}
+
+const InputDeviceType CMouseInputDevice::GetType() const {
+  return InputDeviceType::Mouse;
 }
 
 void CMouseInputDevice::Update(const float timeDelta) {}

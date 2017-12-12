@@ -12,7 +12,7 @@
 
 #include "Config.h"
 #include "PerfTimer.h"
-#include "InputDevice.h"
+#include "InputSystem.h"
 
 #include "UIFont.h"
 
@@ -28,9 +28,10 @@ private:
   IFileSystem* mpFileSystem;
   CConfig mConfig;
   CPerfTimer mTimer;
-  CInputDeviceMap mIDevMap;
+  CInputSystem mInput;
 
   cb::string mConfigFilePath;
+  cb::string mInputConfigFilePath;
 
   SDL_Window*   mpWindow;
   SDL_GLContext mpGLContext;
@@ -50,10 +51,13 @@ public:
 
   int MainLoop(const cb::string& cmdLine);
 
-private:
   void SaveConfig();
   void LoadConfig();
 
+  void SaveInputConfig();
+  void LoadInputConfig();
+
+private:
   const bool Init(const cb::string& cmdLine);
   const bool InitDisplay(const cb::string& title);
   const bool InitInput();
@@ -69,4 +73,7 @@ private:
 
   void Render();
   void RenderFrame();
+
+  void ProcessEvents();
+  void ProcessEvent(const SDL_Event& event);
 };

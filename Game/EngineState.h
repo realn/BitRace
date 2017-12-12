@@ -18,6 +18,9 @@ public:
 
   virtual const bool IsDone() const = 0;
   virtual IEngineState* GetNext(CEngine& engine) = 0;
+
+  IEngineState(const IEngineState&) = delete;
+  void operator=(const IEngineState&) = delete;
 };
 
 #endif // !__BITRACE_ENGINESTATE_H__

@@ -94,6 +94,7 @@
   <ItemGroup>
     <ClCompile Include="BasicFileSystem.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="EngineInputDefaults.cpp" />
     <ClCompile Include="EngineState.cpp" />
     <ClCompile Include="FGXFile.cpp" />
     <ClCompile Include="FileSystem.cpp" />
@@ -102,6 +103,7 @@
     <ClCompile Include="GameActor.cpp" />
     <ClCompile Include="GameDifficulty.cpp" />
     <ClCompile Include="GameEntity.cpp" />
+    <ClCompile Include="GameInputDefines.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GameObjectEvent.cpp" />
     <ClCompile Include="GameObjectEventXml.cpp" />
@@ -113,6 +115,7 @@
     <ClCompile Include="HighScore.cpp" />
     <ClCompile Include="IniFiles.cpp" />
     <ClCompile Include="InputBindings.cpp" />
+    <ClCompile Include="InputBindingsXml.cpp" />
     <ClCompile Include="InputDevice.cpp" />
     <ClCompile Include="InputDeviceEvents.cpp" />
     <ClCompile Include="InputEvents.cpp" />
@@ -152,6 +155,7 @@
     <ClInclude Include="GameActor.h" />
     <ClInclude Include="GameDifficulty.h" />
     <ClInclude Include="GameEntity.h" />
+    <ClInclude Include="GameInputDefines.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GameObjectEvent.h" />
     <ClInclude Include="GameObjectDefines.h" />
@@ -165,6 +169,7 @@
     <ClInclude Include="HighScore.h" />
     <ClInclude Include="IniFiles.h" />
     <ClInclude Include="InputBindings.h" />
+    <ClInclude Include="InputBindingsXml.h" />
     <ClInclude Include="InputDefines.h" />
     <ClInclude Include="InputDevice.h" />
     <ClInclude Include="InputDeviceEvents.h" />

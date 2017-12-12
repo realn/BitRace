@@ -16,6 +16,9 @@
     <Filter Include="Core\Input">
       <UniqueIdentifier>{fb47f85f-b16b-4475-bf92-9e553f5df7d9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphic\UI">
+      <UniqueIdentifier>{a4164e51-a603-459c-b860-8edab71525ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GUI.cpp">
@@ -52,12 +55,6 @@
     <ClCompile Include="Menu.cpp">
       <Filter>Game</Filter>
     </ClCompile>
-    <ClCompile Include="UIFont.cpp">
-      <Filter>Graphic</Filter>
-    </ClCompile>
-    <ClCompile Include="UIMenu.cpp">
-      <Filter>Graphic</Filter>
-    </ClCompile>
     <ClCompile Include="MeshFunctions.cpp">
       <Filter>Graphic</Filter>
     </ClCompile>
@@ -84,18 +81,6 @@
     </ClCompile>
     <ClCompile Include="LaserGrid.cpp">
       <Filter>Game</Filter>
-    </ClCompile>
-    <ClCompile Include="UIBrush.cpp">
-      <Filter>Graphic</Filter>
-    </ClCompile>
-    <ClCompile Include="UIScreen.cpp">
-      <Filter>Graphic</Filter>
-    </ClCompile>
-    <ClCompile Include="UIItems.cpp">
-      <Filter>Graphic</Filter>
-    </ClCompile>
-    <ClCompile Include="UIScreenXml.cpp">
-      <Filter>Graphic</Filter>
     </ClCompile>
     <ClCompile Include="GameDifficulty.cpp">
       <Filter>Game</Filter>
@@ -148,6 +133,33 @@
     <ClCompile Include="InputStandardDevices.cpp">
       <Filter>Core\Input</Filter>
     </ClCompile>
+    <ClCompile Include="InputBindingsXml.cpp">
+      <Filter>Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineInputDefaults.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="GameInputDefines.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="UIBrush.cpp">
+      <Filter>Graphic\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIFont.cpp">
+      <Filter>Graphic\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIItems.cpp">
+      <Filter>Graphic\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIMenu.cpp">
+      <Filter>Graphic\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIScreen.cpp">
+      <Filter>Graphic\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIScreenXml.cpp">
+      <Filter>Graphic\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GUI.h">
@@ -187,12 +199,6 @@
     <ClInclude Include="Menu.h">
       <Filter>Game</Filter>
     </ClInclude>
-    <ClInclude Include="UIFont.h">
-      <Filter>Graphic</Filter>
-    </ClInclude>
-    <ClInclude Include="UIMenu.h">
-      <Filter>Graphic</Filter>
-    </ClInclude>
     <ClInclude Include="MeshFunctions.h">
       <Filter>Graphic</Filter>
     </ClInclude>
@@ -219,18 +225,6 @@
     </ClInclude>
     <ClInclude Include="LaserGrid.h">
       <Filter>Game</Filter>
-    </ClInclude>
-    <ClInclude Include="UIScreen.h">
-      <Filter>Graphic</Filter>
-    </ClInclude>
-    <ClInclude Include="UIBrush.h">
-      <Filter>Graphic</Filter>
-    </ClInclude>
-    <ClInclude Include="UIScreenXml.h">
-      <Filter>Graphic</Filter>
-    </ClInclude>
-    <ClInclude Include="UIItems.h">
-      <Filter>Graphic</Filter>
     </ClInclude>
     <ClInclude Include="GameDifficulty.h">
       <Filter>Game</Filter>
@@ -285,6 +279,30 @@
     </ClInclude>
     <ClInclude Include="InputStandardDevices.h">
       <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="InputBindingsXml.h">
+      <Filter>Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="GameInputDefines.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="UIBrush.h">
+      <Filter>Graphic\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIFont.h">
+      <Filter>Graphic\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIItems.h">
+      <Filter>Graphic\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIMenu.h">
+      <Filter>Graphic\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIScreen.h">
+      <Filter>Graphic\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIScreenXml.h">
+      <Filter>Graphic\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

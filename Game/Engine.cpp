@@ -4,9 +4,13 @@
 #include "Model.h"
 #include "GameState.h"
 #include "TestState.h"
-
+#include "InputStandardDevices.h"
+#include "InputBindings.h"
 #include "GameEntity.h"
+
 #include <CBXml/Serialize.h>
+
+extern const bool CreateDefaultInputBindings(CInputSystem& input);
 
 CEngine::CEngine()
   : mpFileSystem(NULL)
@@ -45,21 +49,13 @@ CEngine::~CEngine() {
 }
 
 int CEngine::MainLoop(const cb::string& cmdLine) {
-  SDL_Event event;
-
   if(!Init(cmdLine)) {
     return -1;
   }
 
   cb::info(L"Entering main loop.");
   while(mRun) {
-
-    if(SDL_PollEvent(&event)) {
-      if(event.type == SDL_QUIT) {
-        mRun = false;
-      }
-    }
-
+    ProcessEvents();
     Update();
     Render();
   }
@@ -84,6 +80,22 @@ void CEngine::LoadConfig() {
   }
 }
 
+void CEngine::SaveInputConfig() {
+  cb::info(cb::format(L"Saving input config file to path {0}.", mConfigFilePath));
+  if(!mInput.SaveConfig(*mpFileSystem, L"inputcfg.xml")) {
+    cb::error(L"Faield to save input config file.");
+  }
+}
+
+void CEngine::LoadInputConfig() {
+  cb::info(cb::format(L"Loading input config file from path {0}.", mInputConfigFilePath));
+  if(!mInput.LoadConfig(*mpFileSystem, mInputConfigFilePath)) {
+    cb::error(L"Failed to load input config file, reseting to default bindings.");
+    mInput.ClearContexts();
+    CreateDefaultInputBindings(mInput);
+  }
+}
+
 const bool CEngine::Init(const cb::string& cmdLine) {
   if(mInited) {
     cb::warn(L"Engine already initialized.");
@@ -91,7 +103,9 @@ const bool CEngine::Init(const cb::string& cmdLine) {
   }
 
   cb::info(L"Initializing engine.");
+
   mConfigFilePath = L"main.cfg";
+  mInputConfigFilePath = L"inputcfg.xml";
   LoadConfig();
 
   if(!InitDisplay(GAME_FULLNAME)) {
@@ -219,8 +233,8 @@ const bool  CEngine::InitInput() {
   SDL_InitSubSystem(SDL_INIT_EVENTS);
 
   cb::debug(L"Adding input devices.");
-  mIDevMap.AddDevice(InputDevice::Keyboard, new CKeyboardInputDevice());
-  mIDevMap.AddDevice(InputDevice::Mouse, new CMouseInputDevice(mConfig.Screen.GetSize()));
+  mInput.GetDeviceRegistry().AddDevice(L"KEYBOARD", new CKeyboardInputDevice());
+  mInput.GetDeviceRegistry().AddDevice(L"MOUSE", new CMouseInputDevice(mConfig.Screen.GetSize()));
 
   cb::info(L"Input initialized.");
   return true;
@@ -236,7 +250,6 @@ const bool CEngine::InitGame() {
   mModelRepo = new CModelRepository(mpFileSystem);
 
   CGameState* pState = new CGameState(mConfig,
-                                      mIDevMap,
                                       mModelRepo);
   if(!pState->LoadResources(*mpFileSystem)) {
     cb::error(L"Failed to initialize game state.");
@@ -245,6 +258,8 @@ const bool CEngine::InitGame() {
   }
   //CTestState* pState = new CTestState();
   mState = pState;
+
+  mInput.RegisterObserver(pState);
 
   cb::info(L"Game initialized.");
   return true;
@@ -286,7 +301,7 @@ void CEngine::FreeDisplay() {
 void CEngine::FreeInput() {
   cb::info(L"Freeing input.");
   cb::debug(L"Clearing devices.");
-  mIDevMap.Clear();
+  mInput.GetDeviceRegistry().Clear();
 
   cb::debug(L"Quiting SDL EVENTS.");
   SDL_QuitSubSystem(SDL_INIT_EVENTS);
@@ -314,14 +329,14 @@ void CEngine::Update() {
   mFrameTime += mTimer.GetTimeDelta();
   if(mFrameTime > mFrameStepTime) {
     while(mFrameTime > mFrameStepTime) {
-      mIDevMap.Update(mFrameStepTime);
+      mInput.Update(mFrameStepTime);
       UpdateFrame(mFrameStepTime);
 
       mFrameTime -= mFrameStepTime;
     }
   }
   else if(mFrameTime > 0.0f) {
-    mIDevMap.Update(mFrameTime);
+    mInput.Update(mFrameTime);
     UpdateFrame(mFrameTime);
     mFrameTime = 0.0f;
   }
@@ -351,4 +366,21 @@ void CEngine::RenderFrame() {
 
   mState->Render();
   mState->RenderUI();
+}
+
+void CEngine::ProcessEvents() {
+  SDL_Event event;
+  for(Uint32 i = 0; i < 30 && SDL_PollEvent(&event); i++) {
+    ProcessEvent(event);
+  }
+}
+
+void CEngine::ProcessEvent(const SDL_Event & event) {
+  if(event.type == SDL_QUIT) {
+    mRun = false;
+    return;
+  }
+  if(mInput.ProcessEvent(event)) {
+    return;
+  }
 }

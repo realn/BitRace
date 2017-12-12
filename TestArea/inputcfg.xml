@@ -1,0 +1,8 @@
+<Input>
+  <Context Id="GAME">
+    <Bind DeviceType="Mouse" Target="PLAYER_ROTATEX" EventId="AxisX" />
+    <Bind DeviceType="Mouse" Target="PLAYER_ATTACK" EventId="ButtonLeft" />
+    <Bind DeviceType="Keyboard" Target="PLAYER_ATTACK" EventId="Space" />
+  </Context>
+  <Context Id="MENU" />
+</Input>
